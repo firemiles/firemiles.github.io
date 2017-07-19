@@ -12,13 +12,14 @@ category: 杂记
 为了避免 node@6.x 的兼容问题，使用 nvm 安装并使用 node@5.8。
 
 ```shell
-$ npm install -g hexo-cli -g
+$ nvm install 5.8 && nvm use 5.8
+$ npm install -g hexo-cli
 $ hexo init blog && cd blog && npm i && hexo s
 ```
 
 直接安装初始化默认版本的 hexo 并测试，hexo 默认会安装几个重要插件，包括 *hexo-server*。如果发现 `hexo server` 命令不能用，那么就有可能是 *_config.yml* 文件中的 *plugins* 配置有问题，尝试删除 *plugins* 配置再测试，我遇到的问题就是这个原因引起的。
 
-> 一定要先测试默认配置，我直接用了 hexo2 的配置，然后打开服务器就是指 404.
+> 一定要先测试默认配置，我直接用了 hexo2 的配置，然后打开服务器访问就是 404 错误.
 
 ## 迁移
 安装并测试通过后，接下来就是迁移旧blog了。
