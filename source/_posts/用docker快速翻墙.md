@@ -1,7 +1,7 @@
 ---
 title: 用docker快速完成翻墙服务搭建
 photos:
-    - https://www.vultr.com/media/banner_3.png
+    - http://firemiles-blog.oss-cn-shanghai.aliyuncs.com/2018-09-02-082740.jpg
 description: 最近banwagon又被墙了，无奈之下在vultr上申请了机器，使用docker搭建了ssr，记录下造福后人。
 date: 2018-05-30 23:05:28
 tags: [docker, ss]
