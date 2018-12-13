@@ -50,3 +50,6 @@ Optional 字段必须包含 `,omitempty` json tag;
 `pkg/apis/<group>/<version>/conversion_test.go`
 
 注意 conversion machinery 并不能通用的处理各种类型的字段和API常量。[The client library](https://github.com/kubernetes/client-go/blob/v4.0.0-beta.0/rest/request.go#L352) 自定义了字段引用的转换代码。你还需要为你的 scheme 的 `AddFieldLabelConversionFunc` 添加调用，帮助它支持字段转换，就像[这行代码](https://github.com/kubernetes/kubernetes/blob/v1.8.0-alpha.2/pkg/api/v1/conversion.go#L165)
+
+## 参考
+- https://github.com/kubernetes/community/blob/master/contributors/devel/api_changes.md#making-a-new-api-version
