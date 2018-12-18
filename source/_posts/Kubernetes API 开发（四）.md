@@ -23,3 +23,19 @@ comments: true
 
 执行 `make update` 会调用一系列[脚本](https://github.com/kubernetes/kubernetes/blob/v1.8.0-alpha.2/hack/update-all.sh#L63-L78) 包括以上的生成器。请继续阅读以下段落，因为某些生成器的使用需要一些先决条件，而且执行 `make update` 耗时太久，下面还会介绍如何单独调用生成器。
 <!--more-->
+
+### Generate protobuf objects
+
+对于任意 core API object ，我们需要生成 Protobuf IDL 和 marshallers。通过调用以下脚本生成：
+
+```sh
+hack/update-generated-protobuf.sh
+```
+
+大部分 object 对于转换成 protobuf 不需要太多的考虑，但是我们需要注意哪些依赖 golang 标准库类型的的 object，可能需要提供一些额外的工作，实践上我们一般使用自定义的 JONST 串行化。`pkg/api/serialization_test.go` 会测试你的 protobuf 串行化，多运行几次确保没有非兼容的字段。
+
+### Generate Clientset
+
+`client-gen` 是为顶层 API object 生成 clientsets 的工具。
+
+`client-gen` 要求每个想要导出的类型前添加 `// +genclient` 注释，包括 internal type `pkg/apis/<group>/types.go` 和 versioned type `staging/src/k8s.io/api/<group>/<version>/types.go` 。
