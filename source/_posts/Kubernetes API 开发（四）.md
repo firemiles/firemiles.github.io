@@ -39,3 +39,57 @@ hack/update-generated-protobuf.sh
 `client-gen` 是为顶层 API object 生成 clientsets 的工具。
 
 `client-gen` 要求每个想要导出的类型前添加 `// +genclient` 注释，包括 internal type `pkg/apis/<group>/types.go` 和 versioned type `staging/src/k8s.io/api/<group>/<version>/types.go` 。
+
+如果 apiserver 注册的 API group 名字和文件系统中存储的 group 路径不相同（一般在文件系统中存储会删除 k8s.io 后缀，例如 admission vs admission.k8s.io），你可以在向 `client-gen` 指定正确的 group name，通过在 `doc.go` 添加 `// +groupName=` 注释，当然 internal version `pkg/apis/<group>/doc.go` 和 versioned API `staging/src/k8s.io/api/<group>/<version>/types.go` 都要添加。  
+
+添加 groupName 注释后，执行以下命令生成 client：
+
+```sh
+hack/update-codegen.sh
+```
+
+你可以使用可选选项  `// +groupGoName=` 使用 Golang 驼峰标识符来为 group 指定别名, 解决冲突。例如 `policy.authorization.k8s.io` 和 `policy.k8s.io`。 这两个 group 默认都映射到 `Policy()` 这个名字的 client 中，这个时候就需要执行 groupGoName 来帮助区分这两个 client group 名。
+
+```go
+// +groupName=example2.example.com  
+// +groupGoName=SecondExample
+```
+
+第一个用来定义 RESTfully 接口的资源，第二个用来定义生成的 Golang 代码中的名字，例如在 clientset 中访问该 group verion：
+
+```go
+clientset.SecondExampleV1()
+```
+
+clent-gen 可配置性很强，如果你要为非 kubernets API 生成代码，可以看[这篇文档](https://github.com/kubernetes/community/blob/master/contributors/devel/generating-clientset.md)
+
+### Generate Listers
+
+`lister-gen` 为 client 生成 lister。 这个复用 `// +genclient` 和 `// +groupName=` 注释，所有你不用指定额外的注释。
+
+运行 `hack/update-codegen.sh` 脚本的时候会调用 `lister-gen`。
+
+### Generate Informers
+
+`informer-gen`  生成有用的 informers，用于监控 API 资源的变化. 这个复用 `// +genclient` 和 `// +groupName=` 注释，所有你不用指定额外的注释。
+
+运行 `hack/update-codegen.sh` 脚本的时候会调用 `informer-gen`。
+
+### Edit json (un)marshaling code
+
+我们只用自动生成的代码来为 API object 进行 marshalling 和 unmarshalling 操作 —— 这比 reflect 提高了系统性能。
+
+自动生成的代码放在每个 versioned API 中：
+
+- `staging/src/k8s.io/api/<group>/<version>/generated.proto`
+- `staging/src/k8s.io/api/<group>/<version>/generated.pb.go`
+
+运行一下脚本重新生成：
+
+```sh
+hack/update-generated-protobuf.sh
+```
+
+## 参考
+
+- https://github.com/kubernetes/community/blob/master/contributors/devel/api_changes.md#making-a-new-api-version
