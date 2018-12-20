@@ -1,7 +1,7 @@
 ---
 title: Kubernetes API 开发（四）
 photos:
-  - http://firemiles-blog.oss-cn-shanghai.aliyuncs.com/2018-12-17-143714.jpg
+  - https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/2018-12-17-143714.jpg
 date: 2018-12-16 20:21:32
 tags: [kubernetes, API, client-go]
 category: kubernetes

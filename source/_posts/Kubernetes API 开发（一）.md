@@ -1,7 +1,7 @@
 ---
 title: Kubernetes API 开发 （一）
 photos:
-  - http://firemiles-blog.oss-cn-shanghai.aliyuncs.com/2018-12-09-140421.jpg
+  - https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/2018-12-09-140421.jpg
 description: 本系列文章主要介绍开发者如何对 Kuberentes 的 API 进行修改和生成。 
 date: 2018-12-09 17:26:26
 tags: [kubernetes, API, client-go]

@@ -1,7 +1,7 @@
 ---
 title: 用docker快速完成翻墙服务搭建
 photos:
-    - http://firemiles-blog.oss-cn-shanghai.aliyuncs.com/2018-09-02-082740.jpg
+    - https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/2018-09-02-082740.jpg
 description: 最近banwagon又被墙了，无奈之下在vultr上申请了机器，使用docker搭建了ssr，记录下造福后人。
 date: 2018-05-30 23:05:28
 tags: [docker, ss]
@@ -15,9 +15,9 @@ comments: true
 
 [Vultr](https://www.vultr.com/?ref=6905056) 相比 linode 等老牌厂商，界面简单清爽，提供了月付2.5刀，随时可以删除换ip的VPS，非常适合作为扶墙主机。
 
-![](http://firemiles-blog.oss-cn-shanghai.aliyuncs.com/2018-05-30-151301.png)
+![](https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/2018-05-30-151301.png)
 
-![](http://firemiles-blog.oss-cn-shanghai.aliyuncs.com/2018-05-30-151558.png)
+![](https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/2018-05-30-151558.png)
 
 ## 搭建
 
