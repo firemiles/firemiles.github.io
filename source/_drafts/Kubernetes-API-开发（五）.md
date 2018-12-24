@@ -9,4 +9,8 @@ category:
 comments:
 ---
 
+## 添加一个API Version
+
+如果你要为一个 Group 添加一个新的 API Version，你可以从 `pkg/apis/<group>/<existing-version>` copy 到 `staging/src/k8s.io/api/<group>/<existing-version>` 目录中。
+
 <!--more-->
