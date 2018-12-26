@@ -8,11 +8,11 @@ tags: [kubernetes, API, client-go]
 category: kubernetes
 comments: true
 ---
-
 ## 修改 External API（版本API）
 
 修改版本API是所有修改中最简单的，只需要开发者保持修改后的API相互兼容，比从头写要一个新的 rest API 更容易。
 <!--more-->
+
 ### Edit types.go
 
 每个 API 结构体的定义放在 `staging/src/k8s.io/api/<group>/<version>/types.go` 中。修改这些文件可以实现 API 结构体的修改。

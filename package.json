@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "hexo": {
-    "version": "3.2.2"
+    "version": "3.8.0"
   },
   "dependencies": {
     "gitment": "0.0.3",
@@ -17,7 +17,7 @@
     "hexo-inject": "^1.0.0",
     "hexo-math": "^3.0.2",
     "hexo-renderer-ejs": "^0.2.0",
-    "hexo-renderer-marked": "^0.2.10",
+    "hexo-renderer-marked": "^0.2.11",
     "hexo-renderer-stylus": "^0.3.1",
     "hexo-server": "^0.2.0"
   }
