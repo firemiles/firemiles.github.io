@@ -7,6 +7,7 @@
   },
   "dependencies": {
     "gitment": "0.0.3",
+    "gitmint": "0.0.3-update.3",
     "hexo": "^3.2.0",
     "hexo-admin": "^2.1.0",
     "hexo-deployer-git": "^0.2.0",
