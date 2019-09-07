@@ -3,7 +3,7 @@ title: Load Balance 访问 Kubernetes Pod 源 IP 保留方案探索
 date: 2019-09-04 22:21:59
 tags: [kubernetes, network]
 category: kubernetes
-comments:
+comments: true
 ---
 
 Kuberentes 已经成为云计算事实上的基础设施，各大云服务厂商都推出了自己的Kubernets 集群托管服务。处于信息安全考虑，一些企业不允许自己的核心资产暴露在公共服务器上，公有云并不适合他们。一些云服务厂商嗅到了其中的商机，国外大厂OpenShift，国内云厂商阿里云、华为云、青云等纷纷顺势推出了基于Kubernetes的私有集群以及混合云的解决方案。
