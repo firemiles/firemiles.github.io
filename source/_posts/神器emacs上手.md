@@ -1,8 +1,8 @@
 ---
 title: 神器Emacs上手
-category: 工具
+category: tool
 date: 2017-02-03 20:46:44
-tags: [Emacs, 工具]
+tags: [emacs, tool]
 photos:
 comments: true
 ---

@@ -1,7 +1,7 @@
 ---
 title: iptables 快速入门
 photos:
-    - http://firemiles-blog.oss-cn-shanghai.aliyuncs.com/2019-03-16-132118.jpg
+    - https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/2019-03-16-132118.jpg
 description: iptables 大杂烩，从概念到例子一应俱全，帮助快速学会iptables的使用。 
 date: 2019-03-16 21:09:26
 tags: [network, iptables]
@@ -19,7 +19,7 @@ iptables 可以检测、修改、转发、重定向和丢弃IPv4数据包。过�
 
 理解iptables如果工作的关键是下面这张图。
 
-![iptables规则顺序](http://firemiles-blog.oss-cn-shanghai.aliyuncs.com/2019-03-16-131721.jpg)
+![iptables规则顺序](https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/2019-03-16-131721.jpg)
 
 从任何网络端口进来的每一个IP数据包都要从上到下穿过这张图。一种常见的困扰是认为iptables对从内部端口进入的数据包和从面向互联网端口进入的数据包采用不同的处理方式，相反，iptables对从任何端口进入的数据包都会采用相同的处理方式。可以定义规则使iptables采取不同的方式对待从不同端口进入的数据包。
 
@@ -33,7 +33,7 @@ raw -> mangle -> nat -> filter
 
 链的顺序：
 
-![链的顺序](http://firemiles-blog.oss-cn-shanghai.aliyuncs.com/2019-03-16-131325.jpg)
+![链的顺序](https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/2019-03-16-131325.jpg)
 
 ### 表（Tables）
 
@@ -51,7 +51,7 @@ iptables 包含5张表
 
 表由链组成，链是一些安装顺序排列的规则和列表。默认的 `filter` 表包含 `INPUT`，`OUTPUT` 和 `FORWARD` 3 条内建链。 `nat` 表包含 `PREROUTING`, `POSTROUTING` 和 `OUTPUT` 链。
 
-![四表五链关系](http://firemiles-blog.oss-cn-shanghai.aliyuncs.com/2019-03-16-131401.jpg)
+![四表五链关系](https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/2019-03-16-131401.jpg)
 
 ### 规则（Rules）
 
@@ -63,7 +63,7 @@ iptables 包含5张表
 
 上述流程图描述了在任何接口上收到的网络数据包是按照怎样的顺序走过表的交通管制链。第一个路由策略包决定数据包的目的地址是本地主机（这时穿过 `INPUT` 链），还是其他主机（穿过`FORWARD`链）;中间的路由策略决定传出的包使用哪个源地址、分配哪个接口；最后一个路由策略存在是因为先前的 mangle 与 nat 链可能会改变数据包的路由信息。数据包通过路径上的每一条链时，链中的每一条规则按顺序匹配；无论何时匹配了一条规则，相应的 target/jump 动作将会执行。最常用的 3 个 taget 是 `ACCPET` , `DROP` 或者 jump 到自定义链。内置的链有默认的策略，但是用户自定义的链没有默认策略。在jump到的链中，若每条规则都不能完全匹配，那么数据包像下图一样返回到调用链。
 
-![调用链返回](http://firemiles-blog.oss-cn-shanghai.aliyuncs.com/2019-03-16-131434.jpg)
+![调用链返回](https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/2019-03-16-131434.jpg)
 
 `DROP` target 的规则完全能匹配，那么被匹配的数据包会被丢弃。如果一个数据包在链中被 `ACCEPT`，那么他会被所有的父链 `ACCEPT`。并且不在便利其他父链。然而，要注意的是，数据包还会以正常的方式继续遍历其他表中的其他链。
 

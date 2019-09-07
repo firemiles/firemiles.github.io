@@ -1,8 +1,8 @@
 ---
 title: DHT 爬虫初步
 date: 2016-02-14 19:49:21
-tags: [DHT, BitTorrent, 爬虫]
-category: 爬虫
+tags: [DHT, BitTorrent, crawler]
+category: crawler
 ---
 
 一直想写一个种子搜索引擎，搜集资料开始写后遇到了一个难关：爬虫的效率太低，运行一天也爬不到一条

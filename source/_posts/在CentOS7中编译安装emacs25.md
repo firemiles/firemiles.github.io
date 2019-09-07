@@ -2,8 +2,8 @@
 title: 在CentOS7中编译安装emacs25
 description: CentOS7自带的emacs版本太低，想要更高版本只能编译安装。
 date: 2018-01-06 00:24:46
-tags: [emacs, 工具]
-category: 工具
+tags: [emacs, tool]
+category: tool
 comments: true
 ---
 

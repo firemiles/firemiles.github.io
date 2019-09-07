@@ -1,7 +1,7 @@
 ---
 title: 迁移到hexo3
 date: 2016-09-13 13:47:18
-tags: [Hexo]
+tags: [hexo]
 category: 杂记
 ---
 

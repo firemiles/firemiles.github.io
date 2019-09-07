@@ -1,7 +1,7 @@
 ---
 title: "LDD阅读笔记之字符设备驱动"
 category: LDD
-tags: [Linux,Driver]
+tags: [linux, driver]
 date: 2015-01-04 9:23
 comments: true
 ---
