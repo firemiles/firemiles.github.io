@@ -223,6 +223,7 @@ Code   Len   Type  Client-Identifier
 
 ```txt
 stateDiagram
+    [*] --> INIT
     INIT --> SELECTING: -/Send DHCPDISCOVER
     SELECTING --> SELECTING: DHCPOFFER/Collect replies
     SELECTING --> REQUESTING: Select offerk/send DHCPREQUEST

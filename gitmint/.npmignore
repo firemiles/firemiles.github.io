@@ -1,0 +1,7 @@
+.DS_Store
+.idea
+.gitignore
+.npmignore
+.babelrc
+
+node_modules
