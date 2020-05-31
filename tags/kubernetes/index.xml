@@ -1,0 +1,80 @@
+<rss xmlns:atom="http://www.w3.org/2005/Atom" version="2.0">
+    <channel>
+        <title>kubernetes - 标签 - Firemiles 的技术生活</title>
+        <link>https://blog.firemiles.top/tags/kubernetes/</link>
+        <description>kubernetes - 标签 - Firemiles 的技术生活</description>
+        <generator>Hugo -- gohugo.io</generator><language>zh-CN</language><managingEditor>miles.dev@outlook.comm (firemiles)</managingEditor>
+            <webMaster>miles.dev@outlook.comm (firemiles)</webMaster><lastBuildDate>Wed, 04 Sep 2019 22:21:59 &#43;0000</lastBuildDate><atom:link href="https://blog.firemiles.top/tags/kubernetes/" rel="self" type="application/rss+xml" /><item>
+    <title>Load Balance 访问 Kubernetes Pod 源 IP 保留方案探索</title>
+    <link>https://blog.firemiles.top/2019/preserve-source-ip-in-k8s/</link>
+    <pubDate>Wed, 04 Sep 2019 22:21:59 &#43;0000</pubDate>
+    <author>作者</author>
+    <guid>https://blog.firemiles.top/2019/preserve-source-ip-in-k8s/</guid>
+    <description><![CDATA[<p>Kuberentes 已经成为云计算事实上的基础设施，各大云服务厂商都推出了自己的Kubernets 集群托管服务。处于信息安全考虑，一些企业不允许自己的核心资产暴露在公共服务器上，公有云并不适合他们。一些云服务厂商嗅到了其中的商机，国外大厂OpenShift，国内云厂商阿里云、华为云、青云等纷纷顺势推出了基于Kubernetes的私有集群以及混合云的解决方案。</p>
+<p>企业在选型方案是，网络能力往往是考量各解决方案优劣的一个重要指标，但是本文并不打算分析各厂商的网络方案（工作量太大，计划后续补上），而是主要聚焦 Kubernetes 集群中的一个小的网络特性，即 Kubernetes Load Balance Service 如何保留客户端源IP。</p>]]></description>
+</item><item>
+    <title>Kubernetes API 开发（五）</title>
+    <link>https://blog.firemiles.top/2018/kubernetes-api-%E5%BC%80%E5%8F%91%E4%BA%94/</link>
+    <pubDate>Wed, 26 Dec 2018 21:15:12 &#43;0000</pubDate>
+    <author>作者</author>
+    <guid>https://blog.firemiles.top/2018/kubernetes-api-%E5%BC%80%E5%8F%91%E4%BA%94/</guid>
+    <description><![CDATA[<h2 id="添加一个新-api-version">添加一个新 API Version</h2>
+<p>如果你要为一个 Group 添加一个新的 API Version，你可以从 <code>pkg/apis/&lt;group&gt;/&lt;existing-version&gt;</code> copy 到 <code>staging/src/k8s.io/api/&lt;group&gt;/&lt;existing-version&gt;</code> 目录中。</p>
+<p>由于项目在飞速迭代，以下的内容有可能已经过时：</p>
+<ul>
+<li>你可以通过修改<a href="https://github.com/kubernetes/kubernetes/blob/v1.8.0-alpha.2/pkg/master/master.go#L381" target="_blank" rel="noopener noreffer">pkg/master/master.go.</a>控制是否默认 API Version enable</li>
+<li>你必须在<a href="https://github.com/kubernetes/kubernetes/blob/v1.11.0/pkg/apis/apps/install/install.go" target="_blank" rel="noopener noreffer">pkg/apis/group_name/install/install.go.</a>中添加新 version</li>
+<li>你必须在<a href="https://github.com/kubernetes/kubernetes/blob/v1.8.0-alpha.2/hack/lib/init.sh#L53" target="_blank" rel="noopener noreffer">hack/lib/init.sh#KUBE_AVAILABLE_GROUP_VERSIONS.</a>中添加新version</li>
+<li>你必须在<a href="https://github.com/kubernetes/kubernetes/blob/v1.8.2/hack/update-generated-protobuf-dockerized.sh#L44" target="_blank" rel="noopener noreffer">hack/update-generated-protobuf-dockerized.sh</a>中添加新version，帮助生成protobuf IDL和marshallers</li>
+<li>你必须在<a href="https://github.com/kubernetes/kubernetes/blob/v1.8.0-alpha.2/cmd/kube-apiserver/app/aggregator.go#L172" target="_blank" rel="noopener noreffer">cmd/kube-apiserver/app#apiVersionPriorities</a></li>
+<li>你必须为新version安装storage <a href="https://github.com/kubernetes/kubernetes/blob/v1.8.0-alpha.2/pkg/registry/authentication/rest/storage_authentication.go" target="_blank" rel="noopener noreffer">pkg/registry/group_name/rest</a></li>
+</ul>]]></description>
+</item><item>
+    <title>Kubernetes API 开发（四）</title>
+    <link>https://blog.firemiles.top/2018/kubernetes-api-%E5%BC%80%E5%8F%91%E5%9B%9B/</link>
+    <pubDate>Sun, 16 Dec 2018 20:21:32 &#43;0000</pubDate>
+    <author>作者</author>
+    <guid>https://blog.firemiles.top/2018/kubernetes-api-%E5%BC%80%E5%8F%91%E5%9B%9B/</guid>
+    <description><![CDATA[<div class="featured-image">
+                <img src="https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/2018-12-17-143714.jpg" referrerpolicy="no-referrer">
+            </div><h2 id="生成代码">生成代码</h2>
+<p>除了 <code>default-gen</code>, <code>deepcopy-gen</code>, <code>conversion-gen</code>, 和 <code>openapi-gen</code> 外，还有其他的生成器：</p>
+<ul>
+<li><code>go-to-protobuf</code></li>
+<li><code>client-gen</code></li>
+<li><code>lister-gen</code></li>
+<li><code>informer-gen</code></li>
+<li><code>codecgen</code> (使用 ugorji codec快速串行化json)</li>
+</ul>
+<p>大部分生成器基于 <a href="https://github.com/kubernetes/gengo" target="_blank" rel="noopener noreffer">gengo</a> ，拥有相同的命令行选项。 <code>--verify-only</code> 会检查磁盘上的将要生成的文件。</p>
+<p>生成器生成代码时有个 <code>--go-header-file</code> 选项，该选项指定包含生成代码头部内容的文件。头部内容一般是版权信息，放在生成代码的最前面，并且会被稍后的 <a href="https://git.k8s.io/repo-infra/verify/verify-boilerplate.sh" target="_blank" rel="noopener noreffer">repo-infra/verify/verify-boilerplane.sh </a> 脚本检查。</p>
+<p>执行 <code>make update</code> 会调用一系列<a href="https://github.com/kubernetes/kubernetes/blob/v1.8.0-alpha.2/hack/update-all.sh#L63-L78" target="_blank" rel="noopener noreffer">脚本</a> 包括以上的生成器。请继续阅读以下段落，因为某些生成器的使用需要一些先决条件，而且执行 <code>make update</code> 耗时太久，下面还会介绍如何单独调用生成器。</p>]]></description>
+</item><item>
+    <title>Kubernetes API 开发（三）</title>
+    <link>https://blog.firemiles.top/2018/kubernetes-api-%E5%BC%80%E5%8F%91%E4%B8%89/</link>
+    <pubDate>Fri, 14 Dec 2018 22:30:25 &#43;0000</pubDate>
+    <author>作者</author>
+    <guid>https://blog.firemiles.top/2018/kubernetes-api-%E5%BC%80%E5%8F%91%E4%B8%89/</guid>
+    <description><![CDATA[<h2 id="修改-internal-structures-unversioned-api">修改 Internal structures (unversioned API)</h2>
+<p>现在是时候开始介绍如何修改内部结构体，这样你修改的 versioned API 才能正常使用。</p>]]></description>
+</item><item>
+    <title>Kubernetes API 开发（二）</title>
+    <link>https://blog.firemiles.top/2018/kubernetes-api-%E5%BC%80%E5%8F%91%E4%BA%8C/</link>
+    <pubDate>Wed, 12 Dec 2018 21:52:51 &#43;0000</pubDate>
+    <author>作者</author>
+    <guid>https://blog.firemiles.top/2018/kubernetes-api-%E5%BC%80%E5%8F%91%E4%BA%8C/</guid>
+    <description><![CDATA[<div class="featured-image">
+                <img src="https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/2018-12-12-140900.jpg" referrerpolicy="no-referrer">
+            </div><h2 id="修改-external-api版本api">修改 External API（版本API）</h2>
+<p>修改版本API是所有修改中最简单的，只需要开发者保持修改后的API相互兼容，比从头写要一个新的 rest API 更容易。</p>]]></description>
+</item><item>
+    <title>Kubernetes API 开发（一）</title>
+    <link>https://blog.firemiles.top/2018/kubernetes-api-%E5%BC%80%E5%8F%91%E4%B8%80/</link>
+    <pubDate>Sun, 09 Dec 2018 17:26:26 &#43;0000</pubDate>
+    <author>作者</author>
+    <guid>https://blog.firemiles.top/2018/kubernetes-api-%E5%BC%80%E5%8F%91%E4%B8%80/</guid>
+    <description><![CDATA[<div class="featured-image">
+                <img src="https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/2018-12-09-140421.jpg" referrerpolicy="no-referrer">
+            </div><p>本文宏观介绍 <strong>kubernetes</strong> 的 <strong>API</strong> 各版本之间的联系以及 <strong>API</strong> 开发的原则。</p>]]></description>
+</item></channel>
+</rss>

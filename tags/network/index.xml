@@ -1,0 +1,72 @@
+<rss xmlns:atom="http://www.w3.org/2005/Atom" version="2.0">
+    <channel>
+        <title>network - 标签 - Firemiles 的技术生活</title>
+        <link>https://blog.firemiles.top/tags/network/</link>
+        <description>network - 标签 - Firemiles 的技术生活</description>
+        <generator>Hugo -- gohugo.io</generator><language>zh-CN</language><managingEditor>miles.dev@outlook.comm (firemiles)</managingEditor>
+            <webMaster>miles.dev@outlook.comm (firemiles)</webMaster><lastBuildDate>Mon, 24 Feb 2020 23:41:33 &#43;0000</lastBuildDate><atom:link href="https://blog.firemiles.top/tags/network/" rel="self" type="application/rss+xml" /><item>
+    <title>DHCP协议</title>
+    <link>https://blog.firemiles.top/2020/dhcp%E5%8D%8F%E8%AE%AE/</link>
+    <pubDate>Mon, 24 Feb 2020 23:41:33 &#43;0000</pubDate>
+    <author>作者</author>
+    <guid>https://blog.firemiles.top/2020/dhcp%E5%8D%8F%E8%AE%AE/</guid>
+    <description><![CDATA[<div class="featured-image">
+                <img src="https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/20200224234329.png" referrerpolicy="no-referrer">
+            </div><h2 id="协议说明">协议说明</h2>
+<p>DHCP 协议（动态主机设定协定）是一个用于局域网的网络协议，位于TCP/IP的应用层，使用UDP协议工作，主要有两个用途：</p>
+<ul>
+<li>用于内部网络和网络服务商自动分配IP给用户</li>
+<li>用于内部网络管理员对所有电脑作中央管理</li>
+</ul>
+<p>DHCP 用一台或一组DHCP服务器来管理网络参数的分配，这种分配方式具有容错性。即使在一个仅拥有少量机器的网络中，DHCP仍然是有用的，因为一台机器可以不造成任何影响的被加入到网路中。</p>
+<p>甚至对于很少改变地址的服务器，DHCP仍然被建议用来设置它们的地址。如果服务器需要被重新分配地址，尽可能不改变之前的配置。对于一些设备，如路由器和防火墙，则不应该使用DHCP。</p>
+<p>DHCP 于 1993 年10月成为标准协议，前身是 BOOTP （Bootstrap Protocol， 引导程序协议），DHCP 被设计成向前兼容 BOOTP 协议。当前的DHCP定义可以在<a href="https://tools.ietf.org/html/rfc2131" target="_blank" rel="noopener noreffer">RFC 2131</a>找到，而基于IPv6的建议标准(DHCPv6)可以在<a href="https://tools.ietf.org/html/rfc3315" target="_blank" rel="noopener noreffer">RFC3315</a>中找到。</p>]]></description>
+</item><item>
+    <title>IPv6特性介绍</title>
+    <link>https://blog.firemiles.top/2019/ipv6%E7%89%B9%E6%80%A7%E4%BB%8B%E7%BB%8D/</link>
+    <pubDate>Wed, 27 Nov 2019 09:47:43 &#43;0000</pubDate>
+    <author>作者</author>
+    <guid>https://blog.firemiles.top/2019/ipv6%E7%89%B9%E6%80%A7%E4%BB%8B%E7%BB%8D/</guid>
+    <description><![CDATA[IPv6 概述 IPv6（互联网协议版本6）是一种新的寻址协议，旨在包含未来互联网的所有可能需求。 为什么是新的IP版本 到目前为止，IPv4已经证明自己]]></description>
+</item><item>
+    <title>常见容器网络问题诊断</title>
+    <link>https://blog.firemiles.top/2019/%E5%B8%B8%E8%A7%81%E5%AE%B9%E5%99%A8%E7%BD%91%E7%BB%9C%E9%97%AE%E9%A2%98%E8%AF%8A%E6%96%AD/</link>
+    <pubDate>Sun, 24 Nov 2019 14:36:23 &#43;0000</pubDate>
+    <author>作者</author>
+    <guid>https://blog.firemiles.top/2019/%E5%B8%B8%E8%A7%81%E5%AE%B9%E5%99%A8%E7%BD%91%E7%BB%9C%E9%97%AE%E9%A2%98%E8%AF%8A%E6%96%AD/</guid>
+    <description><![CDATA[Kubernetes 的容器网络插件家族越来越庞大，各种模式层出不穷，但是万变不离其宗，overlay 和 underlay。overlay 常使用 vxlan 或者 ipip，u]]></description>
+</item><item>
+    <title>Load Balance 访问 Kubernetes Pod 源 IP 保留方案探索</title>
+    <link>https://blog.firemiles.top/2019/preserve-source-ip-in-k8s/</link>
+    <pubDate>Wed, 04 Sep 2019 22:21:59 &#43;0000</pubDate>
+    <author>作者</author>
+    <guid>https://blog.firemiles.top/2019/preserve-source-ip-in-k8s/</guid>
+    <description><![CDATA[<p>Kuberentes 已经成为云计算事实上的基础设施，各大云服务厂商都推出了自己的Kubernets 集群托管服务。处于信息安全考虑，一些企业不允许自己的核心资产暴露在公共服务器上，公有云并不适合他们。一些云服务厂商嗅到了其中的商机，国外大厂OpenShift，国内云厂商阿里云、华为云、青云等纷纷顺势推出了基于Kubernetes的私有集群以及混合云的解决方案。</p>
+<p>企业在选型方案是，网络能力往往是考量各解决方案优劣的一个重要指标，但是本文并不打算分析各厂商的网络方案（工作量太大，计划后续补上），而是主要聚焦 Kubernetes 集群中的一个小的网络特性，即 Kubernetes Load Balance Service 如何保留客户端源IP。</p>]]></description>
+</item><item>
+    <title>iptables 快速入门</title>
+    <link>https://blog.firemiles.top/2019/iptables%E5%BF%AB%E9%80%9F%E5%85%A5%E9%97%A8/</link>
+    <pubDate>Sat, 16 Mar 2019 21:09:26 &#43;0000</pubDate>
+    <author>作者</author>
+    <guid>https://blog.firemiles.top/2019/iptables%E5%BF%AB%E9%80%9F%E5%85%A5%E9%97%A8/</guid>
+    <description><![CDATA[iptables 是 netfilter 项目的一部分，自1998年首发至今已经20年了，仍然是Linux中网络流量控制的重要软件。学习网络知识，iptables 是绕不过的一道]]></description>
+</item><item>
+    <title>深入浅出容器网络（二）</title>
+    <link>https://blog.firemiles.top/2018/%E6%B7%B1%E5%85%A5%E6%B5%85%E5%87%BA%E5%AE%B9%E5%99%A8%E7%BD%91%E7%BB%9C%E4%BA%8C/</link>
+    <pubDate>Mon, 06 Aug 2018 22:59:59 &#43;0000</pubDate>
+    <author>作者</author>
+    <guid>https://blog.firemiles.top/2018/%E6%B7%B1%E5%85%A5%E6%B5%85%E5%87%BA%E5%AE%B9%E5%99%A8%E7%BD%91%E7%BB%9C%E4%BA%8C/</guid>
+    <description><![CDATA[<div class="featured-image">
+                <img src="https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/2018-09-02-082400.jpg" referrerpolicy="no-referrer">
+            </div>上一篇介绍了容器网络广泛采用的两种接入模型：CNM和CNI，通过实现这两种模型定义的接口，我们可以方便的将自定义网络接入或者从容器中移除。本篇我们就要介绍接入容器的网络组网类型。]]></description>
+</item><item>
+    <title>深入浅出容器网络（一）</title>
+    <link>https://blog.firemiles.top/2018/%E6%B7%B1%E5%85%A5%E6%B5%85%E5%87%BA%E5%AE%B9%E5%99%A8%E7%BD%91%E7%BB%9C%E4%B8%80/</link>
+    <pubDate>Sun, 27 May 2018 02:36:56 &#43;0000</pubDate>
+    <author>作者</author>
+    <guid>https://blog.firemiles.top/2018/%E6%B7%B1%E5%85%A5%E6%B5%85%E5%87%BA%E5%AE%B9%E5%99%A8%E7%BD%91%E7%BB%9C%E4%B8%80/</guid>
+    <description><![CDATA[<div class="featured-image">
+                <img src="https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/2018-05-26-185616.jpg" referrerpolicy="no-referrer">
+            </div>作为系列第一篇，先开个头，介绍模型和框架，后续再新增实战系列，理论是实战结合才能更好的理解容器网络的设计和实现原理。 模型 容器技术已经火遍全球]]></description>
+</item></channel>
+</rss>

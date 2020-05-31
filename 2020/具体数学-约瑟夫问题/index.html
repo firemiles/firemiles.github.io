@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="robots" content="noodp" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge, chrome=1">
+        <title>具体数学-约瑟夫问题 - Firemiles 的技术生活</title><meta name="Description" content="Firemiles 的技术生活轨迹"><meta property="og:title" content="具体数学-约瑟夫问题" />
+<meta property="og:description" content="引子
+最近在读计算机经典教科书《具体数学》，作为一个非科班的计算机从业者，仿佛打开了新的天地，原来我刷题遇到的算法问题很多都可以用数学方法解决，原来数学不光是高数、线代和微积分三座大山，离散数学在计算机上是绝配。为记录学习过程中的心得并分享，故展开具体数学系列博客，望与有缘人分享这份知识的喜悦。
+和《具体数学》的章节安排一样，本博客作为系列第一篇，主要讨论递归算法，从难易程度分成三个部分：河内塔、平面上的直线、约瑟夫问题。它们有两个共同的特征：一是都曾被数学家反复研究过；二是它们的解都用了 递归 的思想。" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://blog.firemiles.top/2020/%E5%85%B7%E4%BD%93%E6%95%B0%E5%AD%A6-%E7%BA%A6%E7%91%9F%E5%A4%AB%E9%97%AE%E9%A2%98/" />
+<meta property="og:image" content="https://blog.firemiles.top/logo.png"/>
+<meta property="article:published_time" content="2020-01-04T20:07:55+00:00" />
+<meta property="article:modified_time" content="2020-01-04T20:07:55+00:00" />
+<meta name="twitter:card" content="summary_large_image"/>
+<meta name="twitter:image" content="https://blog.firemiles.top/logo.png"/>
+
+<meta name="twitter:title" content="具体数学-约瑟夫问题"/>
+<meta name="twitter:description" content="引子
+最近在读计算机经典教科书《具体数学》，作为一个非科班的计算机从业者，仿佛打开了新的天地，原来我刷题遇到的算法问题很多都可以用数学方法解决，原来数学不光是高数、线代和微积分三座大山，离散数学在计算机上是绝配。为记录学习过程中的心得并分享，故展开具体数学系列博客，望与有缘人分享这份知识的喜悦。
+和《具体数学》的章节安排一样，本博客作为系列第一篇，主要讨论递归算法，从难易程度分成三个部分：河内塔、平面上的直线、约瑟夫问题。它们有两个共同的特征：一是都曾被数学家反复研究过；二是它们的解都用了 递归 的思想。"/>
+<meta name="application-name" content="LoveIt">
+<meta name="apple-mobile-web-app-title" content="LoveIt"><meta name="theme-color" content="#ffffff"><meta name="msapplication-TileColor" content="#da532c"><link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png"><link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"><link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5"><link rel="manifest" href="/site.webmanifest"><link rel="canonical" href="https://blog.firemiles.top/2020/%E5%85%B7%E4%BD%93%E6%95%B0%E5%AD%A6-%E7%BA%A6%E7%91%9F%E5%A4%AB%E9%97%AE%E9%A2%98/" /><link rel="prev" href="https://blog.firemiles.top/2020/openvswitch%E4%BD%BF%E7%94%A8%E9%80%9F%E6%9F%A5/" /><link rel="next" href="https://blog.firemiles.top/2020/dhcp%E5%8D%8F%E8%AE%AE/" /><link rel="stylesheet" href="/lib/normalize/normalize.min.css"><link rel="stylesheet" href="/css/style.min.css"><link rel="stylesheet" href="/lib/fontawesome-free/all.min.css"><link rel="stylesheet" href="/lib/animate/animate.min.css"><script type="application/ld+json">
+    {
+        "@context": "http://schema.org",
+        "@type": "BlogPosting",
+        "headline": "具体数学-约瑟夫问题",
+        "inLanguage": "zh-CN",
+        "mainEntityOfPage": {
+            "@type": "WebPage",
+            "@id": "https:\/\/blog.firemiles.top\/2020\/%E5%85%B7%E4%BD%93%E6%95%B0%E5%AD%A6-%E7%BA%A6%E7%91%9F%E5%A4%AB%E9%97%AE%E9%A2%98\/"
+        },"genre": "posts","keywords": "math, algorithm, Josephus problem","wordcount":  5603 ,
+        "url": "https:\/\/blog.firemiles.top\/2020\/%E5%85%B7%E4%BD%93%E6%95%B0%E5%AD%A6-%E7%BA%A6%E7%91%9F%E5%A4%AB%E9%97%AE%E9%A2%98\/","datePublished": "2020-01-04T20:07:55+00:00","dateModified": "2020-01-04T20:07:55+00:00","publisher": {
+            "@type": "Organization",
+            "name": ""},"author": {
+                "@type": "Person",
+                "name": "firemiles"
+            },"description": ""
+    }
+    </script></head>
+    <body header-desktop="fixed" header-mobile="auto"><script type="text/javascript">(window.localStorage && localStorage.getItem('theme') ? localStorage.getItem('theme') === 'dark' : ('auto' === 'auto' ? window.matchMedia('(prefers-color-scheme: dark)').matches : 'auto' === 'dark')) && document.body.setAttribute('theme', 'dark');</script>
+
+        <div id="mask"></div><div class="wrapper"><header class="desktop" id="header-desktop">
+    <div class="header-wrapper">
+        <div class="header-title">
+            <a href="/" title="Firemiles 的技术生活"><span class="header-title-pre"><i class='fa fa-rocket'></i></span>Firemiles 的个人博客</a>
+        </div>
+        <div class="menu">
+            <div class="menu-inner"><a class="menu-item" href="/posts/"> 文章 </a><a class="menu-item" href="/tags/"> 标签 </a><a class="menu-item" href="/categories/"> 分类 </a><a class="menu-item" href="/about/"> 关于 </a><a class="menu-item" href="https://github.com/firemiles/firemiles.github.io" title="GitHub" rel="noopener noreffer" target="_blank"><i class='fab fa-github fa-fw'></i>  </a><span class="menu-item delimiter"></span><span class="menu-item search" id="search-desktop">
+                        <input type="text" placeholder="搜索文章标题或内容..." id="search-input-desktop">
+                        <a href="javascript:void(0);" class="search-button search-toggle" id="search-toggle-desktop" title="搜索">
+                            <i class="fas fa-search fa-fw"></i>
+                        </a>
+                        <a href="javascript:void(0);" class="search-button search-clear" id="search-clear-desktop" title="清空">
+                            <i class="fas fa-times-circle fa-fw"></i>
+                        </a>
+                        <span class="search-button search-loading" id="search-loading-desktop">
+                            <i class="fas fa-spinner fa-fw fa-spin"></i>
+                        </span>
+                    </span><a href="javascript:void(0);" class="menu-item theme-switch" title="切换主题">
+                    <i class="fas fa-adjust fa-fw"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+</header><header class="mobile" id="header-mobile">
+    <div class="header-container">
+        <div class="header-wrapper">
+            <div class="header-title">
+                <a href="/" title="Firemiles 的技术生活"><span class="header-title-pre"><i class='fa fa-rocket'></i></span>Firemiles 的个人博客</a>
+            </div>
+            <div class="menu-toggle" id="menu-toggle-mobile">
+                <span></span><span></span><span></span>
+            </div>
+        </div>
+        <div class="menu" id="menu-mobile"><div class="search-wrapper">
+                    <div class="search mobile" id="search-mobile">
+                        <input type="text" placeholder="搜索文章标题或内容..." id="search-input-mobile">
+                        <a href="javascript:void(0);" class="search-button search-toggle" id="search-toggle-mobile" title="搜索">
+                            <i class="fas fa-search fa-fw"></i>
+                        </a>
+                        <a href="javascript:void(0);" class="search-button search-clear" id="search-clear-mobile" title="清空">
+                            <i class="fas fa-times-circle fa-fw"></i>
+                        </a>
+                        <span class="search-button search-loading" id="search-loading-mobile">
+                            <i class="fas fa-spinner fa-fw fa-spin"></i>
+                        </span>
+                    </div>
+                    <a href="javascript:void(0);" class="search-cancel" id="search-cancel-mobile">
+                        取消
+                    </a>
+                </div><a class="menu-item" href="/posts/" title="">文章</a><a class="menu-item" href="/tags/" title="">标签</a><a class="menu-item" href="/categories/" title="">分类</a><a class="menu-item" href="/about/" title="">关于</a><a class="menu-item" href="https://github.com/firemiles/firemiles.github.io" title="GitHub" rel="noopener noreffer" target="_blank"><i class='fab fa-github fa-fw'></i></a><a href="javascript:void(0);" class="menu-item theme-switch" title="切换主题">
+                <i class="fas fa-adjust fa-fw"></i>
+            </a></div>
+    </div>
+</header>
+<div class="search-dropdown desktop">
+    <div id="search-dropdown-desktop"></div>
+</div>
+<div class="search-dropdown mobile">
+    <div id="search-dropdown-mobile"></div>
+</div>
+<main class="main">
+                <div class="container"><div class="toc" id="toc-auto">
+            <h2 class="toc-title">目录</h2>
+            <div class="toc-content" id="toc-content-auto"></div>
+        </div><article class="page single"><h1 class="single-title animated flipInX">具体数学-约瑟夫问题</h1><div class="post-meta">
+            <div class="post-meta-line"><span class="post-author"><a href="/" title="Author" rel=" author" class="author"><i class="fas fa-user-circle fa-fw"></i>firemiles</a></span>&nbsp;<span class="post-category">收录于 <a href="/categories/algorithm/"><i class="far fa-folder fa-fw"></i>algorithm</a></span></div>
+            <div class="post-meta-line"><i class="far fa-calendar-alt fa-fw"></i>&nbsp;<time datetime="2020-01-04">2020-01-04</time>&nbsp;<i class="fas fa-pencil-alt fa-fw"></i>&nbsp;约 5603 字&nbsp;
+                <i class="far fa-clock fa-fw"></i>&nbsp;预计阅读 12 分钟&nbsp;</div>
+        </div><div class="featured-image"><img
+        class="lazyload"
+        src="/svg/loading.min.svg"
+        data-src="https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/20200104201137.png"
+        data-srcset="https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/20200104201137.png, https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/20200104201137.png 1.5x, https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/20200104201137.png 2x"
+        data-sizes="auto"
+        alt="https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/20200104201137.png"
+        title="https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/20200104201137.png" /></div><div class="details toc" id="toc-static"  kept="true">
+                <div class="details-summary toc-title">
+                    <span>目录</span>
+                    <span><i class="details-icon fas fa-angle-right"></i></span>
+                </div>
+                <div class="details-content toc-content" id="toc-content-static"><nav id="TableOfContents">
+  <ul>
+    <li><a href="#引子">引子</a></li>
+    <li><a href="#河内塔-the-tower-of-hanoi">河内塔 THE TOWER OF HANOI</a></li>
+    <li><a href="#平面上的直线-lines-in-the-plane">平面上的直线 LINES IN THE PLANE</a>
+      <ul>
+        <li><a href="#平面上的折线">平面上的折线</a></li>
+      </ul>
+    </li>
+    <li><a href="#约瑟夫问题-the-josephus-problem">约瑟夫问题 THE JOSEPHUS PROBLEM</a>
+      <ul>
+        <li><a href="#问题推广">问题推广</a></li>
+      </ul>
+    </li>
+    <li><a href="#最后的问题">最后的问题</a></li>
+    <li><a href="#参考资料">参考资料</a></li>
+  </ul>
+</nav></div>
+            </div><div class="content" id="content"><h2 id="引子">引子</h2>
+<p>最近在读计算机经典教科书《具体数学》，作为一个非科班的计算机从业者，仿佛打开了新的天地，原来我刷题遇到的算法问题很多都可以用数学方法解决，原来数学不光是高数、线代和微积分三座大山，离散数学在计算机上是绝配。为记录学习过程中的心得并分享，故展开具体数学系列博客，望与有缘人分享这份知识的喜悦。</p>
+<p>和《具体数学》的章节安排一样，本博客作为系列第一篇，主要讨论递归算法，从难易程度分成三个部分：<strong>河内塔</strong>、<strong>平面上的直线</strong>、<strong>约瑟夫问题</strong>。它们有两个共同的特征：一是都曾被数学家反复研究过；二是它们的解都用了 <em>递归</em> 的思想。</p>
+<h2 id="河内塔-the-tower-of-hanoi">河内塔 THE TOWER OF HANOI</h2>
+<p>学习过递归算法的同学应该都知道知道河内塔，我当时就是通过河内塔入门了递归算法的。河内塔是由法国数学家爱德华·卢卡斯于1883 年发明的。给定一个由8个圆盘组成的塔，这些圆盘按照大小递减的的方式套在三根桩柱中的一根上。</p>
+<p><img
+        class="lazyload"
+        src="/svg/loading.min.svg"
+        data-src="https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/20200102100849.png"
+        data-srcset="https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/20200102100849.png, https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/20200102100849.png 1.5x, https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/20200102100849.png 2x"
+        data-sizes="auto"
+        alt="https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/20200102100849.png"
+        title="汉诺塔" /></p>
+<p>我们的目的是要将整个塔移动到另一根桩柱上，每次只能移动一个圆盘，且较大的圆盘在移动过程中不能放置在较小的的圆盘上面。</p>
+<p>现在问题来了：我们能做到的最好的解法是什么？也就是说，要完成这项任务移动多少次才是必须且足够的？</p>
+<p>研究这样的问题的最好的方法是对它稍加推广，如果有n个圆盘将会怎么样？</p>
+<p>事实上，研究递归问题，我们将会看到先<strong>研究小的情形</strong>是有益的。通过少量尝试就能看出如何移动3个圆盘的塔。</p>
+<p>要用数学语言解决这个问题，我们自然需要引入适当的记号：<strong>命令并求解</strong>。我们称 $T_n$ 是根据卢卡斯的规则将圆盘从一根柱移动到另一根柱所需要的最少移动次数。那么，$T_1$ 显然是1，$T_2=3$ ，另外定义 $T_0=0$。</p>
+<p>我们从宏观的角度来分析这个问题，如何将n个圆盘移动到柱子B。首先移动上面n-1个圆盘到柱子C，然后移动最大的圆盘到柱子B，最后将n-1个圆盘移动到柱子B。就像如何将大象放入冰箱一样，只要分三步。我们将这三步用数学语言进行表示：</p>
+<p>$$
+T_n \leq 2T_{n-1}+1
+$$</p>
+<p>之所以用了 $\leq$ ，没用 = ，是因为我们的构造仅证明了 $2T_{n-1}+1$ 次移动足够完成任务，但是没有证明必须要这么多次才能完成任务。</p>
+<p>这里我没法用公式说明为什么，只能做一个思想游戏：假如我要把所有圆盘从A移动到B，必须把最大的圆盘先放到B，这个时候上面的n-1个圆盘必然在另一个柱子上，也就是说完成这一步必须要 $T_{n-1}+1$ 步，大圆盘放到B后，必须把n-1个圆盘也移动到B上，最少需要 $T_{n-1}$ 步，也就是说：</p>
+<p>$$
+T_n \geq 2T_{n-1}+1
+$$</p>
+<p>综合两个不等式，我们可以得出当我们以完全正确的步骤移动河内塔时需要的移动次数：</p>
+<p>$$
+\begin{aligned}
+&amp; T_0 = 0; \\
+&amp; T_n = 2T_{n-1}+1.
+\end{aligned}
+\tag{1.1}
+$$</p>
+<p>像（1.1）这样的一组等式我们称为<strong>递归式（recurrence）</strong>，它给出一个边界值，以及一个递推关系的方程。有时我们也把单独的一般性方程称为递归式，尽管技术上还需要一个边界值来补足。</p>
+<p>假如用代码实现，上述的递推关系已经可以完成变成了，我们可以使用递归调用简洁的实现河内塔计算。但是当n很大时，计算太耗时了。</p>
+<p><strong>递归的解</strong> 很美妙，也很容易理解，但是并不容易直接计算，在实际使用中，我们希望简化获得一个即漂亮又简洁的“封闭形式”。也就是 $T_n$ 的计算应该与上一个值 $T_{n-1}$ 无关, 只和n相关。</p>
+<p>我们通过观察，很容易想到 $T_n$ 和 2 的幂相关，在通过初始几个数字的尝试，我们可以确定：</p>
+<p>$$
+T_n = 2^n - 1, n \geq 0
+\tag {1.2}
+$$</p>
+<p>至少在我们尝试 $n \leq 6$ 时是成立的。再通过<strong>数学归纳法</strong>，很容易证明该公式对于 $n \geq 0$ 都成立。</p>
+<p>《具体数学》将解决这类问题分为了三个步骤：</p>
+<ol>
+<li>研究小的情形。这有助于我们洞察该问题</li>
+<li>对有意义的量求出数学表达式并给出证明。对于河内塔，就是递归式（1.1）。</li>
+<li>对数学表达式求出封闭形式并证明，对于河内塔，就是递归解（1.2）</li>
+</ol>
+<h2 id="平面上的直线-lines-in-the-plane">平面上的直线 LINES IN THE PLANE</h2>
+<p>第二个问题平面上的直线相信大家也都遇到过：一个蛋糕，切4到最多能分成几块（这里限定是一个平面上切）。我们把问题用数学语言重新翻译下并进行宽展：平面上n条直线所界定的的区域的最大个数 $L_n$ 是多少？这个问题于1826年被以为瑞士数学家坦纳首先解决。</p>
+<p>我们再从最小情形开始研究。</p>
+<p><img
+        class="lazyload"
+        src="/svg/loading.min.svg"
+        data-src="https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/%e6%88%aa%e5%b1%8f2020-01-0215.34.20.png"
+        data-srcset="https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/%e6%88%aa%e5%b1%8f2020-01-0215.34.20.png, https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/%e6%88%aa%e5%b1%8f2020-01-0215.34.20.png 1.5x, https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/%e6%88%aa%e5%b1%8f2020-01-0215.34.20.png 2x"
+        data-sizes="auto"
+        alt="https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/截屏2020-01-0215.34.20.png"
+        title="平面上的直线" /></p>
+<p><img
+        class="lazyload"
+        src="/svg/loading.min.svg"
+        data-src="https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/%e6%88%aa%e5%b1%8f2020-01-0215.49.30.png"
+        data-srcset="https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/%e6%88%aa%e5%b1%8f2020-01-0215.49.30.png, https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/%e6%88%aa%e5%b1%8f2020-01-0215.49.30.png 1.5x, https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/%e6%88%aa%e5%b1%8f2020-01-0215.49.30.png 2x"
+        data-sizes="auto"
+        alt="https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/截屏2020-01-0215.49.30.png"
+        title="平面上的直线" /></p>
+<p>$L_0 = 1$, $L_1 = 2$, $L_2 = 4$, $L_3 = 7$ 。</p>
+<p>思考后，我们可以得出递推关系：</p>
+<p>第n（n&gt;0）条直线使得区域增加k个，当且仅当它对k个已有区域进行了分裂；
+而它对k个已有区域进行分裂，当且仅当它在k-1个不同的地方与之前的直线相交；
+两条直线至多相交与一点，之前已有n-1条直线，因而这条新的直线与n-1条直线至多相交于n-1个不同的点，故必定有 $k \leq n-1$，我们证明了上界</p>
+<p>$$
+L_n \leq L_{n-1} + n, \quad n \gt 0.
+$$</p>
+<p>已知当 $n \lt 4$ 时可以取到 =，我们采用<strong>数学归纳法</strong>来证明对于所有n都可以取到上界。</p>
+<p><strong>证明</strong>：已知 $n \lt 4$ 时公式成立；假设当 n=k 时满足 $L_n = L_{n-1} + n$ 。需要证明当 n = k + 1 时公式仍然成立。</p>
+<p>我们径直来放第k+1条直线，该直线不与之前任何一条直线平行，因此它与之前的k条直线相交，分隔出k+1个空间，即$L_{k+1} = L_k + k+1$，所以递归式为：</p>
+<p>$$
+\begin{aligned}
+&amp; L_0 = 1; \\
+&amp; L_n = L_{n-1} + n, \quad n \gt 0.
+\end{aligned}
+\tag {2.1}
+$$</p>
+<p>证明结束。</p>
+<p>现在我们需要一个封闭形式的解，我们先观察 $L_n$ 的形式，发现递归形式很像是在求 $\sum_{i=1}^ni$，高斯告诉我们，这个求和公式的值是</p>
+<p>$$
+S_n = \frac {(n+1)n}{2}, \quad n \geq 0
+$$</p>
+<p>对比 $L_n$ 的值，我们调整下式子。</p>
+<p>$$
+L_n = \frac {(n+1)n}{2} + 1, \quad n \geq 0
+$$</p>
+<p>再使用数学归纳法，可以证明这就是正确的解。</p>
+<p>我们多次提到<strong>封闭形式</strong>，《具体数学》中有粗略定义：如果可以利用至多固定次数（其次数与n无关）的标准运算来计算量的 $f(n)$ 表达式，那么这个表达式是封闭的。当然有一些例外情况，例如，$n!$ 被证明是如此重要，故而我们都把它视为是一种基本运算，于是公式 $n!$ 就是封闭形式。</p>
+<h3 id="平面上的折线">平面上的折线</h3>
+<p>现在我们把问题做一个变形：假设我们用折线代替直线，每一条折线包含一个“锯齿”。平面上由n条这样的折线所界定的区域的最大个数 $Z_n$ 是多少？</p>
+<p>或许我们期待 $Z_n$ 是 $L_n$ 的两倍或者三倍。通过几个简单情况的观察。</p>
+<p><img
+        class="lazyload"
+        src="/svg/loading.min.svg"
+        data-src="https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/%e6%88%aa%e5%b1%8f2020-01-0309.17.51.png"
+        data-srcset="https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/%e6%88%aa%e5%b1%8f2020-01-0309.17.51.png, https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/%e6%88%aa%e5%b1%8f2020-01-0309.17.51.png 1.5x, https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/%e6%88%aa%e5%b1%8f2020-01-0309.17.51.png 2x"
+        data-sizes="auto"
+        alt="https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/截屏2020-01-0309.17.51.png"
+        title="平面上的折线" /></p>
+<p>我们发现折线的情况和直线类似，只是折线在“锯齿”处缺少了一处切割，少了两个区域。</p>
+<p><img
+        class="lazyload"
+        src="/svg/loading.min.svg"
+        data-src="https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/20200103092042.png"
+        data-srcset="https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/20200103092042.png, https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/20200103092042.png 1.5x, https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/20200103092042.png 2x"
+        data-sizes="auto"
+        alt="https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/20200103092042.png"
+        title="平面上的折线2" /></p>
+<p>也就是说放一条折线相当与放两条直线，但是需要减去两个区域。</p>
+<p>$$
+\begin{aligned}
+Z_0 &amp;= 1 \newline
+Z_n &amp;= Z_{n-1} + (2n - 1 + 2n) - 2 \newline
+&amp;= Z_{n-1} + 4n - 3, \quad n \gt 0
+\end{aligned}
+$$</p>
+<p>我们将公式进行变形。</p>
+<p>$$
+Z_n - Z_{n-1} = 4n - 3
+$$</p>
+<p>如果学习过微积分就能发现，这个形式很像微分的定义，在离散数学中，这种形式称为差分，这里不直接使用差分的性质，而是先自行推导 $Z_n$ 的计算。</p>
+<p>$$
+\begin{aligned}
+Z_n &amp;= Z_0 + \sum_{k=1}^{n}4n-3 \\
+&amp;= 2n^2 - n + 1 \\
+\end{aligned}
+\tag{2.2}
+$$</p>
+<p>方程（2.2）使用了求和累加，从 $Z_0$ 累加前后项差分值计算出 $Z_n$。《具体数学》中使用了 $L_n$ 来对 $Z_n$ 求值。</p>
+<p>$$
+Z_n = L_{2n} - 2n = 2n^2 - n + 1, n \geq 0
+$$</p>
+<p>比较 $L_n$ 和 $Z_n$， 我们发现对于大的n有</p>
+<p>$$
+\begin{aligned}
+L_n &amp;\sim \frac {1}{2}n^2, \\
+Z_n &amp;\sim 2n^2;
+\end{aligned}
+$$</p>
+<p>所以用折线所能得到的区域是用直线所能得到区域的大约4倍，也符合我们开始的直觉。</p>
+<h2 id="约瑟夫问题-the-josephus-problem">约瑟夫问题 THE JOSEPHUS PROBLEM</h2>
+<p>终于到了本文的核心问题，也是《具体数学》中第一章的点睛之笔——约瑟夫问题。在这里我们将学习到如何一般化处理这类递归问题，不再依靠解体时的灵光乍现。</p>
+<p>传说在犹太罗马战争期间，约瑟夫与其他他40名犹太反抗者困在了罗马人包围的洞穴中，这些反抗者宁愿自杀也不愿被活捉，于是决定围成一个圆圈，并沿着圆圈每个两个人杀死一个人，直到剩下两个人为止。但是约瑟夫和一个未被告发的同谋者不希望无谓的自杀，于是他迅速计算出他和朋友在这险恶的圆圈中应该站的位置。</p>
+<p>我们对问题进行一些改动和简化：从围成标有记号1到n的圆圈的n个人开始，每隔一个人删去一个人，直到有一个人幸存下来，例如 $n=10$ 的起始图形：</p>
+<p><img
+        class="lazyload"
+        src="/svg/loading.min.svg"
+        data-src="https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/20200103102114.png"
+        data-srcset="https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/20200103102114.png, https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/20200103102114.png 1.5x, https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/20200103102114.png 2x"
+        data-sizes="auto"
+        alt="https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/20200103102114.png"
+        title="约瑟夫圈" /></p>
+<p>消去的顺序是2，4，6，8，10，3，7，1，9，于是5幸存下来。问题：确定幸存者的号码，我们表示为 $J(n)$.</p>
+<p>第一步，观察基本情形。</p>
+<table>
+<thead>
+<tr>
+<th>$n$</th>
+<th>1</th>
+<th>2</th>
+<th>3</th>
+<th>4</th>
+<th>5</th>
+<th>6</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>$J(n)$</td>
+<td>1</td>
+<td>1</td>
+<td>3</td>
+<td>1</td>
+<td>3</td>
+<td>5</td>
+</tr>
+</tbody>
+</table>
+<p>似乎幸存者都是奇数，事实上，第一轮结束后，所有偶数都被消灭了，第二轮开始剩下的都是偶数。等等，我们似乎发现了一个递推关系：第一轮，第二轮，第三轮，···。直到某一轮只有一个人 $J(1)$， 那个人就是最终的幸存者。但是这个递推关系中还有一个问题，就是每一轮我们需要将幸存者重新编号，找到幸存者后，我们需要恢复幸存者的真实编号。这难不倒我们，我们可以将编号的关系带入到递归公式中。</p>
+<p>当第一轮是偶数是：</p>
+<table>
+<thead>
+<tr>
+<th>第一轮</th>
+<th>1</th>
+<th>2</th>
+<th>3</th>
+<th>4</th>
+<th>5</th>
+<th>6</th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>第二轮</td>
+<td>1</td>
+<td>x</td>
+<td>2</td>
+<td>x</td>
+<td>3</td>
+<td>x</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p>当第一轮是奇数时：</p>
+<table>
+<thead>
+<tr>
+<th>第一轮</th>
+<th>1</th>
+<th>2</th>
+<th>3</th>
+<th>4</th>
+<th>5</th>
+<th>6</th>
+<th>7</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>第二轮</td>
+<td>x</td>
+<td>x</td>
+<td>1</td>
+<td>x</td>
+<td>2</td>
+<td>x</td>
+<td>3</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>当第一轮是奇数时，需要把1号删除才能结束该轮，否则第二轮开始1号会存活，违反了游戏规则。</p>
+</blockquote>
+<p>$$
+\begin{aligned}
+J(1) &amp;= 1; \\
+J(2n) &amp;= 2J(n) - 1, \quad n \geq 1; \\
+J(2n+1) &amp;= 2J(n) + 1, \quad n \geq 1.
+\end{aligned}
+$$</p>
+<blockquote>
+<p>注意到我们用了 $2n$, $2n+1$ 的形式来书写公式，没有选择 $n/2$ 的形式，避免了增加n是偶数还是奇数的条件。</p>
+</blockquote>
+<p>《具体数学》中对 $J(n)$ 的前几项展开进行了观察，发现结果和 n 与 2 的幂次相关，并使用数学归纳法获得封闭形式。
+<img
+        class="lazyload"
+        src="/svg/loading.min.svg"
+        data-src="https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/20200103112040.png"
+        data-srcset="https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/20200103112040.png, https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/20200103112040.png 1.5x, https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/20200103112040.png 2x"
+        data-sizes="auto"
+        alt="https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/20200103112040.png"
+        title="J(n)" /></p>
+<p>$$
+J(2^m+l) = 2l + 1, \quad m \geq 0, \quad 0 \leq l \lt 2 ^m
+\tag{3.1}
+$$</p>
+<p>书中详细介绍了求解过程，这里我们不再是赘述。</p>
+<p>到了这里，我们已经解决最后幸存的问题，但是相对于约瑟夫问题，我们还没完全解决，因为问题中要求计算最后两个幸存者。那么倒数第二的幸存者是谁呢。</p>
+<p>我们使用类似的方法，定义倒数第二幸存者为 $I(n)$，可以得到一个递归公式。</p>
+<p>$$
+\begin{aligned}
+I(2) &amp;= 2; \\
+I(3) &amp;= 1; \\
+I(2n) &amp;= 2I(n) - 1, \quad n \geq 2; \\
+I(2n+1) &amp;= 2I(n) + 1, \quad n \geq 2;
+\end{aligned}
+$$</p>
+<p>看起来这个递归式不好简化，这里先放一边，我在文章末尾进行解答。</p>
+<h3 id="问题推广">问题推广</h3>
+<p>这一节是递归问题求解的精华部分，如果你没有仔细阅读前面的部分，这一部分可不能再错过。</p>
+<p>我们对 (3.1) 的公式进行变形，将n进行二进制展开。</p>
+<p>$$
+\begin{aligned}
+n &amp;= (b_{m} b_{m-1} \ldots b_1 b_0)_2 \\
+n &amp;= b_{m}2^m + b_{m-1}2^{m-1} + \cdots + b_{1}2^1 + b_{0}2^0
+\end{aligned}
+$$</p>
+<p>其中 $b_i$ 为0或1，而首位数字 $b_m$ 必定为 1。同时有 $n=2^m+l$ ，所以我们依次次有</p>
+<p>$$
+\begin{aligned}
+n &amp;= (1b_{m-1}b_{m-2} \cdots b_{1} b_{0})_2, \\
+l &amp;= (0b_{m-1}b_{m-2} \cdots b_{1} b_{0})_2, \\
+2l &amp;= (b_{m-1}b_{m-2} \cdots b_{1} b_{0} 0)_2, \\
+2l + 1 &amp;= (b_{m-1}b_{m-2} \cdots b_{1} b_{0} 1)_2, \\
+J(n) &amp;= (b_{m-1}b_{m-2} \cdots b_{1} b_{0} b_{m})_2.
+\end{aligned}
+$$</p>
+<p>所以我们就证明了</p>
+<p>$$
+J((b_{m}b_{m-1}b_{m-2} \cdots b_{1} b_{0})_2) = (b_{m-1}b_{m-2} \cdots b_{1} b_{0} b_{m})_2
+$$</p>
+<p>在计算机代码中，这个操作就是 $n$ 向左循环移动一位，我们就可以计算出 $J(n)$ !</p>
+<p>让我更加一般化这个结果，引入常数 $\alpha$ 、$\beta$ 、 $\gamma$ ，力图对更加一般的递归式 (3.2) 求出一个封闭形式，以此来研究这个问题。</p>
+<p>$$
+\begin{aligned}
+f(1) &amp;= \alpha ; \\
+f(2n) &amp;= 2f(n) + \beta, \quad n \geq 1; \\
+f(2n+1) &amp;= 2f(n) + \gamma, \quad n \geq 1.
+\end{aligned}
+\tag{3.2}
+$$</p>
+<p>这里我们先尝试几个数字判断 $f(n)$ 和常数之间的关系，然后可以合理猜测，$f(n)$ 与 $\alpha$ 、$\beta$ 、$\gamma$ 的一次项存在某个依存关系，我们将它表示成形式</p>
+<p>$$
+f(n) = A(n)\alpha + B(n)\beta + C(n)\gamma
+\tag{3.3}
+$$</p>
+<p>我们要求形式中的$A(n),B(n),C(n)$对于任意常数成立,也就是与常数不相关。我们可以使用取特殊值的方式求解该方程</p>
+<p>$取 \alpha = 1, \beta = \gamma = 0$</p>
+<p>$$
+\begin{aligned}
+f(1) &amp;= A(1) = 1; \\
+f(2n) &amp;= A(2n) = 2f(n) = 2A(n), \quad n \geq 1; \\
+f(2n+1) &amp;= A(2n+1) = 2f(n) = 2A(n), \quad n \geq 1.
+\end{aligned}
+$$</p>
+<p>看起来有 $A(n)=2^m$。</p>
+<p>我们再取特殊值，但是我们不再直接取值并使用递归式，因为解递归式比较麻烦，我们发现除了递归式，我们还有一个已知等式 $f(n) = A(n)\alpha + B(n)\beta + C(n)\gamma$，使用这个等式可以比较容易计算 $B(n)$ 和 $C(n)$ 的值。</p>
+<p>我们取常数函数 $f(n)=1$，研究是否有任何常数 $(\alpha, \beta, \gamma)$ 能定义它。将它带入递归式(3.2)，可以求得 $(\alpha, \beta, \gamma) = (1,-1,-1)$, 带入式子 (3.3) 可以获得 $A(n)-B(n)-C(n)=f(n)=1$，同样的方式，带入 $f(n)=n$，我们可以获得 $(\alpha,\beta,\gamma)=(1,0,1)$ ， $A(n)+C(n)=f(n)=n$。联立方程：</p>
+<p>$$
+\begin{aligned}
+A(n) &amp;= 2^m, \quad 其中 n = 2^m + 1 且 0 \leq l \lt 2^m; \\
+A(n) - B(n) - C(n) &amp;=1; \\
+A(n) + C(n) &amp;= n.
+\end{aligned}
+$$</p>
+<p>得到解：</p>
+<p>$$
+\begin{aligned}
+A(n) &amp;= 2^m \\
+C(n) &amp;= n - A(n) = l \\
+B(n) &amp;= A(n) - C(n) - 1 = 2^m - 1 - l
+\end{aligned}
+$$</p>
+<p>上述求解过程描述了一套求解递归式的<strong>成套方法(repertoire method)</strong>。首先我们来寻求一组已知解的通用参数，这会给我们一整套可以求解的特殊情形。然后将特殊情形组合起来得到一般的情况。</p>
+<blockquote>
+<p>这一方法运用于“线性的”递归式时最为成功，这里线性的含义就是它的解可以表示成任意参数与n的函数的乘积之和，比如式子（3.3）</p>
+</blockquote>
+<p>我们再对约瑟夫递归式进行推广，令 $\beta_0=\beta, \beta_1=\gamma$，那么我们可以把递归式(3.2)改写成</p>
+<p>$$
+\begin{aligned}
+f(1) &amp;= \alpha; \\
+f(2n+j) &amp;= 2f(n) + \beta_j, \quad j=0,1, \quad n \geq 1.
+\end{aligned}
+\tag{3.4}
+$$</p>
+<p>将递归式按照二进制展开，$b_m=1$</p>
+<p>$$
+\begin{aligned}
+f((b_{m}b_{m-1} \cdots b_1 b_0)_2) &amp;= 2f((b_{m}b_{m-1} \cdots b_1)_2) + \beta_{b_0} \\
+&amp;= 4f((b_{m}b{m-1} \cdots b_2)_2) + 2\beta_{b_1} + \beta_{b_0)} \\
+&amp;= 2^mf((b_m)_2) + 2^{m-1}\beta_{b_{m-1}} + \cdots + 2\beta_{b_{1}} + \beta_{b_0} \\
+&amp;= 2^m\alpha + 2^{m-1}\beta_{b_{m-1}} + \cdots + 2\beta_{b_{1}} + \beta_{b_0} \\
+&amp;= (\alpha \beta_{b_{m-1}} \beta_{b_{m-2}} \cdots \beta_1 \beta_0)_2
+\end{aligned}
+\tag{3.5}
+$$</p>
+<p>利用这个公式，我们再来计算约瑟夫问题，其中 $\alpha=1,\beta_0=-1,\beta_1=1$</p>
+<p>当 $n = 100 = (1100100)_2$时</p>
+<p><img
+        class="lazyload"
+        src="/svg/loading.min.svg"
+        data-src="https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/20200104183044.png"
+        data-srcset="https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/20200104183044.png, https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/20200104183044.png 1.5x, https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/20200104183044.png 2x"
+        data-sizes="auto"
+        alt="https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/20200104183044.png"
+        title="约瑟夫问题" /></p>
+<p>改变表示法使我们对于一般的递归式(3.4)给出了紧凑解(3.5)，我们还可以更加一般化(3.4)</p>
+<p>$$
+\begin{aligned}
+f(j) &amp;= \alpha_j, \quad 1 \leq j \lt d; \\
+f(dn+j) &amp;= cf(n) + \beta_j, \quad 0 \leq j \lt d, n \geq 1.
+\end{aligned}
+\tag{3.6}
+$$</p>
+<p>与上一个递归式是相同的，除了这里是从基数为d的数着手，而产生的值是用基数c表示之外，这就是说，它有变动基数的解</p>
+<p>$$
+f((b_{m}b_{m-1} \cdots b_1 b_0)_d) = (\alpha_{b_m} \beta_{b_{m-1}} \beta_{b_{m-2}} \cdots \beta_{b_1} \beta_{b_0})_c
+\tag{3.7}
+$$</p>
+<p>这个公式十分便利，如果你没有看完前面的证明，那这个公式一定要学会使用。我们用它来解决一个递归式。</p>
+<p>$$
+\begin{aligned}
+f(1) &amp;= 34; \\
+f(2) &amp;= 5; \\
+f(3n) &amp;= 10f(n) + 76, \quad n \geq 1; \\
+f(3n+1) &amp;= 10f(n) - 2, \quad n \geq 1; \\
+f(3n+2) &amp;= 10f(n) + 8, \quad n\geq 1;
+\end{aligned}
+$$</p>
+<p>假设我们计算 $f(19)$，现在有 $19=(201)_3$</p>
+<p>$$
+f(19) = f((201)<em>3) = (5 \quad 76 \quad -2)</em>{10} = 1258
+$$</p>
+<h2 id="最后的问题">最后的问题</h2>
+<p>现在我们可以讨论上面那个倒数第二幸存者的问题了，先把前文求得的递归公式再写一遍：</p>
+<p>$$
+\begin{aligned}
+I(2) &amp;= 2; \\
+I(3) &amp;= 1; \\
+I(2n) &amp;= 2I(n) - 1, \quad n \geq 2; \\
+I(2n+1) &amp;= 2I(n) + 1, \quad n \geq 2;
+\end{aligned}
+$$</p>
+<p>我们想要使用最终获得的通用公式(3.7)来求解，但是有一个问题：我们没有 $\alpha_1$ 的定义，而且 $n=1$ 时没有定义。但是这难不到我们，回想下通用公式的推导过程</p>
+<p>$$
+\begin{aligned}
+f((b_{m}b_{m-1} \cdots b_1 b_0)_d) &amp;= df(b_{m}b_{m-1} \cdots b_1) + \beta_{b_0} \\
+&amp;= c^{m-1}f((b_{m}b_{m-1})) + c^{m-1}\beta_{b_{m-2}} + \cdots + c\beta_{b_1} + \beta_{b_0}
+\end{aligned}
+$$</p>
+<p>由于 n 在 1 时没有意义，所以我们最后不再展开 $b_{b}b_{m-1}$，而是整体进行处理，所以有</p>
+<p>$$
+f((b_{m}b_{m-1} \cdots b_1 b_0)_d) = (\alpha_{b_{m}b_{m-1}} \beta_{b_{m-2} \beta_{b_{m-2}}} \cdots \beta_{b_1} \beta_{b_0})_c
+$$</p>
+<p>这个变形后的公式正好满足我们要求，我们现在用它来计算 $I(5)$, $I(41)$</p>
+<p>$$
+\begin{aligned}
+I(5) &amp;= I((101)_2) = (2 \quad 1)_2 = 5 \\
+I(41) &amp;= I((101001)_2) = (2 \quad 1 \quad -1 \quad -1 \quad 1)_2 \\
+&amp;= 2 * 16 + 8 - 4 - 2 + 1 = 35
+\end{aligned}
+$$</p>
+<p>所以约瑟夫的朋友应该在 35 号位。</p>
+<p>再进一步推广，倒数第 k 个幸存者是几号？从上面的结论不难发现，不论是倒是第几个幸存者，递推公式是不变的，变化的只是初始值以及取值范围，所以倒数第 k 个幸存者可以表示成 $J_k(n)$：</p>
+<p>$$
+\begin{aligned}
+J_k(n) &amp;= J_k((b_{m}b_{m-1} \cdots b_1 b_0)_2) \\
+&amp;= (\alpha_{b_{m}b_{m-1} \cdots b_{m - \log_2 k}} \beta_{b_{m - \log_2 k - 1}} \cdots \beta_{b_1} \beta_{b_0})_2
+\end{aligned}
+\tag{3.8}
+$$</p>
+<p>写到这里，约瑟夫类似的递归问题应该已经难不倒大家了，只要能写出递归式，就能转换成封闭形式，直接求解，这就是数学神奇的地方。</p>
+<h2 id="参考资料">参考资料</h2>
+<ul>
+<li>Ronald L.Graham,Donald E.Knuth,Oren Patashnik ．具体数学计算机基础（第2版） ：人民邮电出版社，2013：7</li>
+</ul></div><div class="post-footer" id="post-footer">
+    <div class="post-info">
+        <div class="post-info-line">
+            <div class="post-info-mod">
+                <span>更新于 2020-01-04</span>
+            </div>
+            <div class="post-info-license"></div>
+        </div>
+        <div class="post-info-line">
+            <div class="post-info-md"><span>
+                            <a class="link-to-markdown" href="/2020/%E5%85%B7%E4%BD%93%E6%95%B0%E5%AD%A6-%E7%BA%A6%E7%91%9F%E5%A4%AB%E9%97%AE%E9%A2%98/index.md" target="_blank">阅读原始文档</a>
+                        </span></div>
+            <div class="post-info-share">
+                <span><a href="javascript:void(0);" title="分享到 Twitter" data-sharer="twitter" data-url="https://blog.firemiles.top/2020/%E5%85%B7%E4%BD%93%E6%95%B0%E5%AD%A6-%E7%BA%A6%E7%91%9F%E5%A4%AB%E9%97%AE%E9%A2%98/" data-title="具体数学-约瑟夫问题" data-hashtags="math,algorithm,Josephus problem"><i class="fab fa-twitter fa-fw"></i></a><a href="javascript:void(0);" title="分享到 Facebook" data-sharer="facebook" data-url="https://blog.firemiles.top/2020/%E5%85%B7%E4%BD%93%E6%95%B0%E5%AD%A6-%E7%BA%A6%E7%91%9F%E5%A4%AB%E9%97%AE%E9%A2%98/" data-hashtag="math"><i class="fab fa-facebook-square fa-fw"></i></a><a href="javascript:void(0);" title="分享到 WhatsApp" data-sharer="whatsapp" data-url="https://blog.firemiles.top/2020/%E5%85%B7%E4%BD%93%E6%95%B0%E5%AD%A6-%E7%BA%A6%E7%91%9F%E5%A4%AB%E9%97%AE%E9%A2%98/" data-title="具体数学-约瑟夫问题" data-web><i class="fab fa-whatsapp fa-fw"></i></a><a href="javascript:void(0);" title="分享到 Line" data-sharer="line" data-url="https://blog.firemiles.top/2020/%E5%85%B7%E4%BD%93%E6%95%B0%E5%AD%A6-%E7%BA%A6%E7%91%9F%E5%A4%AB%E9%97%AE%E9%A2%98/" data-title="具体数学-约瑟夫问题"><i data-svg-src="/lib/simple-icons/icons/line.min.svg"></i></a><a href="javascript:void(0);" title="分享到 微博" data-sharer="weibo" data-url="https://blog.firemiles.top/2020/%E5%85%B7%E4%BD%93%E6%95%B0%E5%AD%A6-%E7%BA%A6%E7%91%9F%E5%A4%AB%E9%97%AE%E9%A2%98/" data-title="具体数学-约瑟夫问题" data-image="https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/20200104201137.png"><i class="fab fa-weibo fa-fw"></i></a><a href="javascript:void(0);" title="分享到 Myspace" data-sharer="myspace" data-url="https://blog.firemiles.top/2020/%E5%85%B7%E4%BD%93%E6%95%B0%E5%AD%A6-%E7%BA%A6%E7%91%9F%E5%A4%AB%E9%97%AE%E9%A2%98/" data-title="具体数学-约瑟夫问题" data-description=""><i data-svg-src="/lib/simple-icons/icons/myspace.min.svg"></i></a><a href="javascript:void(0);" title="分享到 Blogger" data-sharer="blogger" data-url="https://blog.firemiles.top/2020/%E5%85%B7%E4%BD%93%E6%95%B0%E5%AD%A6-%E7%BA%A6%E7%91%9F%E5%A4%AB%E9%97%AE%E9%A2%98/" data-title="具体数学-约瑟夫问题" data-description=""><i class="fab fa-blogger fa-fw"></i></a><a href="javascript:void(0);" title="分享到 Evernote" data-sharer="evernote" data-url="https://blog.firemiles.top/2020/%E5%85%B7%E4%BD%93%E6%95%B0%E5%AD%A6-%E7%BA%A6%E7%91%9F%E5%A4%AB%E9%97%AE%E9%A2%98/" data-title="具体数学-约瑟夫问题"><i class="fab fa-evernote fa-fw"></i></a></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="post-info-more">
+        <section class="post-tags"><i class="fas fa-tags fa-fw"></i>&nbsp;<a href="/tags/math/">math</a>,&nbsp;<a href="/tags/algorithm/">algorithm</a>,&nbsp;<a href="/tags/josephus-problem/">Josephus problem</a></section>
+        <section>
+            <span><a href="javascript:void(0);" onclick="window.history.back();">返回</a></span>&nbsp;|&nbsp;<span><a href="/">主页</a></span>
+        </section>
+    </div>
+
+    <div class="post-nav"><a href="/2020/openvswitch%E4%BD%BF%E7%94%A8%E9%80%9F%E6%9F%A5/" class="prev" rel="prev" title="openvswitch 使用速查"><i class="fas fa-angle-left fa-fw"></i>openvswitch 使用速查</a>
+            <a href="/2020/dhcp%E5%8D%8F%E8%AE%AE/" class="next" rel="next" title="DHCP协议">DHCP协议<i class="fas fa-angle-right fa-fw"></i></a></div>
+</div>
+<div id="comments"></div></article></div>
+            </main><footer class="footer">
+        <div class="footer-container"><div class="footer-line">由 <a href="https://gohugo.io/" target="_blank" rel="noopener noreffer" title="Hugo 0.72.0-DEV">Hugo</a> 强力驱动 | 主题 - <a href="https://github.com/dillonzq/LoveIt" target="_blank" rel="noopener noreffer" title="LoveIt 0.2.10"><i class="far fa-kiss-wink-heart fa-fw"></i> LoveIt</a>
+                </div><div class="footer-line"><i class="far fa-copyright fa-fw"></i><span itemprop="copyrightYear">2019 - 2020</span><span class="author" itemprop="copyrightHolder">&nbsp;<a href="/" target="_blank">firemiles</a></span>&nbsp;|&nbsp;<span class="license"><a rel="license external nofollow noopener noreffer" href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank">CC BY-NC 4.0</a></span></div>
+        </div>
+    </footer></div>
+
+        <div id="fixed-buttons"><a href="#" id="back-to-top" class="fixed-button" title="回到顶部">
+                <i class="fas fa-arrow-up fa-fw"></i>
+            </a><a href="#" id="view-comments" class="fixed-button" title="查看评论">
+                <i class="fas fa-comment fa-fw"></i>
+            </a>
+        </div><link rel="stylesheet" href="/lib/lightgallery/lightgallery.min.css"><link rel="stylesheet" href="/lib/katex/katex.min.css"><link rel="stylesheet" href="/lib/katex/copy-tex.min.css"><link rel="stylesheet" href="/lib/cookieconsent/cookieconsent.min.css"><script type="text/javascript" src="/lib/smooth-scroll/smooth-scroll.min.js"></script><script type="text/javascript" src="/lib/autocomplete/autocomplete.min.js"></script><script type="text/javascript" src="/lib/lunr/lunr.min.js"></script><script type="text/javascript" src="/lib/lunr/lunr.stemmer.support.min.js"></script><script type="text/javascript" src="/lib/lunr/lunr.zh.min.js"></script><script type="text/javascript" src="/lib/lazysizes/lazysizes.min.js"></script><script type="text/javascript" src="/lib/lightgallery/lightgallery.min.js"></script><script type="text/javascript" src="/lib/lightgallery/lg-thumbnail.min.js"></script><script type="text/javascript" src="/lib/lightgallery/lg-zoom.min.js"></script><script type="text/javascript" src="/lib/clipboard/clipboard.min.js"></script><script type="text/javascript" src="/lib/sharer/sharer.min.js"></script><script type="text/javascript" src="/lib/katex/katex.min.js"></script><script type="text/javascript" src="/lib/katex/auto-render.min.js"></script><script type="text/javascript" src="/lib/katex/copy-tex.min.js"></script><script type="text/javascript" src="/lib/katex/mhchem.min.js"></script><script type="text/javascript" src="/lib/cookieconsent/cookieconsent.min.js"></script><script type="text/javascript">window.config={"code":{"copyTitle":"复制到剪贴板","maxShownLines":10},"comment":{},"cookieconsent":{"content":{"dismiss":"同意","link":"了解更多","message":"本网站使用 Cookies 来改善您的浏览体验."},"enable":true,"palette":{"button":{"background":"#f0f0f0"},"popup":{"background":"#1aa3ff"}},"theme":"edgeless"},"lightGallery":{"actualSize":false,"exThumbImage":"data-thumbnail","hideBarsDelay":2000,"selector":".lightgallery","speed":400,"thumbContHeight":80,"thumbWidth":80,"thumbnail":true},"math":{"delimiters":[{"display":true,"left":"$$","right":"$$"},{"display":true,"left":"\\[","right":"\\]"},{"display":false,"left":"$","right":"$"},{"display":false,"left":"\\(","right":"\\)"}],"strict":false},"search":{"highlightTag":"em","lunrIndexURL":"/index.json","lunrLanguageCode":"zh","lunrSegmentitURL":"/lib/lunr/lunr.segmentit.js","maxResultLength":10,"noResultsFound":"没有找到结果","snippetLength":50,"type":"lunr"}};</script><script type="text/javascript" src="/js/theme.min.js"></script></body>
+</html>

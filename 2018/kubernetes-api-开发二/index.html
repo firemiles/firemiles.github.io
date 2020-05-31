@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="robots" content="noodp" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge, chrome=1">
+        <title>Kubernetes API 开发（二） - Firemiles 的技术生活</title><meta name="Description" content="Firemiles 的技术生活轨迹"><meta property="og:title" content="Kubernetes API 开发（二）" />
+<meta property="og:description" content="修改 External API（版本API）
+修改版本API是所有修改中最简单的，只需要开发者保持修改后的API相互兼容，比从头写要一个新的 rest API 更容易。" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://blog.firemiles.top/2018/kubernetes-api-%E5%BC%80%E5%8F%91%E4%BA%8C/" />
+<meta property="og:image" content="https://blog.firemiles.top/logo.png"/>
+<meta property="article:published_time" content="2018-12-12T21:52:51+00:00" />
+<meta property="article:modified_time" content="2018-12-12T21:52:51+00:00" />
+<meta name="twitter:card" content="summary_large_image"/>
+<meta name="twitter:image" content="https://blog.firemiles.top/logo.png"/>
+
+<meta name="twitter:title" content="Kubernetes API 开发（二）"/>
+<meta name="twitter:description" content="修改 External API（版本API）
+修改版本API是所有修改中最简单的，只需要开发者保持修改后的API相互兼容，比从头写要一个新的 rest API 更容易。"/>
+<meta name="application-name" content="LoveIt">
+<meta name="apple-mobile-web-app-title" content="LoveIt"><meta name="theme-color" content="#ffffff"><meta name="msapplication-TileColor" content="#da532c"><link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png"><link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"><link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5"><link rel="manifest" href="/site.webmanifest"><link rel="canonical" href="https://blog.firemiles.top/2018/kubernetes-api-%E5%BC%80%E5%8F%91%E4%BA%8C/" /><link rel="prev" href="https://blog.firemiles.top/2018/kubernetes-api-%E5%BC%80%E5%8F%91%E4%B8%80/" /><link rel="next" href="https://blog.firemiles.top/2018/kubernetes-api-%E5%BC%80%E5%8F%91%E4%B8%89/" /><link rel="stylesheet" href="/lib/normalize/normalize.min.css"><link rel="stylesheet" href="/css/style.min.css"><link rel="stylesheet" href="/lib/fontawesome-free/all.min.css"><link rel="stylesheet" href="/lib/animate/animate.min.css"><script type="application/ld+json">
+    {
+        "@context": "http://schema.org",
+        "@type": "BlogPosting",
+        "headline": "Kubernetes API 开发（二）",
+        "inLanguage": "zh-CN",
+        "mainEntityOfPage": {
+            "@type": "WebPage",
+            "@id": "https:\/\/blog.firemiles.top\/2018\/kubernetes-api-%E5%BC%80%E5%8F%91%E4%BA%8C\/"
+        },"genre": "posts","keywords": "kubernetes, API, client-go","wordcount":  687 ,
+        "url": "https:\/\/blog.firemiles.top\/2018\/kubernetes-api-%E5%BC%80%E5%8F%91%E4%BA%8C\/","datePublished": "2018-12-12T21:52:51+00:00","dateModified": "2018-12-12T21:52:51+00:00","publisher": {
+            "@type": "Organization",
+            "name": ""},"author": {
+                "@type": "Person",
+                "name": "firemiles"
+            },"description": ""
+    }
+    </script></head>
+    <body header-desktop="fixed" header-mobile="auto"><script type="text/javascript">(window.localStorage && localStorage.getItem('theme') ? localStorage.getItem('theme') === 'dark' : ('auto' === 'auto' ? window.matchMedia('(prefers-color-scheme: dark)').matches : 'auto' === 'dark')) && document.body.setAttribute('theme', 'dark');</script>
+
+        <div id="mask"></div><div class="wrapper"><header class="desktop" id="header-desktop">
+    <div class="header-wrapper">
+        <div class="header-title">
+            <a href="/" title="Firemiles 的技术生活"><span class="header-title-pre"><i class='fa fa-rocket'></i></span>Firemiles 的个人博客</a>
+        </div>
+        <div class="menu">
+            <div class="menu-inner"><a class="menu-item" href="/posts/"> 文章 </a><a class="menu-item" href="/tags/"> 标签 </a><a class="menu-item" href="/categories/"> 分类 </a><a class="menu-item" href="/about/"> 关于 </a><a class="menu-item" href="https://github.com/firemiles/firemiles.github.io" title="GitHub" rel="noopener noreffer" target="_blank"><i class='fab fa-github fa-fw'></i>  </a><span class="menu-item delimiter"></span><span class="menu-item search" id="search-desktop">
+                        <input type="text" placeholder="搜索文章标题或内容..." id="search-input-desktop">
+                        <a href="javascript:void(0);" class="search-button search-toggle" id="search-toggle-desktop" title="搜索">
+                            <i class="fas fa-search fa-fw"></i>
+                        </a>
+                        <a href="javascript:void(0);" class="search-button search-clear" id="search-clear-desktop" title="清空">
+                            <i class="fas fa-times-circle fa-fw"></i>
+                        </a>
+                        <span class="search-button search-loading" id="search-loading-desktop">
+                            <i class="fas fa-spinner fa-fw fa-spin"></i>
+                        </span>
+                    </span><a href="javascript:void(0);" class="menu-item theme-switch" title="切换主题">
+                    <i class="fas fa-adjust fa-fw"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+</header><header class="mobile" id="header-mobile">
+    <div class="header-container">
+        <div class="header-wrapper">
+            <div class="header-title">
+                <a href="/" title="Firemiles 的技术生活"><span class="header-title-pre"><i class='fa fa-rocket'></i></span>Firemiles 的个人博客</a>
+            </div>
+            <div class="menu-toggle" id="menu-toggle-mobile">
+                <span></span><span></span><span></span>
+            </div>
+        </div>
+        <div class="menu" id="menu-mobile"><div class="search-wrapper">
+                    <div class="search mobile" id="search-mobile">
+                        <input type="text" placeholder="搜索文章标题或内容..." id="search-input-mobile">
+                        <a href="javascript:void(0);" class="search-button search-toggle" id="search-toggle-mobile" title="搜索">
+                            <i class="fas fa-search fa-fw"></i>
+                        </a>
+                        <a href="javascript:void(0);" class="search-button search-clear" id="search-clear-mobile" title="清空">
+                            <i class="fas fa-times-circle fa-fw"></i>
+                        </a>
+                        <span class="search-button search-loading" id="search-loading-mobile">
+                            <i class="fas fa-spinner fa-fw fa-spin"></i>
+                        </span>
+                    </div>
+                    <a href="javascript:void(0);" class="search-cancel" id="search-cancel-mobile">
+                        取消
+                    </a>
+                </div><a class="menu-item" href="/posts/" title="">文章</a><a class="menu-item" href="/tags/" title="">标签</a><a class="menu-item" href="/categories/" title="">分类</a><a class="menu-item" href="/about/" title="">关于</a><a class="menu-item" href="https://github.com/firemiles/firemiles.github.io" title="GitHub" rel="noopener noreffer" target="_blank"><i class='fab fa-github fa-fw'></i></a><a href="javascript:void(0);" class="menu-item theme-switch" title="切换主题">
+                <i class="fas fa-adjust fa-fw"></i>
+            </a></div>
+    </div>
+</header>
+<div class="search-dropdown desktop">
+    <div id="search-dropdown-desktop"></div>
+</div>
+<div class="search-dropdown mobile">
+    <div id="search-dropdown-mobile"></div>
+</div>
+<main class="main">
+                <div class="container"><div class="toc" id="toc-auto">
+            <h2 class="toc-title">目录</h2>
+            <div class="toc-content" id="toc-content-auto"></div>
+        </div><article class="page single"><h1 class="single-title animated flipInX">Kubernetes API 开发（二）</h1><div class="post-meta">
+            <div class="post-meta-line"><span class="post-author"><a href="/" title="Author" rel=" author" class="author"><i class="fas fa-user-circle fa-fw"></i>firemiles</a></span>&nbsp;<span class="post-category">收录于 <a href="/categories/kubernetes/"><i class="far fa-folder fa-fw"></i>kubernetes</a></span></div>
+            <div class="post-meta-line"><i class="far fa-calendar-alt fa-fw"></i>&nbsp;<time datetime="2018-12-12">2018-12-12</time>&nbsp;<i class="fas fa-pencil-alt fa-fw"></i>&nbsp;约 687 字&nbsp;
+                <i class="far fa-clock fa-fw"></i>&nbsp;预计阅读 2 分钟&nbsp;</div>
+        </div><div class="featured-image"><img
+        class="lazyload"
+        src="/svg/loading.min.svg"
+        data-src="https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/2018-12-12-140900.jpg"
+        data-srcset="https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/2018-12-12-140900.jpg, https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/2018-12-12-140900.jpg 1.5x, https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/2018-12-12-140900.jpg 2x"
+        data-sizes="auto"
+        alt="https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/2018-12-12-140900.jpg"
+        title="https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/2018-12-12-140900.jpg" /></div><div class="details toc" id="toc-static"  kept="true">
+                <div class="details-summary toc-title">
+                    <span>目录</span>
+                    <span><i class="details-icon fas fa-angle-right"></i></span>
+                </div>
+                <div class="details-content toc-content" id="toc-content-static"><nav id="TableOfContents">
+  <ul>
+    <li><a href="#修改-external-api版本api">修改 External API（版本API）</a>
+      <ul>
+        <li><a href="#edit-typesgo">Edit types.go</a></li>
+        <li><a href="#edit-defaultsgo">Edit defaults.go</a></li>
+        <li><a href="#edit-conversiongo">Edit conversion.go</a></li>
+      </ul>
+    </li>
+    <li><a href="#参考">参考</a></li>
+  </ul>
+</nav></div>
+            </div><div class="content" id="content"><h2 id="修改-external-api版本api">修改 External API（版本API）</h2>
+<p>修改版本API是所有修改中最简单的，只需要开发者保持修改后的API相互兼容，比从头写要一个新的 rest API 更容易。</p>
+<h3 id="edit-typesgo">Edit types.go</h3>
+<p>每个 API 结构体的定义放在 <code>staging/src/k8s.io/api/&lt;group&gt;/&lt;version&gt;/types.go</code> 中。修改这些文件可以实现 API 结构体的修改。</p>
+<p>版本 API 内的所有类型和非内嵌字段需要在之前加上描述性注释——用于生成文档。类型注释不要包含类型名。这些注释生成的文档供用户查看，不应该向用户包含类型名。</p>
+<p>如果类型需要生成 <a href="https://github.com/kubernetes/kubernetes/commit/8dd0989b395b29b872e1f5e06934721863e4a210#diff-6318847735efb6fae447e7dbf198c8b2R3767" target="_blank" rel="noopener noreffer">DeepCopyObject</a> 方法，一般只在顶层类型上添加，例 <code>Pod</code> ，在类型前添加一行注释（<a href="https://github.com/kubernetes/kubernetes/commit/39d95b9b065fffebe5b6f233d978fe1723722085#diff-ab819c2e7a94a3521aecf6b477f9b2a7R30" target="_blank" rel="noopener noreffer">example</a>）</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go">  <span class="c1">// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
+</span></code></pre></td></tr></table>
+</div>
+</div><p>Optional 字段必须包含 <code>,omitempty</code> json tag;</p>
+<h3 id="edit-defaultsgo">Edit defaults.go</h3>
+<p>如果你在 type 中添加了新的字段，那么你可能需要修改默认值，需要在 <code>pkg/apis/&lt;group&gt;/&lt;version&gt;/defaults.go</code> 中添加 case。</p>
+<blockquote>
+<p><em>注意：</em> 当在给新字段添加默认值的时候，别忘记给所有版本都添加。<a href="https://github.com/kubernetes/kubernetes/issues/66135" target="_blank" rel="noopener noreffer">#66135</a></p>
+</blockquote>
+<p>老版本的 core ve API 比较特殊， 它的 <code>default.go</code> 过去放在 <code>pkg/api/v1/defaults.go</code>。如果你看到有引用这个路径，那可以确定那个代码过时了。现在 core v1 API 放在了 <code>pkg/apis/core/v1/defaults.go</code></p>
+<p>当你添加完代码，最好再加上一个 test ：<code>pkg/apis/&lt;group&gt;/&lt;version&gt;/defaults_test.go</code></p>
+<p>当你要区分变量是 <code>unset</code> 还是 <code>automatic zero</code> 时，最好使用指针。例如 <code>PodSpec.TerminationGracePeriodSeconds</code> 定义成 <code>*int64</code>。0值表示0秒，nil表示unset。</p>
+<p>别忘了 <strong>run the tests</strong></p>
+<h3 id="edit-conversiongo">Edit conversion.go</h3>
+<p>当前还没有修改 internal 结构体，一般没有必要修改 conversion.go。我们会在后面的修改internal api 的章节说明。</p>
+<p>当你进行了非兼容的修改后，以下的文件可能需要进行修改：
+<code>pkg/apis/&lt;group&gt;/&lt;version&gt;/conversion.go</code>
+<code>pkg/apis/&lt;group&gt;/&lt;version&gt;/conversion_test.go</code></p>
+<p>注意 conversion machinery 并不能通用的处理各种类型的字段和API常量。<a href="https://github.com/kubernetes/client-go/blob/v4.0.0-beta.0/rest/request.go#L352" target="_blank" rel="noopener noreffer">The client library</a> 自定义了字段引用的转换代码。你还需要为你的 scheme 的 <code>AddFieldLabelConversionFunc</code> 添加调用，帮助它支持字段转换，就像<a href="https://github.com/kubernetes/kubernetes/blob/v1.8.0-alpha.2/pkg/api/v1/conversion.go#L165" target="_blank" rel="noopener noreffer">这行代码</a></p>
+<h2 id="参考">参考</h2>
+<ul>
+<li><a href="https://github.com/kubernetes/community/blob/master/contributors/devel/api_changes.md#making-a-new-api-version">https://github.com/kubernetes/community/blob/master/contributors/devel/api_changes.md#making-a-new-api-version</a></li>
+</ul></div><div class="post-footer" id="post-footer">
+    <div class="post-info">
+        <div class="post-info-line">
+            <div class="post-info-mod">
+                <span>更新于 2018-12-12</span>
+            </div>
+            <div class="post-info-license"></div>
+        </div>
+        <div class="post-info-line">
+            <div class="post-info-md"><span>
+                            <a class="link-to-markdown" href="/2018/kubernetes-api-%E5%BC%80%E5%8F%91%E4%BA%8C/index.md" target="_blank">阅读原始文档</a>
+                        </span></div>
+            <div class="post-info-share">
+                <span><a href="javascript:void(0);" title="分享到 Twitter" data-sharer="twitter" data-url="https://blog.firemiles.top/2018/kubernetes-api-%E5%BC%80%E5%8F%91%E4%BA%8C/" data-title="Kubernetes API 开发（二）" data-hashtags="kubernetes,API,client-go"><i class="fab fa-twitter fa-fw"></i></a><a href="javascript:void(0);" title="分享到 Facebook" data-sharer="facebook" data-url="https://blog.firemiles.top/2018/kubernetes-api-%E5%BC%80%E5%8F%91%E4%BA%8C/" data-hashtag="kubernetes"><i class="fab fa-facebook-square fa-fw"></i></a><a href="javascript:void(0);" title="分享到 WhatsApp" data-sharer="whatsapp" data-url="https://blog.firemiles.top/2018/kubernetes-api-%E5%BC%80%E5%8F%91%E4%BA%8C/" data-title="Kubernetes API 开发（二）" data-web><i class="fab fa-whatsapp fa-fw"></i></a><a href="javascript:void(0);" title="分享到 Line" data-sharer="line" data-url="https://blog.firemiles.top/2018/kubernetes-api-%E5%BC%80%E5%8F%91%E4%BA%8C/" data-title="Kubernetes API 开发（二）"><i data-svg-src="/lib/simple-icons/icons/line.min.svg"></i></a><a href="javascript:void(0);" title="分享到 微博" data-sharer="weibo" data-url="https://blog.firemiles.top/2018/kubernetes-api-%E5%BC%80%E5%8F%91%E4%BA%8C/" data-title="Kubernetes API 开发（二）" data-image="https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/2018-12-12-140900.jpg"><i class="fab fa-weibo fa-fw"></i></a><a href="javascript:void(0);" title="分享到 Myspace" data-sharer="myspace" data-url="https://blog.firemiles.top/2018/kubernetes-api-%E5%BC%80%E5%8F%91%E4%BA%8C/" data-title="Kubernetes API 开发（二）" data-description=""><i data-svg-src="/lib/simple-icons/icons/myspace.min.svg"></i></a><a href="javascript:void(0);" title="分享到 Blogger" data-sharer="blogger" data-url="https://blog.firemiles.top/2018/kubernetes-api-%E5%BC%80%E5%8F%91%E4%BA%8C/" data-title="Kubernetes API 开发（二）" data-description=""><i class="fab fa-blogger fa-fw"></i></a><a href="javascript:void(0);" title="分享到 Evernote" data-sharer="evernote" data-url="https://blog.firemiles.top/2018/kubernetes-api-%E5%BC%80%E5%8F%91%E4%BA%8C/" data-title="Kubernetes API 开发（二）"><i class="fab fa-evernote fa-fw"></i></a></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="post-info-more">
+        <section class="post-tags"><i class="fas fa-tags fa-fw"></i>&nbsp;<a href="/tags/kubernetes/">kubernetes</a>,&nbsp;<a href="/tags/api/">API</a>,&nbsp;<a href="/tags/client-go/">client-go</a></section>
+        <section>
+            <span><a href="javascript:void(0);" onclick="window.history.back();">返回</a></span>&nbsp;|&nbsp;<span><a href="/">主页</a></span>
+        </section>
+    </div>
+
+    <div class="post-nav"><a href="/2018/kubernetes-api-%E5%BC%80%E5%8F%91%E4%B8%80/" class="prev" rel="prev" title="Kubernetes API 开发（一）"><i class="fas fa-angle-left fa-fw"></i>Kubernetes API 开发（一）</a>
+            <a href="/2018/kubernetes-api-%E5%BC%80%E5%8F%91%E4%B8%89/" class="next" rel="next" title="Kubernetes API 开发（三）">Kubernetes API 开发（三）<i class="fas fa-angle-right fa-fw"></i></a></div>
+</div>
+<div id="comments"></div></article></div>
+            </main><footer class="footer">
+        <div class="footer-container"><div class="footer-line">由 <a href="https://gohugo.io/" target="_blank" rel="noopener noreffer" title="Hugo 0.72.0-DEV">Hugo</a> 强力驱动 | 主题 - <a href="https://github.com/dillonzq/LoveIt" target="_blank" rel="noopener noreffer" title="LoveIt 0.2.10"><i class="far fa-kiss-wink-heart fa-fw"></i> LoveIt</a>
+                </div><div class="footer-line"><i class="far fa-copyright fa-fw"></i><span itemprop="copyrightYear">2019 - 2020</span><span class="author" itemprop="copyrightHolder">&nbsp;<a href="/" target="_blank">firemiles</a></span>&nbsp;|&nbsp;<span class="license"><a rel="license external nofollow noopener noreffer" href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank">CC BY-NC 4.0</a></span></div>
+        </div>
+    </footer></div>
+
+        <div id="fixed-buttons"><a href="#" id="back-to-top" class="fixed-button" title="回到顶部">
+                <i class="fas fa-arrow-up fa-fw"></i>
+            </a><a href="#" id="view-comments" class="fixed-button" title="查看评论">
+                <i class="fas fa-comment fa-fw"></i>
+            </a>
+        </div><link rel="stylesheet" href="/lib/katex/katex.min.css"><link rel="stylesheet" href="/lib/katex/copy-tex.min.css"><link rel="stylesheet" href="/lib/cookieconsent/cookieconsent.min.css"><script type="text/javascript" src="/lib/smooth-scroll/smooth-scroll.min.js"></script><script type="text/javascript" src="/lib/autocomplete/autocomplete.min.js"></script><script type="text/javascript" src="/lib/lunr/lunr.min.js"></script><script type="text/javascript" src="/lib/lunr/lunr.stemmer.support.min.js"></script><script type="text/javascript" src="/lib/lunr/lunr.zh.min.js"></script><script type="text/javascript" src="/lib/lazysizes/lazysizes.min.js"></script><script type="text/javascript" src="/lib/clipboard/clipboard.min.js"></script><script type="text/javascript" src="/lib/sharer/sharer.min.js"></script><script type="text/javascript" src="/lib/katex/katex.min.js"></script><script type="text/javascript" src="/lib/katex/auto-render.min.js"></script><script type="text/javascript" src="/lib/katex/copy-tex.min.js"></script><script type="text/javascript" src="/lib/katex/mhchem.min.js"></script><script type="text/javascript" src="/lib/cookieconsent/cookieconsent.min.js"></script><script type="text/javascript">window.config={"code":{"copyTitle":"复制到剪贴板","maxShownLines":10},"comment":{},"cookieconsent":{"content":{"dismiss":"同意","link":"了解更多","message":"本网站使用 Cookies 来改善您的浏览体验."},"enable":true,"palette":{"button":{"background":"#f0f0f0"},"popup":{"background":"#1aa3ff"}},"theme":"edgeless"},"math":{"delimiters":[{"display":true,"left":"$$","right":"$$"},{"display":true,"left":"\\[","right":"\\]"},{"display":false,"left":"$","right":"$"},{"display":false,"left":"\\(","right":"\\)"}],"strict":false},"search":{"highlightTag":"em","lunrIndexURL":"/index.json","lunrLanguageCode":"zh","lunrSegmentitURL":"/lib/lunr/lunr.segmentit.js","maxResultLength":10,"noResultsFound":"没有找到结果","snippetLength":50,"type":"lunr"}};</script><script type="text/javascript" src="/js/theme.min.js"></script></body>
+</html>

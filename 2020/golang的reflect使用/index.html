@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="robots" content="noodp" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge, chrome=1">
+        <title>golang的reflect使用 - Firemiles 的技术生活</title><meta name="Description" content="Firemiles 的技术生活轨迹"><meta property="og:title" content="golang的reflect使用" />
+<meta property="og:description" content="reflect 介绍
+计算机科学中，反射(reflect) 指计算机程序在运行时（runtime）可以访问、检测和修改它本身状态或行为的一种能力。用比喻来说，反射就是程序在运行时能够“观察”并且修改自己的行为。
+反射和内省（type introspection）不同，内省机制仅指程序在运行时对自身信息（称为元数据）的检测；反射机制不仅包括要能运行在对程序自身信息进行，还要能进一步根据这些信息改变程序状态或结构。
+早期语言汇编包含反射能力，动态修改指令或对它们进行分析等等反射功能时很平常的。编程发展到如C语言等高抽象层次语言时，这种实践消失了，带有反射特性的高级编程语言要更晚出现。
+golang 作为一个诞生较晚的现代语言，自然也支持反射能力。通过标准库 reflect 包我们可以使用 golang 提供的这个能力。" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://blog.firemiles.top/2020/golang%E7%9A%84reflect%E4%BD%BF%E7%94%A8/" />
+<meta property="og:image" content="https://blog.firemiles.top/logo.png"/>
+<meta property="article:published_time" content="2020-03-29T09:30:51+00:00" />
+<meta property="article:modified_time" content="2020-03-29T09:30:51+00:00" />
+<meta name="twitter:card" content="summary_large_image"/>
+<meta name="twitter:image" content="https://blog.firemiles.top/logo.png"/>
+
+<meta name="twitter:title" content="golang的reflect使用"/>
+<meta name="twitter:description" content="reflect 介绍
+计算机科学中，反射(reflect) 指计算机程序在运行时（runtime）可以访问、检测和修改它本身状态或行为的一种能力。用比喻来说，反射就是程序在运行时能够“观察”并且修改自己的行为。
+反射和内省（type introspection）不同，内省机制仅指程序在运行时对自身信息（称为元数据）的检测；反射机制不仅包括要能运行在对程序自身信息进行，还要能进一步根据这些信息改变程序状态或结构。
+早期语言汇编包含反射能力，动态修改指令或对它们进行分析等等反射功能时很平常的。编程发展到如C语言等高抽象层次语言时，这种实践消失了，带有反射特性的高级编程语言要更晚出现。
+golang 作为一个诞生较晚的现代语言，自然也支持反射能力。通过标准库 reflect 包我们可以使用 golang 提供的这个能力。"/>
+<meta name="application-name" content="LoveIt">
+<meta name="apple-mobile-web-app-title" content="LoveIt"><meta name="theme-color" content="#ffffff"><meta name="msapplication-TileColor" content="#da532c"><link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png"><link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"><link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5"><link rel="manifest" href="/site.webmanifest"><link rel="canonical" href="https://blog.firemiles.top/2020/golang%E7%9A%84reflect%E4%BD%BF%E7%94%A8/" /><link rel="prev" href="https://blog.firemiles.top/2020/dhcp%E5%8D%8F%E8%AE%AE/" /><link rel="stylesheet" href="/lib/normalize/normalize.min.css"><link rel="stylesheet" href="/css/style.min.css"><link rel="stylesheet" href="/lib/fontawesome-free/all.min.css"><link rel="stylesheet" href="/lib/animate/animate.min.css"><script type="application/ld+json">
+    {
+        "@context": "http://schema.org",
+        "@type": "BlogPosting",
+        "headline": "golang的reflect使用",
+        "inLanguage": "zh-CN",
+        "mainEntityOfPage": {
+            "@type": "WebPage",
+            "@id": "https:\/\/blog.firemiles.top\/2020\/golang%E7%9A%84reflect%E4%BD%BF%E7%94%A8\/"
+        },"genre": "posts","keywords": "golang, reflect","wordcount":  2743 ,
+        "url": "https:\/\/blog.firemiles.top\/2020\/golang%E7%9A%84reflect%E4%BD%BF%E7%94%A8\/","datePublished": "2020-03-29T09:30:51+00:00","dateModified": "2020-03-29T09:30:51+00:00","publisher": {
+            "@type": "Organization",
+            "name": ""},"author": {
+                "@type": "Person",
+                "name": "firemiles"
+            },"description": ""
+    }
+    </script></head>
+    <body header-desktop="fixed" header-mobile="auto"><script type="text/javascript">(window.localStorage && localStorage.getItem('theme') ? localStorage.getItem('theme') === 'dark' : ('auto' === 'auto' ? window.matchMedia('(prefers-color-scheme: dark)').matches : 'auto' === 'dark')) && document.body.setAttribute('theme', 'dark');</script>
+
+        <div id="mask"></div><div class="wrapper"><header class="desktop" id="header-desktop">
+    <div class="header-wrapper">
+        <div class="header-title">
+            <a href="/" title="Firemiles 的技术生活"><span class="header-title-pre"><i class='fa fa-rocket'></i></span>Firemiles 的个人博客</a>
+        </div>
+        <div class="menu">
+            <div class="menu-inner"><a class="menu-item" href="/posts/"> 文章 </a><a class="menu-item" href="/tags/"> 标签 </a><a class="menu-item" href="/categories/"> 分类 </a><a class="menu-item" href="/about/"> 关于 </a><a class="menu-item" href="https://github.com/firemiles/firemiles.github.io" title="GitHub" rel="noopener noreffer" target="_blank"><i class='fab fa-github fa-fw'></i>  </a><span class="menu-item delimiter"></span><span class="menu-item search" id="search-desktop">
+                        <input type="text" placeholder="搜索文章标题或内容..." id="search-input-desktop">
+                        <a href="javascript:void(0);" class="search-button search-toggle" id="search-toggle-desktop" title="搜索">
+                            <i class="fas fa-search fa-fw"></i>
+                        </a>
+                        <a href="javascript:void(0);" class="search-button search-clear" id="search-clear-desktop" title="清空">
+                            <i class="fas fa-times-circle fa-fw"></i>
+                        </a>
+                        <span class="search-button search-loading" id="search-loading-desktop">
+                            <i class="fas fa-spinner fa-fw fa-spin"></i>
+                        </span>
+                    </span><a href="javascript:void(0);" class="menu-item theme-switch" title="切换主题">
+                    <i class="fas fa-adjust fa-fw"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+</header><header class="mobile" id="header-mobile">
+    <div class="header-container">
+        <div class="header-wrapper">
+            <div class="header-title">
+                <a href="/" title="Firemiles 的技术生活"><span class="header-title-pre"><i class='fa fa-rocket'></i></span>Firemiles 的个人博客</a>
+            </div>
+            <div class="menu-toggle" id="menu-toggle-mobile">
+                <span></span><span></span><span></span>
+            </div>
+        </div>
+        <div class="menu" id="menu-mobile"><div class="search-wrapper">
+                    <div class="search mobile" id="search-mobile">
+                        <input type="text" placeholder="搜索文章标题或内容..." id="search-input-mobile">
+                        <a href="javascript:void(0);" class="search-button search-toggle" id="search-toggle-mobile" title="搜索">
+                            <i class="fas fa-search fa-fw"></i>
+                        </a>
+                        <a href="javascript:void(0);" class="search-button search-clear" id="search-clear-mobile" title="清空">
+                            <i class="fas fa-times-circle fa-fw"></i>
+                        </a>
+                        <span class="search-button search-loading" id="search-loading-mobile">
+                            <i class="fas fa-spinner fa-fw fa-spin"></i>
+                        </span>
+                    </div>
+                    <a href="javascript:void(0);" class="search-cancel" id="search-cancel-mobile">
+                        取消
+                    </a>
+                </div><a class="menu-item" href="/posts/" title="">文章</a><a class="menu-item" href="/tags/" title="">标签</a><a class="menu-item" href="/categories/" title="">分类</a><a class="menu-item" href="/about/" title="">关于</a><a class="menu-item" href="https://github.com/firemiles/firemiles.github.io" title="GitHub" rel="noopener noreffer" target="_blank"><i class='fab fa-github fa-fw'></i></a><a href="javascript:void(0);" class="menu-item theme-switch" title="切换主题">
+                <i class="fas fa-adjust fa-fw"></i>
+            </a></div>
+    </div>
+</header>
+<div class="search-dropdown desktop">
+    <div id="search-dropdown-desktop"></div>
+</div>
+<div class="search-dropdown mobile">
+    <div id="search-dropdown-mobile"></div>
+</div>
+<main class="main">
+                <div class="container"><div class="toc" id="toc-auto">
+            <h2 class="toc-title">目录</h2>
+            <div class="toc-content" id="toc-content-auto"></div>
+        </div><article class="page single"><h1 class="single-title animated flipInX">golang的reflect使用</h1><div class="post-meta">
+            <div class="post-meta-line"><span class="post-author"><a href="/" title="Author" rel=" author" class="author"><i class="fas fa-user-circle fa-fw"></i>firemiles</a></span>&nbsp;<span class="post-category">收录于 <a href="/categories/golang/"><i class="far fa-folder fa-fw"></i>golang</a></span></div>
+            <div class="post-meta-line"><i class="far fa-calendar-alt fa-fw"></i>&nbsp;<time datetime="2020-03-29">2020-03-29</time>&nbsp;<i class="fas fa-pencil-alt fa-fw"></i>&nbsp;约 2743 字&nbsp;
+                <i class="far fa-clock fa-fw"></i>&nbsp;预计阅读 6 分钟&nbsp;</div>
+        </div><div class="featured-image"><img
+        class="lazyload"
+        src="/svg/loading.min.svg"
+        data-src="https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/20200329093558.png"
+        data-srcset="https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/20200329093558.png, https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/20200329093558.png 1.5x, https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/20200329093558.png 2x"
+        data-sizes="auto"
+        alt="https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/20200329093558.png"
+        title="https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/20200329093558.png" /></div><div class="details toc" id="toc-static"  kept="true">
+                <div class="details-summary toc-title">
+                    <span>目录</span>
+                    <span><i class="details-icon fas fa-angle-right"></i></span>
+                </div>
+                <div class="details-content toc-content" id="toc-content-static"><nav id="TableOfContents">
+  <ul>
+    <li><a href="#reflect-介绍">reflect 介绍</a></li>
+    <li><a href="#golang-reflect-原则">Golang reflect 原则</a>
+      <ul>
+        <li><a href="#interface-类型">interface 类型</a></li>
+        <li><a href="#interface-的细节">interface 的细节</a></li>
+        <li><a href="#第一个法则-可以从-interface-值获取反射对象">第一个法则： 可以从 interface 值获取反射对象</a></li>
+        <li><a href="#第二个法则-可以从反射对象获取-interface-值">第二个法则： 可以从反射对象获取 interface 值</a></li>
+        <li><a href="#第三个法则想要修改反射对象对象的指必须是settable的">第三个法则：想要修改反射对象，对象的指必须是settable的</a></li>
+        <li><a href="#结构体">结构体</a></li>
+        <li><a href="#总结">总结</a></li>
+      </ul>
+    </li>
+    <li><a href="#参考">参考</a></li>
+  </ul>
+</nav></div>
+            </div><div class="content" id="content"><h2 id="reflect-介绍">reflect 介绍</h2>
+<p>计算机科学中，反射(reflect) 指计算机程序在运行时（runtime）可以访问、检测和修改它本身状态或行为的一种能力。用比喻来说，反射就是程序在运行时能够“观察”并且修改自己的行为。</p>
+<p>反射和内省（type introspection）不同，内省机制仅指程序在运行时对自身信息（称为元数据）的检测；反射机制不仅包括要能运行在对程序自身信息进行，还要能进一步根据这些信息改变程序状态或结构。</p>
+<p>早期语言汇编包含反射能力，动态修改指令或对它们进行分析等等反射功能时很平常的。编程发展到如C语言等高抽象层次语言时，这种实践消失了，带有反射特性的高级编程语言要更晚出现。</p>
+<p>golang 作为一个诞生较晚的现代语言，自然也支持反射能力。通过标准库 <code>reflect</code> 包我们可以使用 golang 提供的这个能力。</p>
+<h2 id="golang-reflect-原则">Golang reflect 原则</h2>
+<h3 id="interface-类型">interface 类型</h3>
+<p>reflect 建立在类型系统上，我们先从 Go 的类型系统开始讲起。Go 是静态类型语言，所有的变量都有对应的静态类型，因此所有变量的类型在编译时就已经确定：<code>int</code>,<code>float32</code>,<code>*MyType</code>,<code>[]byte</code>等等。</p>
+<p>如果我们定义</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="kd">type</span> <span class="nx">MyInt</span> <span class="kt">int</span>
+<span class="kd">var</span> <span class="nx">i</span> <span class="kt">int</span>
+<span class="kd">var</span> <span class="nx">j</span> <span class="nx">MyInt</span>
+</code></pre></td></tr></table>
+</div>
+</div><p>那么 <code>i</code> 是 <code>int</code> 类型，而 <code>j</code> 是 <code>MyInt</code> 类型。两个变量拥有不同的静态类型，尽管它们的底层类型是一样的，但是它们之间的赋值必须通过显式的类型转换完成。</p>
+<p>interface type 是一类非常重要的类型，它代表一些方法的集合。interface 变量能够存储所有实现了 interface 中的方法的变量。一个广为人知的例子是 <code>io.Reader</code> 和 <code>io.Writer</code>。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span><span class="lnt">8
+</span><span class="lnt">9
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="c1">// Reader is the interface that wraps the basic Read method.
+</span><span class="c1"></span><span class="kd">type</span> <span class="nx">Reader</span> <span class="kd">interface</span> <span class="p">{</span>
+    <span class="nf">Read</span><span class="p">(</span><span class="nx">p</span> <span class="p">[]</span><span class="kt">byte</span><span class="p">)</span> <span class="p">(</span><span class="nx">n</span> <span class="kt">int</span><span class="p">,</span> <span class="nx">err</span> <span class="kt">error</span><span class="p">)</span>
+<span class="p">}</span>
+
+<span class="c1">// Writer is the interface that wraps the basic Write method.
+</span><span class="c1"></span><span class="kd">type</span> <span class="nx">Writer</span> <span class="kd">interface</span> <span class="p">{</span>
+    <span class="nf">Write</span><span class="p">(</span><span class="nx">p</span> <span class="p">[]</span><span class="kt">byte</span><span class="p">)</span> <span class="p">(</span><span class="nx">n</span> <span class="kt">int</span><span class="p">,</span> <span class="nx">err</span> <span class="kt">error</span><span class="p">)</span>
+<span class="p">}</span>
+</code></pre></td></tr></table>
+</div>
+</div><p>任何类型实现上述定义的 Read 或 Write 方法，我们认为该类型实现了 Reader 或 Writer 接口。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="kd">var</span> <span class="nx">r</span> <span class="nx">io</span><span class="p">.</span><span class="nx">Reader</span>
+<span class="nx">r</span> <span class="p">=</span> <span class="nx">os</span><span class="p">.</span><span class="nx">Stdin</span>
+<span class="nx">r</span> <span class="p">=</span> <span class="nx">bufio</span><span class="p">.</span><span class="nf">NewReader</span><span class="p">(</span><span class="nx">r</span><span class="p">)</span>
+<span class="nx">r</span> <span class="p">=</span> <span class="nb">new</span><span class="p">(</span><span class="nx">bytes</span><span class="p">.</span><span class="nx">Buffer</span><span class="p">)</span>
+<span class="c1">// and so on
+</span></code></pre></td></tr></table>
+</div>
+</div><p>很重要的一点是，无论 <code>r</code> 的值是什么，<code>r</code> 的类型永远是 <code>io.Reader</code>，go 是静态类型，而 <code>r</code> 的静态类型是 <code>io.Reader</code> 。</p>
+<p>空接口类型是一个十分重要的类型。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="kd">interface</span><span class="p">{}</span>
+</code></pre></td></tr></table>
+</div>
+</div><p>它代表空方法的集合，它可以接收任意值，包括零值或有方法的值。</p>
+<p>有些人可能认为Go的interface是动态类型，其实这是误解，它们是静态类型：interface 类型的变量永远是相同的静态类型，但是存储在interface中的值在运行时可以修改类型，该值要求实现interface定义的方法集合。</p>
+<h3 id="interface-的细节">interface 的细节</h3>
+<p>interface 类型的变量存储了一个对值：赋值给该interface的值；以及该值的类型。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="kd">var</span> <span class="nx">r</span> <span class="nx">io</span><span class="p">.</span><span class="nx">Reader</span>
+<span class="nx">tty</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">os</span><span class="p">.</span><span class="nf">OpenFile</span><span class="p">(</span><span class="s">&#34;/dev/tty&#34;</span><span class="p">,</span> <span class="nx">os</span><span class="p">.</span><span class="nx">O_RDWR</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+<span class="k">if</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="kc">nil</span><span class="p">,</span> <span class="nx">err</span>
+<span class="p">}</span>
+<span class="nx">r</span> <span class="p">=</span> <span class="nx">tty</span>
+</code></pre></td></tr></table>
+</div>
+</div><p><code>r</code> 存储了(value, type)对：(tty, *os.File)。需要注意 <code>*os.File</code> 实现了比 <code>Read</code> 更多的方法，但是使用 <code>Read</code> interface只能访问<code>Read</code> 中的方法。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="kd">var</span> <span class="nx">w</span> <span class="nx">io</span><span class="p">.</span><span class="nx">Writer</span>
+<span class="nx">w</span> <span class="p">=</span> <span class="nx">r</span><span class="p">.(</span><span class="nx">io</span><span class="p">.</span><span class="nx">Writer</span><span class="p">)</span>
+</code></pre></td></tr></table>
+</div>
+</div><p>通过赋值给 <code>Write</code> 接口，我们可以访问 tty 中实现的 <code>Write</code> 中的方法。</p>
+<p>我们还可以这样</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="kd">var</span> <span class="nx">empty</span> <span class="kd">interface</span><span class="p">{}</span>
+<span class="nx">empty</span> <span class="p">=</span> <span class="nx">w</span>
+</code></pre></td></tr></table>
+</div>
+</div><p>空的interface仍然包含了相同的pair, (tty, *os.File)。它的用处是：空的interface可以接收任意值并保留该值的所有信息。</p>
+<p>这里不需要进行类型断言，因为 <code>Write</code> 接口满足空interface类型要求，而 <code>Read</code> 接口和 <code>Wirte</code> 接口的方法集并不匹配，我们需要显式进行类型断言，告诉编译器我们知道它们存储的值是满足接口的。</p>
+<p>还有很重要的一点要记住：interface中存储的pair是（value， concrete type），并不是 (value, interface type)。所以interface不能保存interface 值。</p>
+<h3 id="第一个法则-可以从-interface-值获取反射对象">第一个法则： 可以从 interface 值获取反射对象</h3>
+<p>先说基本功能，反射是测试interface中存储的值和类型的机制。我们需要了解 <a href="https://golang.org/pkg/reflect/" target="_blank" rel="noopener noreffer">package reflect</a> 中的 <code>Type</code> 和 <code>Value</code>。这两个类型可以访问interface中的内容。<code>reflect.TypeOf</code> 和 <code>reflect.ValueOf</code> 用来从interface中获取 <code>reflect.Type</code> 和 <code>reflect.Value</code> 。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="kn">package</span> <span class="nx">main</span>
+<span class="kn">import</span> <span class="p">(</span>
+    <span class="s">&#34;fmt&#34;</span>
+    <span class="s">&#34;reflect&#34;</span>
+<span class="p">)</span>
+<span class="kd">func</span> <span class="nf">main</span><span class="p">()</span> <span class="p">{</span>
+    <span class="kd">var</span> <span class="nx">x</span> <span class="kt">float64</span> <span class="p">=</span> <span class="mf">3.4</span>
+    <span class="nx">fmt</span><span class="p">.</span><span class="nf">Println</span><span class="p">(</span><span class="s">&#34;type:&#34;</span><span class="p">,</span> <span class="nx">reflect</span><span class="p">.</span><span class="nf">TypeOf</span><span class="p">(</span><span class="nx">x</span><span class="p">))</span>
+<span class="p">}</span>
+<span class="c1">// type: flot64
+</span></code></pre></td></tr></table>
+</div>
+</div><p>反射对象的第二个属性是 <code>Kind</code>， 它是底层类型，非静态类型，例如反射对象包含用户自定义类型的值：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="kd">type</span> <span class="nx">MyInt</span> <span class="kt">int</span>
+<span class="kd">var</span> <span class="nx">x</span> <span class="nx">MyInt</span> <span class="p">=</span> <span class="mi">7</span>
+<span class="nx">v</span> <span class="o">:=</span> <span class="nx">reflect</span><span class="p">.</span><span class="nf">ValueOf</span><span class="p">(</span><span class="nx">x</span><span class="p">)</span>
+<span class="c1">// v.Kind() == reflect.Int
+</span></code></pre></td></tr></table>
+</div>
+</div><p><code>v</code> 的 <code>Kind</code> 是 <code>reflect.Int</code>，但是 x 的静态类型是 MyInt，不是int。</p>
+<h3 id="第二个法则-可以从反射对象获取-interface-值">第二个法则： 可以从反射对象获取 interface 值</h3>
+<p>获得一个<code>reflect.Value</code> 后，我们可以使用 <code>Interface()</code> 方法恢复 interface 值。该方法将type和value打包放入interface表达式中，并将它返回。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="c1">// Interface returns v&#39;s value as an interface{}.
+</span><span class="c1"></span><span class="kd">func</span> <span class="p">(</span><span class="nx">v</span> <span class="nx">Value</span><span class="p">)</span> <span class="nf">Interface</span><span class="p">()</span> <span class="kd">interface</span><span class="p">{}</span>
+</code></pre></td></tr></table>
+</div>
+</div><p>之后你可以这么处理</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="nx">y</span> <span class="o">:=</span> <span class="nx">v</span><span class="p">.</span><span class="nf">Interface</span><span class="p">().(</span><span class="kt">float64</span><span class="p">)</span> <span class="c1">// y will have type float64.
+</span><span class="c1"></span><span class="nx">fmt</span><span class="p">.</span><span class="nf">Println</span><span class="p">(</span><span class="nx">y</span><span class="p">)</span>
+</code></pre></td></tr></table>
+</div>
+</div><p>我们还可以简化，<code>fmt.Println</code> 的参数是空 interface，他们在方法内部会做解包操作，因此我们只需要直接将interface传入。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="nx">fmt</span><span class="p">.</span><span class="nf">Println</span><span class="p">(</span><span class="nx">v</span><span class="p">.</span><span class="nf">Interface</span><span class="p">())</span>
+</code></pre></td></tr></table>
+</div>
+</div><h3 id="第三个法则想要修改反射对象对象的指必须是settable的">第三个法则：想要修改反射对象，对象的指必须是settable的</h3>
+<p>第三法则比较难懂，要结合法则一进行理解。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="kd">var</span> <span class="nx">x</span> <span class="kt">float64</span> <span class="p">=</span> <span class="mf">3.4</span>
+<span class="nx">v</span> <span class="o">:=</span> <span class="nx">reflect</span><span class="p">.</span><span class="nf">ValueOf</span><span class="p">(</span><span class="nx">x</span><span class="p">)</span>
+<span class="nx">v</span><span class="p">.</span><span class="nf">SetFloat</span><span class="p">(</span><span class="mf">7.1</span><span class="p">)</span> <span class="c1">// Error: will panic.
+</span></code></pre></td></tr></table>
+</div>
+</div><p>结果会 panic 并输出信息。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-txt" data-lang="txt">panic: reflect.Value.SetFloat using unaddressable value
+</code></pre></td></tr></table>
+</div>
+</div><p>错误的原因是 v 不是 addressable 的，Settable 是 reflect.Value 的一个属性，不是所有的 reflect.Value 都有该属性。</p>
+<p><code>CanSet</code> 方法输出 settable 属性</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="kd">var</span> <span class="nx">x</span> <span class="kt">float64</span> <span class="p">=</span> <span class="mf">3.4</span>
+<span class="nx">v</span> <span class="o">:=</span> <span class="nx">reflect</span><span class="p">.</span><span class="nf">ValueOf</span><span class="p">(</span><span class="nx">x</span><span class="p">)</span>
+<span class="nx">fmt</span><span class="p">.</span><span class="nf">Println</span><span class="p">(</span><span class="s">&#34;settability of v:&#34;</span><span class="p">,</span> <span class="nx">v</span><span class="p">.</span><span class="nf">CanSet</span><span class="p">())</span>
+<span class="c1">// settability of v: false
+</span></code></pre></td></tr></table>
+</div>
+</div><p>Settablity 是一个 bit 类似 addressability，但是更严格。这个属性表述反射对象可以修改创建该反射对象的原始变量的值。Settability 由反射对象是否持有原始对象决定。</p>
+<p>当我们使用</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="kd">var</span> <span class="nx">x</span> <span class="kt">float64</span> <span class="p">=</span> <span class="mf">3.4</span>
+<span class="nx">v</span> <span class="o">:=</span> <span class="nx">reflect</span><span class="p">.</span><span class="nf">ValueOf</span><span class="p">(</span><span class="nx">x</span><span class="p">)</span>
+</code></pre></td></tr></table>
+</div>
+</div><p>反射对象只持有了 x 的 copy，并不是原始对象，因此</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="nx">v</span><span class="p">.</span><span class="nf">SetFloat</span><span class="p">(</span><span class="mf">7.1</span><span class="p">)</span>
+</code></pre></td></tr></table>
+</div>
+</div><p>如果允许运行成功，那么它修改的也不是x，而是反射对象内部的一个值，这会让开发者产生疑惑。所以这并不被允许，settability 属性就是用来避免该问题。</p>
+<p>如果我们想要修改原始对象，那么我们可以使用指针：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="kd">var</span> <span class="nx">x</span> <span class="kt">float64</span> <span class="p">=</span> <span class="mf">3.4</span>
+<span class="nx">p</span> <span class="o">:=</span> <span class="nx">reflect</span><span class="p">.</span><span class="nf">ValueOf</span><span class="p">(</span><span class="o">&amp;</span><span class="nx">x</span><span class="p">)</span> <span class="c1">// Note: take the address of x.
+</span><span class="c1"></span><span class="nx">fmt</span><span class="p">.</span><span class="nf">Println</span><span class="p">(</span><span class="s">&#34;type of p:&#34;</span><span class="p">,</span> <span class="nx">p</span><span class="p">.</span><span class="nf">Type</span><span class="p">())</span>
+<span class="nx">fmt</span><span class="p">.</span><span class="nf">Println</span><span class="p">(</span><span class="s">&#34;settability of p:&#34;</span><span class="p">,</span> <span class="nx">p</span><span class="p">.</span><span class="nf">CanSet</span><span class="p">())</span>
+<span class="c1">// type of p: *float64
+</span><span class="c1">// settability of p: false
+</span></code></pre></td></tr></table>
+</div>
+</div><p>这里 p 也是不可设置的，但是我们并不想修改 p，我们想要修改 p 指向的对象。我们可以使用 <code>Elem</code> 方法获取 p 指向的对象，该方法获取指针指向的元素，并保存成 <code>reflect.Value</code> 类型返回。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="nx">v</span> <span class="o">:=</span> <span class="nx">p</span><span class="p">.</span><span class="nf">Elem</span><span class="p">()</span>
+<span class="nx">fmt</span><span class="p">.</span><span class="nf">Println</span><span class="p">(</span><span class="s">&#34;settability of v:&#34;</span><span class="p">,</span> <span class="nx">v</span><span class="p">.</span><span class="nf">CanSet</span><span class="p">())</span>
+<span class="c1">// settability of v: true
+</span></code></pre></td></tr></table>
+</div>
+</div><p>在这里我们可以修改 x 了。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="nx">v</span><span class="p">.</span><span class="nf">SetFloat</span><span class="p">(</span><span class="mf">7.1</span><span class="p">)</span>
+<span class="nx">fmt</span><span class="p">.</span><span class="nf">Println</span><span class="p">(</span><span class="nx">v</span><span class="p">.</span><span class="nf">Interface</span><span class="p">())</span>
+<span class="nx">fmt</span><span class="p">.</span><span class="nf">Println</span><span class="p">(</span><span class="nx">x</span><span class="p">)</span>
+<span class="c1">// 7.1
+</span><span class="c1">// 7.1
+</span></code></pre></td></tr></table>
+</div>
+</div><h3 id="结构体">结构体</h3>
+<p>在我们前面的例子中，<code>v</code> 并不是指针本身，而是它派生出来的对象。这种方法的一个使用场景是修改结构体的字段。只有我们拥有结构体的地址，我们才可以修改它的字段。</p>
+<p>下面是一个分析结构体值的例子。我们使用结构体变量的地址构建一个反射对象，这样我们可以通过该对象对它进行修改。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="kd">type</span> <span class="nx">T</span> <span class="kd">struct</span> <span class="p">{</span>
+    <span class="nx">A</span> <span class="kt">int</span>
+    <span class="nx">B</span> <span class="kt">string</span>
+<span class="p">}</span>
+<span class="nx">t</span> <span class="o">:=</span> <span class="nx">T</span><span class="p">{</span><span class="mi">23</span><span class="p">,</span> <span class="s">&#34;skidoo&#34;</span><span class="p">}</span>
+<span class="nx">s</span> <span class="o">:=</span> <span class="nx">reflect</span><span class="p">.</span><span class="nf">ValueOf</span><span class="p">(</span><span class="o">&amp;</span><span class="nx">t</span><span class="p">).</span><span class="nf">Elem</span><span class="p">()</span>
+<span class="nx">typeOfT</span> <span class="o">:=</span> <span class="nx">s</span><span class="p">.</span><span class="nf">Type</span><span class="p">()</span>
+<span class="k">for</span> <span class="nx">i</span> <span class="o">:=</span> <span class="mi">0</span><span class="p">;</span> <span class="nx">i</span> <span class="p">&lt;</span> <span class="nx">s</span><span class="p">.</span><span class="nf">NumField</span><span class="p">();</span> <span class="nx">i</span><span class="o">++</span> <span class="p">{</span>
+    <span class="nx">f</span> <span class="o">:=</span> <span class="nx">s</span><span class="p">.</span><span class="nf">Field</span><span class="p">(</span><span class="nx">i</span><span class="p">)</span>
+    <span class="nx">fmt</span><span class="p">.</span><span class="nf">Printf</span><span class="p">(</span><span class="s">&#34;%d: %s %s = %v\n&#34;</span><span class="p">,</span> <span class="nx">i</span><span class="p">,</span>
+        <span class="nx">typeOfT</span><span class="p">.</span><span class="nf">Field</span><span class="p">(</span><span class="nx">i</span><span class="p">).</span><span class="nx">Name</span><span class="p">,</span> <span class="nx">f</span><span class="p">.</span><span class="nf">Type</span><span class="p">(),</span> <span class="nx">f</span><span class="p">.</span><span class="nf">Interface</span><span class="p">())</span>
+<span class="p">}</span>
+<span class="c1">// 0: A int = 23
+</span><span class="c1">// 1: B string = skidoo
+</span></code></pre></td></tr></table>
+</div>
+</div><p>因为 <code>s</code> 是 settable 的，所以我们可以用它修改结构体字段。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="nx">s</span><span class="p">.</span><span class="nf">Field</span><span class="p">(</span><span class="mi">0</span><span class="p">).</span><span class="nf">SetInt</span><span class="p">(</span><span class="mi">77</span><span class="p">)</span>
+<span class="nx">s</span><span class="p">.</span><span class="nf">Field</span><span class="p">(</span><span class="mi">1</span><span class="p">).</span><span class="nf">SetString</span><span class="p">(</span><span class="s">&#34;Sunset Strip&#34;</span><span class="p">)</span>
+<span class="nx">fmt</span><span class="p">.</span><span class="nf">Println</span><span class="p">(</span><span class="s">&#34;t is now&#34;</span><span class="p">,</span> <span class="nx">t</span><span class="p">)</span>
+<span class="c1">// t is now {77 Sunset Strip}
+</span></code></pre></td></tr></table>
+</div>
+</div><h3 id="总结">总结</h3>
+<p>再重复一遍三法则：</p>
+<ol>
+<li>可以从interface值获取反射对象</li>
+<li>可以从反射对象获取interface值</li>
+<li>想要修改反射对象，对像必须是settable</li>
+</ol>
+<p>一旦你理解这三个反射原则，那么Go就变得更容易使用了。反射是一个需要小心使用的强大工具，可以帮助你的代码减少不必要的重复。</p>
+<p>下一次我将介绍 <code>encoding/json</code> 的实现，真正深入学习反射的使用。</p>
+<h2 id="参考">参考</h2>
+<ul>
+<li><a href="https://www.wikiwand.com/zh-hans/%E5%8F%8D%E5%B0%84_(%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%A7%91%E5%AD%A6)">https://www.wikiwand.com/zh-hans/%E5%8F%8D%E5%B0%84_(%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%A7%91%E5%AD%A6)</a></li>
+<li><a href="https://golang.org/pkg/reflect/">https://golang.org/pkg/reflect/</a></li>
+<li><a href="https://blog.golang.org/laws-of-reflection">https://blog.golang.org/laws-of-reflection</a></li>
+<li><a href="https://colobu.com/2018/02/27/go-addressable/">https://colobu.com/2018/02/27/go-addressable/</a></li>
+<li><a href="https://studygolang.com/articles/938">https://studygolang.com/articles/938</a></li>
+<li><a href="https://research.swtch.com/interfaces" target="_blank" rel="noopener noreffer">Go Data Structures: Interfaces</a></li>
+<li><a href="https://draveness.me/golang/docs/part2-foundation/ch04-basic/golang-reflect/">https://draveness.me/golang/docs/part2-foundation/ch04-basic/golang-reflect/</a></li>
+</ul></div><div class="post-footer" id="post-footer">
+    <div class="post-info">
+        <div class="post-info-line">
+            <div class="post-info-mod">
+                <span>更新于 2020-03-29</span>
+            </div>
+            <div class="post-info-license"></div>
+        </div>
+        <div class="post-info-line">
+            <div class="post-info-md"><span>
+                            <a class="link-to-markdown" href="/2020/golang%E7%9A%84reflect%E4%BD%BF%E7%94%A8/index.md" target="_blank">阅读原始文档</a>
+                        </span></div>
+            <div class="post-info-share">
+                <span><a href="javascript:void(0);" title="分享到 Twitter" data-sharer="twitter" data-url="https://blog.firemiles.top/2020/golang%E7%9A%84reflect%E4%BD%BF%E7%94%A8/" data-title="golang的reflect使用" data-hashtags="golang,reflect"><i class="fab fa-twitter fa-fw"></i></a><a href="javascript:void(0);" title="分享到 Facebook" data-sharer="facebook" data-url="https://blog.firemiles.top/2020/golang%E7%9A%84reflect%E4%BD%BF%E7%94%A8/" data-hashtag="golang"><i class="fab fa-facebook-square fa-fw"></i></a><a href="javascript:void(0);" title="分享到 WhatsApp" data-sharer="whatsapp" data-url="https://blog.firemiles.top/2020/golang%E7%9A%84reflect%E4%BD%BF%E7%94%A8/" data-title="golang的reflect使用" data-web><i class="fab fa-whatsapp fa-fw"></i></a><a href="javascript:void(0);" title="分享到 Line" data-sharer="line" data-url="https://blog.firemiles.top/2020/golang%E7%9A%84reflect%E4%BD%BF%E7%94%A8/" data-title="golang的reflect使用"><i data-svg-src="/lib/simple-icons/icons/line.min.svg"></i></a><a href="javascript:void(0);" title="分享到 微博" data-sharer="weibo" data-url="https://blog.firemiles.top/2020/golang%E7%9A%84reflect%E4%BD%BF%E7%94%A8/" data-title="golang的reflect使用" data-image="https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/20200329093558.png"><i class="fab fa-weibo fa-fw"></i></a><a href="javascript:void(0);" title="分享到 Myspace" data-sharer="myspace" data-url="https://blog.firemiles.top/2020/golang%E7%9A%84reflect%E4%BD%BF%E7%94%A8/" data-title="golang的reflect使用" data-description=""><i data-svg-src="/lib/simple-icons/icons/myspace.min.svg"></i></a><a href="javascript:void(0);" title="分享到 Blogger" data-sharer="blogger" data-url="https://blog.firemiles.top/2020/golang%E7%9A%84reflect%E4%BD%BF%E7%94%A8/" data-title="golang的reflect使用" data-description=""><i class="fab fa-blogger fa-fw"></i></a><a href="javascript:void(0);" title="分享到 Evernote" data-sharer="evernote" data-url="https://blog.firemiles.top/2020/golang%E7%9A%84reflect%E4%BD%BF%E7%94%A8/" data-title="golang的reflect使用"><i class="fab fa-evernote fa-fw"></i></a></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="post-info-more">
+        <section class="post-tags"><i class="fas fa-tags fa-fw"></i>&nbsp;<a href="/tags/golang/">golang</a>,&nbsp;<a href="/tags/reflect/">reflect</a></section>
+        <section>
+            <span><a href="javascript:void(0);" onclick="window.history.back();">返回</a></span>&nbsp;|&nbsp;<span><a href="/">主页</a></span>
+        </section>
+    </div>
+
+    <div class="post-nav"><a href="/2020/dhcp%E5%8D%8F%E8%AE%AE/" class="prev" rel="prev" title="DHCP协议"><i class="fas fa-angle-left fa-fw"></i>DHCP协议</a></div>
+</div>
+<div id="comments"></div></article></div>
+            </main><footer class="footer">
+        <div class="footer-container"><div class="footer-line">由 <a href="https://gohugo.io/" target="_blank" rel="noopener noreffer" title="Hugo 0.72.0-DEV">Hugo</a> 强力驱动 | 主题 - <a href="https://github.com/dillonzq/LoveIt" target="_blank" rel="noopener noreffer" title="LoveIt 0.2.10"><i class="far fa-kiss-wink-heart fa-fw"></i> LoveIt</a>
+                </div><div class="footer-line"><i class="far fa-copyright fa-fw"></i><span itemprop="copyrightYear">2019 - 2020</span><span class="author" itemprop="copyrightHolder">&nbsp;<a href="/" target="_blank">firemiles</a></span>&nbsp;|&nbsp;<span class="license"><a rel="license external nofollow noopener noreffer" href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank">CC BY-NC 4.0</a></span></div>
+        </div>
+    </footer></div>
+
+        <div id="fixed-buttons"><a href="#" id="back-to-top" class="fixed-button" title="回到顶部">
+                <i class="fas fa-arrow-up fa-fw"></i>
+            </a><a href="#" id="view-comments" class="fixed-button" title="查看评论">
+                <i class="fas fa-comment fa-fw"></i>
+            </a>
+        </div><link rel="stylesheet" href="/lib/katex/katex.min.css"><link rel="stylesheet" href="/lib/katex/copy-tex.min.css"><link rel="stylesheet" href="/lib/cookieconsent/cookieconsent.min.css"><script type="text/javascript" src="/lib/smooth-scroll/smooth-scroll.min.js"></script><script type="text/javascript" src="/lib/autocomplete/autocomplete.min.js"></script><script type="text/javascript" src="/lib/lunr/lunr.min.js"></script><script type="text/javascript" src="/lib/lunr/lunr.stemmer.support.min.js"></script><script type="text/javascript" src="/lib/lunr/lunr.zh.min.js"></script><script type="text/javascript" src="/lib/lazysizes/lazysizes.min.js"></script><script type="text/javascript" src="/lib/clipboard/clipboard.min.js"></script><script type="text/javascript" src="/lib/sharer/sharer.min.js"></script><script type="text/javascript" src="/lib/katex/katex.min.js"></script><script type="text/javascript" src="/lib/katex/auto-render.min.js"></script><script type="text/javascript" src="/lib/katex/copy-tex.min.js"></script><script type="text/javascript" src="/lib/katex/mhchem.min.js"></script><script type="text/javascript" src="/lib/cookieconsent/cookieconsent.min.js"></script><script type="text/javascript">window.config={"code":{"copyTitle":"复制到剪贴板","maxShownLines":10},"comment":{},"cookieconsent":{"content":{"dismiss":"同意","link":"了解更多","message":"本网站使用 Cookies 来改善您的浏览体验."},"enable":true,"palette":{"button":{"background":"#f0f0f0"},"popup":{"background":"#1aa3ff"}},"theme":"edgeless"},"math":{"delimiters":[{"display":true,"left":"$$","right":"$$"},{"display":true,"left":"\\[","right":"\\]"},{"display":false,"left":"$","right":"$"},{"display":false,"left":"\\(","right":"\\)"}],"strict":false},"search":{"highlightTag":"em","lunrIndexURL":"/index.json","lunrLanguageCode":"zh","lunrSegmentitURL":"/lib/lunr/lunr.segmentit.js","maxResultLength":10,"noResultsFound":"没有找到结果","snippetLength":50,"type":"lunr"}};</script><script type="text/javascript" src="/js/theme.min.js"></script></body>
+</html>

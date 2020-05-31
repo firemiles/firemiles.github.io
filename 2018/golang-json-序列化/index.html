@@ -1,0 +1,833 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="robots" content="noodp" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge, chrome=1">
+        <title>Golang json 序列化 - Firemiles 的技术生活</title><meta name="Description" content="Firemiles 的技术生活轨迹"><meta property="og:title" content="Golang json 序列化" />
+<meta property="og:description" content="前言
+这两天升级 client-go 版本，涉及 grpc proto 相关代码生成。升级完成后在调试的过程中，发现当数据存入etcd时，一个boolean类型的字段消失了，仔细研究了相关代码半天，最后才发现 go 在 Marshal 结构体时，如果字段是boolean类型，并且设置了omitempty，则会在false的事后作为empty删除。为了避免以后再次栽倒同样的坑里，特意写作本篇博客详细记录golang对json的处理。" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://blog.firemiles.top/2018/golang-json-%E5%BA%8F%E5%88%97%E5%8C%96/" />
+<meta property="og:image" content="https://blog.firemiles.top/logo.png"/>
+<meta property="article:published_time" content="2018-12-23T17:24:12+00:00" />
+<meta property="article:modified_time" content="2018-12-23T17:24:12+00:00" />
+<meta name="twitter:card" content="summary_large_image"/>
+<meta name="twitter:image" content="https://blog.firemiles.top/logo.png"/>
+
+<meta name="twitter:title" content="Golang json 序列化"/>
+<meta name="twitter:description" content="前言
+这两天升级 client-go 版本，涉及 grpc proto 相关代码生成。升级完成后在调试的过程中，发现当数据存入etcd时，一个boolean类型的字段消失了，仔细研究了相关代码半天，最后才发现 go 在 Marshal 结构体时，如果字段是boolean类型，并且设置了omitempty，则会在false的事后作为empty删除。为了避免以后再次栽倒同样的坑里，特意写作本篇博客详细记录golang对json的处理。"/>
+<meta name="application-name" content="LoveIt">
+<meta name="apple-mobile-web-app-title" content="LoveIt"><meta name="theme-color" content="#ffffff"><meta name="msapplication-TileColor" content="#da532c"><link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png"><link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"><link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5"><link rel="manifest" href="/site.webmanifest"><link rel="canonical" href="https://blog.firemiles.top/2018/golang-json-%E5%BA%8F%E5%88%97%E5%8C%96/" /><link rel="prev" href="https://blog.firemiles.top/2018/kubernetes-api-%E5%BC%80%E5%8F%91%E5%9B%9B/" /><link rel="next" href="https://blog.firemiles.top/2018/kubernetes-api-%E5%BC%80%E5%8F%91%E4%BA%94/" /><link rel="stylesheet" href="/lib/normalize/normalize.min.css"><link rel="stylesheet" href="/css/style.min.css"><link rel="stylesheet" href="/lib/fontawesome-free/all.min.css"><link rel="stylesheet" href="/lib/animate/animate.min.css"><script type="application/ld+json">
+    {
+        "@context": "http://schema.org",
+        "@type": "BlogPosting",
+        "headline": "Golang json 序列化",
+        "inLanguage": "zh-CN",
+        "mainEntityOfPage": {
+            "@type": "WebPage",
+            "@id": "https:\/\/blog.firemiles.top\/2018\/golang-json-%E5%BA%8F%E5%88%97%E5%8C%96\/"
+        },"genre": "posts","keywords": "golang, json","wordcount":  3118 ,
+        "url": "https:\/\/blog.firemiles.top\/2018\/golang-json-%E5%BA%8F%E5%88%97%E5%8C%96\/","datePublished": "2018-12-23T17:24:12+00:00","dateModified": "2018-12-23T17:24:12+00:00","publisher": {
+            "@type": "Organization",
+            "name": ""},"author": {
+                "@type": "Person",
+                "name": "firemiles"
+            },"description": ""
+    }
+    </script></head>
+    <body header-desktop="fixed" header-mobile="auto"><script type="text/javascript">(window.localStorage && localStorage.getItem('theme') ? localStorage.getItem('theme') === 'dark' : ('auto' === 'auto' ? window.matchMedia('(prefers-color-scheme: dark)').matches : 'auto' === 'dark')) && document.body.setAttribute('theme', 'dark');</script>
+
+        <div id="mask"></div><div class="wrapper"><header class="desktop" id="header-desktop">
+    <div class="header-wrapper">
+        <div class="header-title">
+            <a href="/" title="Firemiles 的技术生活"><span class="header-title-pre"><i class='fa fa-rocket'></i></span>Firemiles 的个人博客</a>
+        </div>
+        <div class="menu">
+            <div class="menu-inner"><a class="menu-item" href="/posts/"> 文章 </a><a class="menu-item" href="/tags/"> 标签 </a><a class="menu-item" href="/categories/"> 分类 </a><a class="menu-item" href="/about/"> 关于 </a><a class="menu-item" href="https://github.com/firemiles/firemiles.github.io" title="GitHub" rel="noopener noreffer" target="_blank"><i class='fab fa-github fa-fw'></i>  </a><span class="menu-item delimiter"></span><span class="menu-item search" id="search-desktop">
+                        <input type="text" placeholder="搜索文章标题或内容..." id="search-input-desktop">
+                        <a href="javascript:void(0);" class="search-button search-toggle" id="search-toggle-desktop" title="搜索">
+                            <i class="fas fa-search fa-fw"></i>
+                        </a>
+                        <a href="javascript:void(0);" class="search-button search-clear" id="search-clear-desktop" title="清空">
+                            <i class="fas fa-times-circle fa-fw"></i>
+                        </a>
+                        <span class="search-button search-loading" id="search-loading-desktop">
+                            <i class="fas fa-spinner fa-fw fa-spin"></i>
+                        </span>
+                    </span><a href="javascript:void(0);" class="menu-item theme-switch" title="切换主题">
+                    <i class="fas fa-adjust fa-fw"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+</header><header class="mobile" id="header-mobile">
+    <div class="header-container">
+        <div class="header-wrapper">
+            <div class="header-title">
+                <a href="/" title="Firemiles 的技术生活"><span class="header-title-pre"><i class='fa fa-rocket'></i></span>Firemiles 的个人博客</a>
+            </div>
+            <div class="menu-toggle" id="menu-toggle-mobile">
+                <span></span><span></span><span></span>
+            </div>
+        </div>
+        <div class="menu" id="menu-mobile"><div class="search-wrapper">
+                    <div class="search mobile" id="search-mobile">
+                        <input type="text" placeholder="搜索文章标题或内容..." id="search-input-mobile">
+                        <a href="javascript:void(0);" class="search-button search-toggle" id="search-toggle-mobile" title="搜索">
+                            <i class="fas fa-search fa-fw"></i>
+                        </a>
+                        <a href="javascript:void(0);" class="search-button search-clear" id="search-clear-mobile" title="清空">
+                            <i class="fas fa-times-circle fa-fw"></i>
+                        </a>
+                        <span class="search-button search-loading" id="search-loading-mobile">
+                            <i class="fas fa-spinner fa-fw fa-spin"></i>
+                        </span>
+                    </div>
+                    <a href="javascript:void(0);" class="search-cancel" id="search-cancel-mobile">
+                        取消
+                    </a>
+                </div><a class="menu-item" href="/posts/" title="">文章</a><a class="menu-item" href="/tags/" title="">标签</a><a class="menu-item" href="/categories/" title="">分类</a><a class="menu-item" href="/about/" title="">关于</a><a class="menu-item" href="https://github.com/firemiles/firemiles.github.io" title="GitHub" rel="noopener noreffer" target="_blank"><i class='fab fa-github fa-fw'></i></a><a href="javascript:void(0);" class="menu-item theme-switch" title="切换主题">
+                <i class="fas fa-adjust fa-fw"></i>
+            </a></div>
+    </div>
+</header>
+<div class="search-dropdown desktop">
+    <div id="search-dropdown-desktop"></div>
+</div>
+<div class="search-dropdown mobile">
+    <div id="search-dropdown-mobile"></div>
+</div>
+<main class="main">
+                <div class="container"><div class="toc" id="toc-auto">
+            <h2 class="toc-title">目录</h2>
+            <div class="toc-content" id="toc-content-auto"></div>
+        </div><article class="page single"><h1 class="single-title animated flipInX">Golang json 序列化</h1><div class="post-meta">
+            <div class="post-meta-line"><span class="post-author"><a href="/" title="Author" rel=" author" class="author"><i class="fas fa-user-circle fa-fw"></i>firemiles</a></span>&nbsp;<span class="post-category">收录于 <a href="/categories/golang/"><i class="far fa-folder fa-fw"></i>golang</a></span></div>
+            <div class="post-meta-line"><i class="far fa-calendar-alt fa-fw"></i>&nbsp;<time datetime="2018-12-23">2018-12-23</time>&nbsp;<i class="fas fa-pencil-alt fa-fw"></i>&nbsp;约 3118 字&nbsp;
+                <i class="far fa-clock fa-fw"></i>&nbsp;预计阅读 7 分钟&nbsp;</div>
+        </div><div class="details toc" id="toc-static"  kept="true">
+                <div class="details-summary toc-title">
+                    <span>目录</span>
+                    <span><i class="details-icon fas fa-angle-right"></i></span>
+                </div>
+                <div class="details-content toc-content" id="toc-content-static"><nav id="TableOfContents">
+  <ul>
+    <li><a href="#前言">前言</a></li>
+    <li><a href="#golang--标签tag系统">golang  标签（tag）系统</a>
+      <ul>
+        <li><a href="#struct-成员变量标签-tag-获取">struct 成员变量标签 （Tag） 获取</a></li>
+      </ul>
+    </li>
+    <li><a href="#json-处理流程">json 处理流程</a>
+      <ul>
+        <li><a href="#encoding">Encoding</a></li>
+        <li><a href="#decoding">Decoding</a></li>
+        <li><a href="#使用-tag">使用 Tag</a></li>
+      </ul>
+    </li>
+    <li><a href="#高级用法">高级用法</a>
+      <ul>
+        <li><a href="#使用-interface-解析未知-json">使用 interface{} 解析未知 JSON</a></li>
+        <li><a href="#unmarshal-为引用类型申请内存">Unmarshal 为引用类型申请内存</a></li>
+        <li><a href="#支持-streaming">支持 Streaming</a></li>
+      </ul>
+    </li>
+    <li><a href="#需要注意的问题">需要注意的问题</a>
+      <ul>
+        <li><a href="#omitempty">omitempty</a></li>
+        <li><a href="#json反序列化成interface对number的处理">JSON反序列化成interface{}对Number的处理</a></li>
+      </ul>
+    </li>
+    <li><a href="#总结">总结</a></li>
+    <li><a href="#参考">参考</a></li>
+  </ul>
+</nav></div>
+            </div><div class="content" id="content"><h2 id="前言">前言</h2>
+<p>这两天升级 client-go 版本，涉及 grpc proto 相关代码生成。升级完成后在调试的过程中，发现当数据存入etcd时，一个boolean类型的字段消失了，仔细研究了相关代码半天，最后才发现 go 在 Marshal 结构体时，如果字段是boolean类型，并且设置了omitempty，则会在false的事后作为empty删除。为了避免以后再次栽倒同样的坑里，特意写作本篇博客详细记录golang对json的处理。</p>
+<h2 id="golang--标签tag系统">golang  标签（tag）系统</h2>
+<p>在 golang 中，命名都推荐驼峰方式，并且首字母大小写有特殊语法含义：结构体中首字母小写外包无法引用。但是由于经常需要和其他系统进行数据交互，例如转换成 json 格式，存储到 mongodb 等等。这个时候如果用属性名作为键值可能不符合项目要求。</p>
+<p>所以 golang 支持 `` 定义标签（tag），在转换成其他格式的时候，会使用其中特定的字段作为键值。例如：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span><span class="lnt">8
+</span><span class="lnt">9
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="kd">type</span> <span class="nx">User</span> <span class="kd">struct</span> <span class="p">{</span>
+    <span class="nx">UserId</span>   <span class="kt">int</span>    <span class="s">`json:&#34;user_id&#34; bson:&#34;user_id&#34;`</span>
+    <span class="nx">UserName</span> <span class="kt">string</span> <span class="s">`json:&#34;user_name&#34; bson:&#34;user_name&#34;`</span>
+<span class="p">}</span>
+
+<span class="nx">u</span> <span class="o">:=</span> <span class="o">&amp;</span><span class="nx">User</span><span class="p">{</span><span class="nx">UserId</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="nx">UserName</span><span class="p">:</span> <span class="s">&#34;tony&#34;</span><span class="p">}</span>
+<span class="nx">j</span><span class="p">,</span> <span class="nx">_</span> <span class="o">:=</span> <span class="nx">json</span><span class="p">.</span><span class="nf">Marshal</span><span class="p">(</span><span class="nx">u</span><span class="p">)</span>
+<span class="nx">fmt</span><span class="p">.</span><span class="nf">Println</span><span class="p">(</span><span class="nb">string</span><span class="p">(</span><span class="nx">j</span><span class="p">))</span>
+<span class="c1">// 输出内容：{&#34;user_id&#34;:1,&#34;user_name&#34;:&#34;tony&#34;}
+</span></code></pre></td></tr></table>
+</div>
+</div><p>如果没有定义标签，则输出：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="p">{</span><span class="s">&#34;UserId&#34;</span><span class="p">:</span><span class="mi">1</span><span class="p">,</span><span class="s">&#34;UserName&#34;</span><span class="p">:</span><span class="s">&#34;tony&#34;</span><span class="p">}</span>
+</code></pre></td></tr></table>
+</div>
+</div><p>可以看到直接使用了struct的属性名作为键值。</p>
+<p>其中还有一个 bson 的声明，这个是用在数据存储到 mongodb 使用的。</p>
+<h3 id="struct-成员变量标签-tag-获取">struct 成员变量标签 （Tag） 获取</h3>
+<p>开发者也可以通过 golang 提供的方法获取 Tag 内容，利用 Tag 进行开发。</p>
+<p>如何获取呢，可以使用反射包（reflect）中的方法获取：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="nx">t</span> <span class="o">:=</span> <span class="nx">reflect</span><span class="p">.</span><span class="nf">TypeOf</span><span class="p">(</span><span class="nx">u</span><span class="p">)</span>
+<span class="nx">field</span> <span class="o">:=</span> <span class="nx">t</span><span class="p">.</span><span class="nf">Elem</span><span class="p">().</span><span class="nf">Field</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+<span class="nx">fmt</span><span class="p">.</span><span class="nf">Println</span><span class="p">(</span><span class="nx">field</span><span class="p">.</span><span class="nx">Tag</span><span class="p">.</span><span class="nf">Get</span><span class="p">(</span><span class="s">&#34;json&#34;</span><span class="p">))</span>
+<span class="nx">fmt</span><span class="p">.</span><span class="nf">Println</span><span class="p">(</span><span class="nx">field</span><span class="p">.</span><span class="nx">Tag</span><span class="p">.</span><span class="nf">Get</span><span class="p">(</span><span class="s">&#34;bson&#34;</span><span class="p">))</span>
+</code></pre></td></tr></table>
+</div>
+</div><p>json package 和 mongodb package 等包就是利用了标签系统完成数据交换。</p>
+<h2 id="json-处理流程">json 处理流程</h2>
+<h3 id="encoding">Encoding</h3>
+<p>编码json使用 Marshal 方法</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="kd">func</span> <span class="nf">Marshal</span><span class="p">(</span><span class="nx">v</span> <span class="kd">interface</span><span class="p">{})</span> <span class="p">([]</span><span class="kt">byte</span><span class="p">,</span> <span class="kt">error</span><span class="p">)</span>
+</code></pre></td></tr></table>
+</div>
+</div><p>Go 结构体 Message</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="kd">type</span> <span class="nx">Message</span> <span class="kd">struct</span> <span class="p">{</span>
+    <span class="nx">Name</span> <span class="kt">string</span>
+    <span class="nx">Body</span> <span class="kt">string</span>
+    <span class="nx">Time</span> <span class="kt">int64</span>
+<span class="p">}</span>
+</code></pre></td></tr></table>
+</div>
+</div><p>实例</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="nx">m</span> <span class="o">:=</span> <span class="nx">Message</span><span class="p">{</span><span class="s">&#34;Alice&#34;</span><span class="p">,</span> <span class="s">&#34;Hello&#34;</span><span class="p">,</span> <span class="mi">1294706395881547000</span><span class="p">}</span>
+</code></pre></td></tr></table>
+</div>
+</div><p>我们可以使用 json.Marshal 来获取 JSON-encoded data</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="nx">b</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">json</span><span class="p">.</span><span class="nf">Marshal</span><span class="p">(</span><span class="nx">m</span><span class="p">)</span>
+<span class="nx">b</span> <span class="o">==</span> <span class="p">[]</span><span class="nb">byte</span><span class="p">(</span><span class="s">`{&#34;Name&#34;:&#34;Alice&#34;,&#34;Body&#34;:&#34;Hello&#34;,&#34;Time&#34;:1294706395881547000}`</span><span class="p">)</span>
+</code></pre></td></tr></table>
+</div>
+</div><p>只有能够被json正常表示的数据结构才能够完成编码：</p>
+<ul>
+<li>JSON 对象只支持 string 作为 key；因此支持的 Go map 类型必须是 map[string]T（T是json package支持的类型）</li>
+<li>Channel，complex，和 function 类型不支持编码</li>
+<li><strong>Pointer 会按照指向的值进行编码（如果pointer时nil，则编码成‘null’）</strong></li>
+</ul>
+<p>json package 只编码 exported filed（也就是大写字母开头的字段）。因此只有导出的字段出现在JSON的输出中。</p>
+<h3 id="decoding">Decoding</h3>
+<p>解析 JSON 数据使用 Unmarshal 方法：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="kd">func</span> <span class="nf">Unmarshal</span><span class="p">(</span><span class="nx">data</span> <span class="p">[]</span><span class="kt">byte</span><span class="p">,</span> <span class="nx">v</span> <span class="kd">interface</span><span class="p">{})</span> <span class="kt">error</span>
+</code></pre></td></tr></table>
+</div>
+</div><p>我们需要创建一个变量存放解析后的数据</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="kd">var</span> <span class="nx">m</span> <span class="nx">Message</span>
+</code></pre></td></tr></table>
+</div>
+</div><p>调用 Unmarshal</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="nx">err</span> <span class="o">:=</span> <span class="nx">json</span><span class="p">.</span><span class="nf">Unmarshal</span><span class="p">(</span><span class="nx">b</span><span class="p">,</span> <span class="o">&amp;</span><span class="nx">m</span><span class="p">)</span>
+</code></pre></td></tr></table>
+</div>
+</div><p>如果 b 包含有效的 JSON 数据，并且对应 m 的结构，方法返回 err 为 nil， 并且 b 中的数据解析后放入 m。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="nx">m</span> <span class="p">=</span> <span class="nx">Message</span><span class="p">{</span>
+    <span class="nx">Name</span><span class="p">:</span> <span class="s">&#34;Alice&#34;</span><span class="p">,</span>
+    <span class="nx">Body</span><span class="p">:</span> <span class="s">&#34;Hello&#34;</span><span class="p">,</span>
+    <span class="nx">Time</span><span class="p">:</span> <span class="mi">1294706395881547000</span><span class="p">,</span>
+<span class="p">}</span>
+</code></pre></td></tr></table>
+</div>
+</div><p>Unmarshal 如何识别哪个字段存储解析的数据？如果解析获得一个JSON key “Foo”，<code>Unmarshall</code> 会在目标结构体中找合适的字段（以下条件按顺序查找）：</p>
+<ul>
+<li>导出的字段，定义了 tag &ldquo;Foo&rdquo;（<a href="https://golang.org/ref/spec#Struct_types" target="_blank" rel="noopener noreffer">Go Spec</a>)</li>
+<li>导出的字段，名字是 &ldquo;Foo&rdquo;</li>
+<li>导出的字段，名字是 &ldquo;FoO&rdquo; 或 &ldquo;FOO&rdquo; 获取其他在大小写不敏感情况下与 &ldquo;Foo&rdquo; 匹配</li>
+</ul>
+<p>当 Json 数据中的结构和 Go type 不匹配时会发生什么？</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="nx">b</span> <span class="o">:=</span> <span class="p">[]</span><span class="nb">byte</span><span class="p">(</span><span class="s">`{&#34;Name&#34;:&#34;Bob&#34;,&#34;Food&#34;:&#34;Pickle&#34;}`</span><span class="p">)</span>
+<span class="kd">var</span> <span class="nx">m</span> <span class="nx">Message</span>
+<span class="nx">err</span> <span class="o">:=</span> <span class="nx">json</span><span class="p">.</span><span class="nf">Unmarshal</span><span class="p">(</span><span class="nx">b</span><span class="p">,</span> <span class="o">&amp;</span><span class="nx">m</span><span class="p">)</span>
+</code></pre></td></tr></table>
+</div>
+</div><p><code>Unmarshal</code> 会解析和目标结构体匹配的字段，忽略不认识的字段。这个特性在当你希望只获取大量json数据中的部分字段时十分有用，这也表示任何任意非导出的字段（小写字母开头的字段）不会被 <code>Unmarshal</code> 影响。</p>
+<h3 id="使用-tag">使用 Tag</h3>
+<p>一般在 golang 使用 json package，都会使用标签系统。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="c1">// Field appears in JSON as key &#34;myName&#34;.
+</span><span class="c1"></span><span class="nx">Field</span> <span class="kt">int</span> <span class="s">`json:&#34;myName&#34;`</span>
+
+<span class="c1">// Field appears in JSON as key &#34;myName&#34; and
+</span><span class="c1">// the field is omitted from the object if its value is empty,
+</span><span class="c1">// as defined above.
+</span><span class="c1"></span><span class="nx">Field</span> <span class="kt">int</span> <span class="s">`json:&#34;myName,omitempty&#34;`</span>
+
+<span class="c1">// Field appears in JSON as key &#34;Field&#34; (the default), but
+</span><span class="c1">// the field is skipped if empty.
+</span><span class="c1">// Note the leading comma.
+</span><span class="c1"></span><span class="nx">Field</span> <span class="kt">int</span> <span class="s">`json:&#34;,omitempty&#34;`</span>
+
+<span class="c1">// Field is ignored by this package.
+</span><span class="c1"></span><span class="nx">Field</span> <span class="kt">int</span> <span class="s">`json:&#34;-&#34;`</span>
+
+<span class="c1">// Field appears in JSON as key &#34;-&#34;.
+</span><span class="c1"></span><span class="nx">Field</span> <span class="kt">int</span> <span class="s">`json:&#34;-,&#34;`</span>
+
+<span class="c1">// Field appears in JSON as string type.
+</span><span class="c1"></span><span class="nx">Field</span> <span class="kt">int</span> <span class="s">`json:,string,omitempty`</span>
+<span class="nx">Field</span> <span class="kt">int</span> <span class="s">`json:,omitempty,string`</span>
+</code></pre></td></tr></table>
+</div>
+</div><p>通过标签系统可以对转换后的 JSON 数据进行自定义：</p>
+<ul>
+<li><code>json:&quot;myName&quot;</code> 定义 JSON key 为 myName</li>
+<li><code>json:&quot;myName,omitempty&quot;</code> 定义 JSON key 为 myName，并且当 empty 的时候删除该字段（<strong>empty的定义为：0，false和nil 指针，nil interface和空的slice、map、array和string</strong>）</li>
+<li><code>json:&quot;-&quot;</code> 在 JSON 中忽略该字段</li>
+<li><code>json:&quot;-,&quot;</code> 在 JSON 中输出 key 值为 &ldquo;-&rdquo;</li>
+<li><code>json:,string,omitempty</code> 和 <code>json:,omitempty,string</code> 定义该字段在 JSON 中按 string 类型存储，并且 omitempty。（只有 string、float、integer 和 boolean 字段支持这么定义）</li>
+</ul>
+<h2 id="高级用法">高级用法</h2>
+<h3 id="使用-interface-解析未知-json">使用 interface{} 解析未知 JSON</h3>
+<p>json pacakge 使用 map[string]interface 和 []interface{} 存储各种 JSON 对象和数组。任意有效的JSON数据类型都能轻松存储到 interface{} 中，默认的具体 Go types 是：</p>
+<ul>
+<li>bool 对应 JSON boolean</li>
+<li>float64 对应 JSON numbers（精度上会有损失）</li>
+<li>string 对应 JSON strings</li>
+<li>nil 对应 JSON null</li>
+</ul>
+<p>一个例子：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="nx">b</span> <span class="o">:=</span> <span class="p">[]</span><span class="nb">byte</span><span class="p">(</span><span class="s">`{&#34;Name&#34;:&#34;Wednesday&#34;,&#34;Age&#34;:6,&#34;Parents&#34;:[&#34;Gomez&#34;,&#34;Morticia&#34;]}`</span><span class="p">)</span>
+<span class="kd">var</span> <span class="nx">f</span> <span class="kd">interface</span><span class="p">{}</span>
+<span class="nx">err</span> <span class="o">:=</span> <span class="nx">json</span><span class="p">.</span><span class="nf">Unmarshal</span><span class="p">(</span><span class="nx">b</span><span class="p">,</span> <span class="o">&amp;</span><span class="nx">f</span><span class="p">)</span>
+<span class="nx">f</span> <span class="p">=</span> <span class="kd">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="kd">interface</span><span class="p">{}{</span>
+    <span class="s">&#34;Name&#34;</span><span class="p">:</span> <span class="s">&#34;Wednesday&#34;</span><span class="p">,</span>
+    <span class="s">&#34;Age&#34;</span><span class="p">:</span>  <span class="mi">6</span><span class="p">,</span>
+    <span class="s">&#34;Parents&#34;</span><span class="p">:</span> <span class="p">[]</span><span class="kd">interface</span><span class="p">{}{</span>
+        <span class="s">&#34;Gomez&#34;</span><span class="p">,</span>
+        <span class="s">&#34;Morticia&#34;</span><span class="p">,</span>
+    <span class="p">},</span>
+<span class="p">}</span>
+<span class="nx">m</span> <span class="o">:=</span> <span class="nx">f</span><span class="p">.(</span><span class="kd">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="kd">interface</span><span class="p">{})</span>
+<span class="k">for</span> <span class="nx">k</span><span class="p">,</span> <span class="nx">v</span> <span class="o">:=</span> <span class="k">range</span> <span class="nx">m</span> <span class="p">{</span>
+    <span class="k">switch</span> <span class="nx">vv</span> <span class="o">:=</span> <span class="nx">v</span><span class="p">.(</span><span class="kd">type</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">case</span> <span class="kt">string</span><span class="p">:</span>
+        <span class="nx">fmt</span><span class="p">.</span><span class="nf">Println</span><span class="p">(</span><span class="nx">k</span><span class="p">,</span> <span class="s">&#34;is string&#34;</span><span class="p">,</span> <span class="nx">vv</span><span class="p">)</span>
+    <span class="k">case</span> <span class="kt">float64</span><span class="p">:</span>
+        <span class="nx">fmt</span><span class="p">.</span><span class="nf">Println</span><span class="p">(</span><span class="nx">k</span><span class="p">,</span> <span class="s">&#34;is float64&#34;</span><span class="p">,</span> <span class="nx">vv</span><span class="p">)</span>
+    <span class="k">case</span> <span class="p">[]</span><span class="kd">interface</span><span class="p">{}:</span>
+        <span class="nx">fmt</span><span class="p">.</span><span class="nf">Println</span><span class="p">(</span><span class="nx">k</span><span class="p">,</span> <span class="s">&#34;is an array:&#34;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="nx">i</span><span class="p">,</span> <span class="nx">u</span> <span class="o">:=</span> <span class="k">range</span> <span class="nx">vv</span> <span class="p">{</span>
+            <span class="nx">fmt</span><span class="p">.</span><span class="nf">Println</span><span class="p">(</span><span class="nx">i</span><span class="p">,</span> <span class="nx">u</span><span class="p">)</span>
+        <span class="p">}</span>
+    <span class="k">default</span><span class="p">:</span>
+        <span class="nx">fmt</span><span class="p">.</span><span class="nf">Println</span><span class="p">(</span><span class="nx">k</span><span class="p">,</span> <span class="s">&#34;is of a type I don&#39;t know how to handle&#34;</span><span class="p">)</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></td></tr></table>
+</div>
+</div><h3 id="unmarshal-为引用类型申请内存">Unmarshal 为引用类型申请内存</h3>
+<p>我们定义一个类型包含引用</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span><span class="lnt">8
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="kd">type</span> <span class="nx">FamilyMember</span> <span class="kd">struct</span> <span class="p">{</span>
+    <span class="nx">Name</span>    <span class="kt">string</span>
+    <span class="nx">Age</span>     <span class="kt">int</span>
+    <span class="nx">Parents</span> <span class="p">[]</span><span class="kt">string</span>
+<span class="p">}</span>
+
+    <span class="kd">var</span> <span class="nx">m</span> <span class="nx">FamilyMember</span>
+    <span class="nx">err</span> <span class="o">:=</span> <span class="nx">json</span><span class="p">.</span><span class="nf">Unmarshal</span><span class="p">(</span><span class="nx">b</span><span class="p">,</span> <span class="o">&amp;</span><span class="nx">m</span><span class="p">)</span>
+</code></pre></td></tr></table>
+</div>
+</div><p>Unmarshalling JSON object 到 FamilyMember 里，相比之前例子， Parents 是引用类型，默认值是nil。如果 JSON object有值写入Parents，<code>Unmarshal</code> 会为 Parents 申请内存。这个是 Unmarshal 对于引用类型（pointers,slicemaps）的典型工作场景。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="kd">type</span> <span class="nx">Foo</span> <span class="kd">struct</span> <span class="p">{</span>
+    <span class="nx">Bar</span> <span class="o">*</span><span class="nx">Bar</span>
+<span class="p">}</span>
+</code></pre></td></tr></table>
+</div>
+</div><p>如果 JSON object 中包含 Bar 字段，Unmarshal 会为 Bar 申请内存，反之则保持 Bar 为 nil。</p>
+<h3 id="支持-streaming">支持 Streaming</h3>
+<p>json package 支持对 Stream 进行 Decoder 和 Encoder。使用 NewDecoder 和 NewEncoder 装饰 io.Reader 和 io.Writer inteface typs.</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="kd">func</span> <span class="nf">NewDecoder</span><span class="p">(</span><span class="nx">r</span> <span class="nx">io</span><span class="p">.</span><span class="nx">Reader</span><span class="p">)</span> <span class="o">*</span><span class="nx">Decoder</span>
+<span class="kd">func</span> <span class="nf">NewEncoder</span><span class="p">(</span><span class="nx">w</span> <span class="nx">io</span><span class="p">.</span><span class="nx">Writer</span><span class="p">)</span> <span class="o">*</span><span class="nx">Encodergo</span>
+</code></pre></td></tr></table>
+</div>
+</div><p>一个例子：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="kn">package</span> <span class="nx">main</span>
+
+<span class="kn">import</span> <span class="p">(</span>
+    <span class="s">&#34;encoding/json&#34;</span>
+    <span class="s">&#34;log&#34;</span>
+    <span class="s">&#34;os&#34;</span>
+<span class="p">)</span>
+
+<span class="kd">func</span> <span class="nf">main</span><span class="p">()</span> <span class="p">{</span>
+    <span class="nx">dec</span> <span class="o">:=</span> <span class="nx">json</span><span class="p">.</span><span class="nf">NewDecoder</span><span class="p">(</span><span class="nx">os</span><span class="p">.</span><span class="nx">Stdin</span><span class="p">)</span>
+    <span class="nx">enc</span> <span class="o">:=</span> <span class="nx">json</span><span class="p">.</span><span class="nf">NewEncoder</span><span class="p">(</span><span class="nx">os</span><span class="p">.</span><span class="nx">Stdout</span><span class="p">)</span>
+    <span class="k">for</span> <span class="p">{</span>
+        <span class="kd">var</span> <span class="nx">v</span> <span class="kd">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="kd">interface</span><span class="p">{}</span>
+        <span class="k">if</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">dec</span><span class="p">.</span><span class="nf">Decode</span><span class="p">(</span><span class="o">&amp;</span><span class="nx">v</span><span class="p">);</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+            <span class="nx">log</span><span class="p">.</span><span class="nf">Println</span><span class="p">(</span><span class="nx">err</span><span class="p">)</span>
+            <span class="k">return</span>
+        <span class="p">}</span>
+        <span class="k">for</span> <span class="nx">k</span> <span class="o">:=</span> <span class="k">range</span> <span class="nx">v</span> <span class="p">{</span>
+            <span class="k">if</span> <span class="nx">k</span> <span class="o">!=</span> <span class="s">&#34;Name&#34;</span> <span class="p">{</span>
+                <span class="nb">delete</span><span class="p">(</span><span class="nx">v</span><span class="p">,</span> <span class="nx">k</span><span class="p">)</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+        <span class="k">if</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">enc</span><span class="p">.</span><span class="nf">Encode</span><span class="p">(</span><span class="o">&amp;</span><span class="nx">v</span><span class="p">);</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+            <span class="nx">log</span><span class="p">.</span><span class="nf">Println</span><span class="p">(</span><span class="nx">err</span><span class="p">)</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></td></tr></table>
+</div>
+</div><p>对于更普遍的Reader和Writer，Encoder和Decoder类型可以使用在更广泛的场景中。例如对HTTP连接，WebSockets和文件进行读写。</p>
+<h2 id="需要注意的问题">需要注意的问题</h2>
+<h3 id="omitempty">omitempty</h3>
+<p>omitempty 中的 empty 并不仅仅指 empty， 还包括 0，false和nil 指针，nil interface和空的slice、map、array和string。 定义了该 tag 后，boolean、integer、float32、string等属性为默认值时，输出的 JSON 数据就会移除该属性。</p>
+<p>在一些需要区分未初始化和0值的场景下，omitempty的使用会造成混淆，这个时候可以使用指针来作为属性。未初始化状态下指针为 nil，输出 JSON 时会被 omit；初始化后 0 值和非 0 值都会正常输出，这样属性的三个状态：未初始化、0值和非0值就可以正常区分了。</p>
+<h3 id="json反序列化成interface对number的处理">JSON反序列化成interface{}对Number的处理</h3>
+<p>JSON 规范中，对于数字类型，并不区分整型还是浮点型。</p>
+<p><img
+        class="lazyload"
+        src="/svg/loading.min.svg"
+        data-src="https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/2018-12-23-090254.jpg"
+        data-srcset="https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/2018-12-23-090254.jpg, https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/2018-12-23-090254.jpg 1.5x, https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/2018-12-23-090254.jpg 2x"
+        data-sizes="auto"
+        alt="https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/2018-12-23-090254.jpg"
+        title="https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/2018-12-23-090254.jpg" /></p>
+<p>对于如下 JSON 文本：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="p">{</span>
+    <span class="s">&#34;name&#34;</span><span class="p">:</span> <span class="s">&#34;ethancai&#34;</span><span class="p">,</span>
+    <span class="s">&#34;fansCount&#34;</span><span class="p">:</span> <span class="mi">9223372036854775807</span>
+<span class="p">}</span>
+</code></pre></td></tr></table>
+</div>
+</div><p>如果反序列化不指定结构体类型或者变量类型，则JSON中的数字类型，默认被反序列化成 <code>float64</code> 类型</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="kn">package</span> <span class="nx">main</span>
+
+<span class="kn">import</span> <span class="p">(</span>
+    <span class="s">&#34;encoding/json&#34;</span>
+    <span class="s">&#34;fmt&#34;</span>
+    <span class="s">&#34;reflect&#34;</span>
+<span class="p">)</span>
+
+<span class="kd">func</span> <span class="nf">main</span><span class="p">()</span> <span class="p">{</span>
+    <span class="kd">const</span> <span class="nx">jsonStream</span> <span class="p">=</span> <span class="s">`
+</span><span class="s">        {&#34;name&#34;:&#34;ethancai&#34;, &#34;fansCount&#34;: 9223372036854775807}
+</span><span class="s">    `</span>
+    <span class="kd">var</span> <span class="nx">user</span> <span class="kd">interface</span><span class="p">{}</span>  <span class="c1">// 不指定反序列化的类型
+</span><span class="c1"></span>    <span class="nx">err</span> <span class="o">:=</span> <span class="nx">json</span><span class="p">.</span><span class="nf">Unmarshal</span><span class="p">([]</span><span class="nb">byte</span><span class="p">(</span><span class="nx">jsonStream</span><span class="p">),</span> <span class="o">&amp;</span><span class="nx">user</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+        <span class="nx">fmt</span><span class="p">.</span><span class="nf">Println</span><span class="p">(</span><span class="s">&#34;error:&#34;</span><span class="p">,</span> <span class="nx">err</span><span class="p">)</span>
+    <span class="p">}</span>
+    <span class="nx">m</span> <span class="o">:=</span> <span class="nx">user</span><span class="p">.(</span><span class="kd">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="kd">interface</span><span class="p">{})</span>
+
+    <span class="nx">fansCount</span> <span class="o">:=</span> <span class="nx">m</span><span class="p">[</span><span class="s">&#34;fansCount&#34;</span><span class="p">]</span>
+
+    <span class="nx">fmt</span><span class="p">.</span><span class="nf">Printf</span><span class="p">(</span><span class="s">&#34;%+v \n&#34;</span><span class="p">,</span> <span class="nx">reflect</span><span class="p">.</span><span class="nf">TypeOf</span><span class="p">(</span><span class="nx">fansCount</span><span class="p">).</span><span class="nf">Name</span><span class="p">())</span>
+    <span class="nx">fmt</span><span class="p">.</span><span class="nf">Printf</span><span class="p">(</span><span class="s">&#34;%+v \n&#34;</span><span class="p">,</span> <span class="nx">fansCount</span><span class="p">.(</span><span class="kt">float64</span><span class="p">))</span>
+<span class="p">}</span>
+
+<span class="c1">// Output:
+</span><span class="c1">// 	float64
+</span><span class="c1">//  	9.223372036854776e+18
+</span></code></pre></td></tr></table>
+</div>
+</div><p>如果 <code>fansCount</code> 精度比较高，反序列化成 <code>float64</code> 类型的数值时存在丢失精度的问题。</p>
+<p>如何解决这个问题，看下面的程序：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span><span class="lnt">36
+</span><span class="lnt">37
+</span><span class="lnt">38
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="kn">package</span> <span class="nx">main</span>
+
+<span class="kn">import</span> <span class="p">(</span>
+    <span class="s">&#34;encoding/json&#34;</span>
+    <span class="s">&#34;fmt&#34;</span>
+    <span class="s">&#34;reflect&#34;</span>
+    <span class="s">&#34;strings&#34;</span>
+<span class="p">)</span>
+
+<span class="kd">func</span> <span class="nf">main</span><span class="p">()</span> <span class="p">{</span>
+    <span class="kd">const</span> <span class="nx">jsonStream</span> <span class="p">=</span> <span class="s">`
+</span><span class="s">        {&#34;name&#34;:&#34;ethancai&#34;, &#34;fansCount&#34;: 9223372036854775807}
+</span><span class="s">    `</span>
+
+    <span class="nx">decoder</span> <span class="o">:=</span> <span class="nx">json</span><span class="p">.</span><span class="nf">NewDecoder</span><span class="p">(</span><span class="nx">strings</span><span class="p">.</span><span class="nf">NewReader</span><span class="p">(</span><span class="nx">jsonStream</span><span class="p">))</span>
+    <span class="nx">decoder</span><span class="p">.</span><span class="nf">UseNumber</span><span class="p">()</span>    <span class="c1">// UseNumber causes the Decoder to unmarshal a number into an interface{} as a Number instead of as a float64.
+</span><span class="c1"></span>
+    <span class="kd">var</span> <span class="nx">user</span> <span class="kd">interface</span><span class="p">{}</span>
+    <span class="k">if</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">decoder</span><span class="p">.</span><span class="nf">Decode</span><span class="p">(</span><span class="o">&amp;</span><span class="nx">user</span><span class="p">);</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+        <span class="nx">fmt</span><span class="p">.</span><span class="nf">Println</span><span class="p">(</span><span class="s">&#34;error:&#34;</span><span class="p">,</span> <span class="nx">err</span><span class="p">)</span>
+            <span class="k">return</span>
+        <span class="p">}</span>
+
+    <span class="nx">m</span> <span class="o">:=</span> <span class="nx">user</span><span class="p">.(</span><span class="kd">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="kd">interface</span><span class="p">{})</span>
+    <span class="nx">fansCount</span> <span class="o">:=</span> <span class="nx">m</span><span class="p">[</span><span class="s">&#34;fansCount&#34;</span><span class="p">]</span>
+    <span class="nx">fmt</span><span class="p">.</span><span class="nf">Printf</span><span class="p">(</span><span class="s">&#34;%+v \n&#34;</span><span class="p">,</span> <span class="nx">reflect</span><span class="p">.</span><span class="nf">TypeOf</span><span class="p">(</span><span class="nx">fansCount</span><span class="p">).</span><span class="nf">PkgPath</span><span class="p">()</span> <span class="o">+</span> <span class="s">&#34;.&#34;</span> <span class="o">+</span> <span class="nx">reflect</span><span class="p">.</span><span class="nf">TypeOf</span><span class="p">(</span><span class="nx">fansCount</span><span class="p">).</span><span class="nf">Name</span><span class="p">())</span>
+
+     <span class="nx">v</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">fansCount</span><span class="p">.(</span><span class="nx">json</span><span class="p">.</span><span class="nx">Number</span><span class="p">).</span><span class="nf">Int64</span><span class="p">()</span>
+    <span class="k">if</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+        <span class="nx">fmt</span><span class="p">.</span><span class="nf">Println</span><span class="p">(</span><span class="s">&#34;error:&#34;</span><span class="p">,</span> <span class="nx">err</span><span class="p">)</span>
+            <span class="k">return</span>
+    <span class="p">}</span>
+    <span class="nx">fmt</span><span class="p">.</span><span class="nf">Printf</span><span class="p">(</span><span class="s">&#34;%+v \n&#34;</span><span class="p">,</span> <span class="nx">v</span><span class="p">)</span>
+<span class="p">}</span>
+
+<span class="c1">// Output:
+</span><span class="c1">// 	encoding/json.Number
+</span><span class="c1">// 	9223372036854775807
+</span></code></pre></td></tr></table>
+</div>
+</div><p>使用 json.NewDecoder 可以将 JSON 数字转换成 json.Number。json.Number 内部实现机制：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="c1">// A Number represents a JSON number literal.
+</span><span class="c1"></span><span class="kd">type</span> <span class="nx">Number</span> <span class="kt">string</span>
+
+<span class="c1">// String returns the literal text of the number.
+</span><span class="c1"></span><span class="kd">func</span> <span class="p">(</span><span class="nx">n</span> <span class="nx">Number</span><span class="p">)</span> <span class="nf">String</span><span class="p">()</span> <span class="kt">string</span> <span class="p">{</span> <span class="k">return</span> <span class="nb">string</span><span class="p">(</span><span class="nx">n</span><span class="p">)</span> <span class="p">}</span>
+
+<span class="c1">// Float64 returns the number as a float64.
+</span><span class="c1"></span><span class="kd">func</span> <span class="p">(</span><span class="nx">n</span> <span class="nx">Number</span><span class="p">)</span> <span class="nf">Float64</span><span class="p">()</span> <span class="p">(</span><span class="kt">float64</span><span class="p">,</span> <span class="kt">error</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="nx">strconv</span><span class="p">.</span><span class="nf">ParseFloat</span><span class="p">(</span><span class="nb">string</span><span class="p">(</span><span class="nx">n</span><span class="p">),</span> <span class="mi">64</span><span class="p">)</span>
+<span class="p">}</span>
+
+<span class="c1">// Int64 returns the number as an int64.
+</span><span class="c1"></span><span class="kd">func</span> <span class="p">(</span><span class="nx">n</span> <span class="nx">Number</span><span class="p">)</span> <span class="nf">Int64</span><span class="p">()</span> <span class="p">(</span><span class="kt">int64</span><span class="p">,</span> <span class="kt">error</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="nx">strconv</span><span class="p">.</span><span class="nf">ParseInt</span><span class="p">(</span><span class="nb">string</span><span class="p">(</span><span class="nx">n</span><span class="p">),</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">64</span><span class="p">)</span>
+<span class="p">}</span>
+</code></pre></td></tr></table>
+</div>
+</div><p>其实就是延迟处理，保存了 JSON 数字的原始字符串，使用的时候根据需要进行转换。</p>
+<h2 id="总结">总结</h2>
+<p>其实 Golang 对于 json 的支持已经十分完善，通过和标签系统配合，序列化和反序列化 json 字符串只要几行代码，只是在使用过程中要清楚 go 提供的默认机制，避免踩坑。</p>
+<h2 id="参考">参考</h2>
+<ul>
+<li><a href="http://docs.studygolang.com/pkg/encoding/json/">http://docs.studygolang.com/pkg/encoding/json/</a></li>
+<li><a href="https://blog.golang.org/json-and-go">https://blog.golang.org/json-and-go</a></li>
+<li><a href="http://docs.studygolang.com/pkg/encoding/json/#Marshal">http://docs.studygolang.com/pkg/encoding/json/#Marshal</a></li>
+<li><a href="https://ethancai.github.io/2016/06/23/bad-parts-about-json-serialization-in-Golang/">https://ethancai.github.io/2016/06/23/bad-parts-about-json-serialization-in-Golang/</a></li>
+</ul></div><div class="post-footer" id="post-footer">
+    <div class="post-info">
+        <div class="post-info-line">
+            <div class="post-info-mod">
+                <span>更新于 2018-12-23</span>
+            </div>
+            <div class="post-info-license"></div>
+        </div>
+        <div class="post-info-line">
+            <div class="post-info-md"><span>
+                            <a class="link-to-markdown" href="/2018/golang-json-%E5%BA%8F%E5%88%97%E5%8C%96/index.md" target="_blank">阅读原始文档</a>
+                        </span></div>
+            <div class="post-info-share">
+                <span><a href="javascript:void(0);" title="分享到 Twitter" data-sharer="twitter" data-url="https://blog.firemiles.top/2018/golang-json-%E5%BA%8F%E5%88%97%E5%8C%96/" data-title="Golang json 序列化" data-hashtags="golang,json"><i class="fab fa-twitter fa-fw"></i></a><a href="javascript:void(0);" title="分享到 Facebook" data-sharer="facebook" data-url="https://blog.firemiles.top/2018/golang-json-%E5%BA%8F%E5%88%97%E5%8C%96/" data-hashtag="golang"><i class="fab fa-facebook-square fa-fw"></i></a><a href="javascript:void(0);" title="分享到 WhatsApp" data-sharer="whatsapp" data-url="https://blog.firemiles.top/2018/golang-json-%E5%BA%8F%E5%88%97%E5%8C%96/" data-title="Golang json 序列化" data-web><i class="fab fa-whatsapp fa-fw"></i></a><a href="javascript:void(0);" title="分享到 Line" data-sharer="line" data-url="https://blog.firemiles.top/2018/golang-json-%E5%BA%8F%E5%88%97%E5%8C%96/" data-title="Golang json 序列化"><i data-svg-src="/lib/simple-icons/icons/line.min.svg"></i></a><a href="javascript:void(0);" title="分享到 微博" data-sharer="weibo" data-url="https://blog.firemiles.top/2018/golang-json-%E5%BA%8F%E5%88%97%E5%8C%96/" data-title="Golang json 序列化"><i class="fab fa-weibo fa-fw"></i></a><a href="javascript:void(0);" title="分享到 Myspace" data-sharer="myspace" data-url="https://blog.firemiles.top/2018/golang-json-%E5%BA%8F%E5%88%97%E5%8C%96/" data-title="Golang json 序列化" data-description=""><i data-svg-src="/lib/simple-icons/icons/myspace.min.svg"></i></a><a href="javascript:void(0);" title="分享到 Blogger" data-sharer="blogger" data-url="https://blog.firemiles.top/2018/golang-json-%E5%BA%8F%E5%88%97%E5%8C%96/" data-title="Golang json 序列化" data-description=""><i class="fab fa-blogger fa-fw"></i></a><a href="javascript:void(0);" title="分享到 Evernote" data-sharer="evernote" data-url="https://blog.firemiles.top/2018/golang-json-%E5%BA%8F%E5%88%97%E5%8C%96/" data-title="Golang json 序列化"><i class="fab fa-evernote fa-fw"></i></a></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="post-info-more">
+        <section class="post-tags"><i class="fas fa-tags fa-fw"></i>&nbsp;<a href="/tags/golang/">golang</a>,&nbsp;<a href="/tags/json/">json</a></section>
+        <section>
+            <span><a href="javascript:void(0);" onclick="window.history.back();">返回</a></span>&nbsp;|&nbsp;<span><a href="/">主页</a></span>
+        </section>
+    </div>
+
+    <div class="post-nav"><a href="/2018/kubernetes-api-%E5%BC%80%E5%8F%91%E5%9B%9B/" class="prev" rel="prev" title="Kubernetes API 开发（四）"><i class="fas fa-angle-left fa-fw"></i>Kubernetes API 开发（四）</a>
+            <a href="/2018/kubernetes-api-%E5%BC%80%E5%8F%91%E4%BA%94/" class="next" rel="next" title="Kubernetes API 开发（五）">Kubernetes API 开发（五）<i class="fas fa-angle-right fa-fw"></i></a></div>
+</div>
+<div id="comments"></div></article></div>
+            </main><footer class="footer">
+        <div class="footer-container"><div class="footer-line">由 <a href="https://gohugo.io/" target="_blank" rel="noopener noreffer" title="Hugo 0.72.0-DEV">Hugo</a> 强力驱动 | 主题 - <a href="https://github.com/dillonzq/LoveIt" target="_blank" rel="noopener noreffer" title="LoveIt 0.2.10"><i class="far fa-kiss-wink-heart fa-fw"></i> LoveIt</a>
+                </div><div class="footer-line"><i class="far fa-copyright fa-fw"></i><span itemprop="copyrightYear">2019 - 2020</span><span class="author" itemprop="copyrightHolder">&nbsp;<a href="/" target="_blank">firemiles</a></span>&nbsp;|&nbsp;<span class="license"><a rel="license external nofollow noopener noreffer" href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank">CC BY-NC 4.0</a></span></div>
+        </div>
+    </footer></div>
+
+        <div id="fixed-buttons"><a href="#" id="back-to-top" class="fixed-button" title="回到顶部">
+                <i class="fas fa-arrow-up fa-fw"></i>
+            </a><a href="#" id="view-comments" class="fixed-button" title="查看评论">
+                <i class="fas fa-comment fa-fw"></i>
+            </a>
+        </div><link rel="stylesheet" href="/lib/katex/katex.min.css"><link rel="stylesheet" href="/lib/katex/copy-tex.min.css"><link rel="stylesheet" href="/lib/cookieconsent/cookieconsent.min.css"><script type="text/javascript" src="/lib/smooth-scroll/smooth-scroll.min.js"></script><script type="text/javascript" src="/lib/autocomplete/autocomplete.min.js"></script><script type="text/javascript" src="/lib/lunr/lunr.min.js"></script><script type="text/javascript" src="/lib/lunr/lunr.stemmer.support.min.js"></script><script type="text/javascript" src="/lib/lunr/lunr.zh.min.js"></script><script type="text/javascript" src="/lib/lazysizes/lazysizes.min.js"></script><script type="text/javascript" src="/lib/clipboard/clipboard.min.js"></script><script type="text/javascript" src="/lib/sharer/sharer.min.js"></script><script type="text/javascript" src="/lib/katex/katex.min.js"></script><script type="text/javascript" src="/lib/katex/auto-render.min.js"></script><script type="text/javascript" src="/lib/katex/copy-tex.min.js"></script><script type="text/javascript" src="/lib/katex/mhchem.min.js"></script><script type="text/javascript" src="/lib/cookieconsent/cookieconsent.min.js"></script><script type="text/javascript">window.config={"code":{"copyTitle":"复制到剪贴板","maxShownLines":10},"comment":{},"cookieconsent":{"content":{"dismiss":"同意","link":"了解更多","message":"本网站使用 Cookies 来改善您的浏览体验."},"enable":true,"palette":{"button":{"background":"#f0f0f0"},"popup":{"background":"#1aa3ff"}},"theme":"edgeless"},"math":{"delimiters":[{"display":true,"left":"$$","right":"$$"},{"display":true,"left":"\\[","right":"\\]"},{"display":false,"left":"$","right":"$"},{"display":false,"left":"\\(","right":"\\)"}],"strict":false},"search":{"highlightTag":"em","lunrIndexURL":"/index.json","lunrLanguageCode":"zh","lunrSegmentitURL":"/lib/lunr/lunr.segmentit.js","maxResultLength":10,"noResultsFound":"没有找到结果","snippetLength":50,"type":"lunr"}};</script><script type="text/javascript" src="/js/theme.min.js"></script></body>
+</html>
