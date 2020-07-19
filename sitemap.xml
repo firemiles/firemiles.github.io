@@ -2,19 +2,22 @@
     xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
     xmlns:xhtml="http://www.w3.org/1999/xhtml"
     ><url>
-            <loc>https://blog.firemiles.top/about/</loc><lastmod>2020-05-31T18:00:36&#43;08:00</lastmod><changefreq>weekly</changefreq><priority>1</priority></url><url>
-            <loc>https://blog.firemiles.top/categories/</loc><lastmod>2020-03-29T09:30:51&#43;00:00</lastmod><changefreq>weekly</changefreq><priority>0.5</priority></url><url>
-            <loc>https://blog.firemiles.top/</loc><lastmod>2020-03-29T09:30:51&#43;00:00</lastmod><changefreq>weekly</changefreq><priority>0.5</priority></url><url>
+            <loc>https://blog.firemiles.top/categories/</loc><lastmod>2020-07-19T22:17:49&#43;08:00</lastmod><changefreq>weekly</changefreq><priority>1</priority></url><url>
+            <loc>https://blog.firemiles.top/</loc><lastmod>2020-07-19T22:17:49&#43;08:00</lastmod><changefreq>weekly</changefreq><priority>1</priority></url><url>
+            <loc>https://blog.firemiles.top/tags/kubernetes/</loc><lastmod>2020-07-19T22:17:49&#43;08:00</lastmod><changefreq>weekly</changefreq><priority>1</priority></url><url>
+            <loc>https://blog.firemiles.top/categories/kubernetes/</loc><lastmod>2020-07-19T22:17:49&#43;08:00</lastmod><changefreq>weekly</changefreq><priority>1</priority></url><url>
+            <loc>https://blog.firemiles.top/tags/network/</loc><lastmod>2020-07-19T22:17:49&#43;08:00</lastmod><changefreq>weekly</changefreq><priority>1</priority></url><url>
+            <loc>https://blog.firemiles.top/categories/network/</loc><lastmod>2020-07-19T22:17:49&#43;08:00</lastmod><changefreq>weekly</changefreq><priority>1</priority></url><url>
+            <loc>https://blog.firemiles.top/posts/</loc><lastmod>2020-07-19T22:17:49&#43;08:00</lastmod><changefreq>weekly</changefreq><priority>1</priority></url><url>
+            <loc>https://blog.firemiles.top/tags/</loc><lastmod>2020-07-19T22:17:49&#43;08:00</lastmod><changefreq>weekly</changefreq><priority>1</priority></url><url>
+            <loc>https://blog.firemiles.top/2020/%E5%AE%B9%E5%99%A8%E7%BD%91%E7%BB%9C%E7%9A%84%E6%80%AA%E9%97%AE%E9%A2%98/</loc><lastmod>2020-07-19T22:17:49&#43;08:00</lastmod><changefreq>weekly</changefreq><priority>1</priority></url><url>
+            <loc>https://blog.firemiles.top/about/</loc><lastmod>2020-05-31T18:00:36&#43;08:00</lastmod><changefreq>weekly</changefreq><priority>0.5</priority></url><url>
             <loc>https://blog.firemiles.top/tags/golang/</loc><lastmod>2020-03-29T09:30:51&#43;00:00</lastmod><changefreq>weekly</changefreq><priority>0.5</priority></url><url>
             <loc>https://blog.firemiles.top/categories/golang/</loc><lastmod>2020-03-29T09:30:51&#43;00:00</lastmod><changefreq>weekly</changefreq><priority>0.5</priority></url><url>
             <loc>https://blog.firemiles.top/2020/golang%E7%9A%84reflect%E4%BD%BF%E7%94%A8/</loc><lastmod>2020-03-29T09:30:51&#43;00:00</lastmod><changefreq>weekly</changefreq><priority>0.5</priority></url><url>
-            <loc>https://blog.firemiles.top/posts/</loc><lastmod>2020-03-29T09:30:51&#43;00:00</lastmod><changefreq>weekly</changefreq><priority>0.5</priority></url><url>
             <loc>https://blog.firemiles.top/tags/reflect/</loc><lastmod>2020-03-29T09:30:51&#43;00:00</lastmod><changefreq>weekly</changefreq><priority>0.5</priority></url><url>
-            <loc>https://blog.firemiles.top/tags/</loc><lastmod>2020-03-29T09:30:51&#43;00:00</lastmod><changefreq>weekly</changefreq><priority>0.5</priority></url><url>
             <loc>https://blog.firemiles.top/tags/dhcp/</loc><lastmod>2020-02-24T23:41:33&#43;00:00</lastmod><changefreq>weekly</changefreq><priority>0.5</priority></url><url>
             <loc>https://blog.firemiles.top/2020/dhcp%E5%8D%8F%E8%AE%AE/</loc><lastmod>2020-02-24T23:41:33&#43;00:00</lastmod><changefreq>weekly</changefreq><priority>0.5</priority></url><url>
-            <loc>https://blog.firemiles.top/tags/network/</loc><lastmod>2020-02-24T23:41:33&#43;00:00</lastmod><changefreq>weekly</changefreq><priority>0.5</priority></url><url>
-            <loc>https://blog.firemiles.top/categories/network/</loc><lastmod>2020-02-24T23:41:33&#43;00:00</lastmod><changefreq>weekly</changefreq><priority>0.5</priority></url><url>
             <loc>https://blog.firemiles.top/tags/algorithm/</loc><lastmod>2020-01-04T20:07:55&#43;00:00</lastmod><changefreq>weekly</changefreq><priority>0.5</priority></url><url>
             <loc>https://blog.firemiles.top/categories/algorithm/</loc><lastmod>2020-01-04T20:07:55&#43;00:00</lastmod><changefreq>weekly</changefreq><priority>0.5</priority></url><url>
             <loc>https://blog.firemiles.top/tags/josephus-problem/</loc><lastmod>2020-01-04T20:07:55&#43;00:00</lastmod><changefreq>weekly</changefreq><priority>0.5</priority></url><url>
@@ -28,8 +31,6 @@
             <loc>https://blog.firemiles.top/2019/ipv6%E7%89%B9%E6%80%A7%E4%BB%8B%E7%BB%8D/</loc><lastmod>2019-11-27T09:47:43&#43;00:00</lastmod><changefreq>weekly</changefreq><priority>0.5</priority></url><url>
             <loc>https://blog.firemiles.top/tags/tools/</loc><lastmod>2019-11-24T14:36:23&#43;00:00</lastmod><changefreq>weekly</changefreq><priority>0.5</priority></url><url>
             <loc>https://blog.firemiles.top/2019/%E5%B8%B8%E8%A7%81%E5%AE%B9%E5%99%A8%E7%BD%91%E7%BB%9C%E9%97%AE%E9%A2%98%E8%AF%8A%E6%96%AD/</loc><lastmod>2019-11-24T14:36:23&#43;00:00</lastmod><changefreq>weekly</changefreq><priority>0.5</priority></url><url>
-            <loc>https://blog.firemiles.top/tags/kubernetes/</loc><lastmod>2019-09-04T22:21:59&#43;00:00</lastmod><changefreq>weekly</changefreq><priority>0.5</priority></url><url>
-            <loc>https://blog.firemiles.top/categories/kubernetes/</loc><lastmod>2019-09-04T22:21:59&#43;00:00</lastmod><changefreq>weekly</changefreq><priority>0.5</priority></url><url>
             <loc>https://blog.firemiles.top/2019/preserve-source-ip-in-k8s/</loc><lastmod>2019-09-04T22:21:59&#43;00:00</lastmod><changefreq>weekly</changefreq><priority>0.5</priority></url><url>
             <loc>https://blog.firemiles.top/tags/iptables/</loc><lastmod>2019-03-16T21:09:26&#43;00:00</lastmod><changefreq>weekly</changefreq><priority>0.5</priority></url><url>
             <loc>https://blog.firemiles.top/2019/iptables%E5%BF%AB%E9%80%9F%E5%85%A5%E9%97%A8/</loc><lastmod>2019-03-16T21:09:26&#43;00:00</lastmod><changefreq>weekly</changefreq><priority>0.5</priority></url><url>

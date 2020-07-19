@@ -4,7 +4,14 @@
         <link>https://blog.firemiles.top/posts/</link>
         <description>所有文章 | Firemiles 的技术生活</description>
         <generator>Hugo -- gohugo.io</generator><language>zh-CN</language><managingEditor>miles.dev@outlook.comm (firemiles)</managingEditor>
-            <webMaster>miles.dev@outlook.comm (firemiles)</webMaster><lastBuildDate>Sun, 29 Mar 2020 09:30:51 &#43;0000</lastBuildDate><atom:link href="https://blog.firemiles.top/posts/" rel="self" type="application/rss+xml" /><item>
+            <webMaster>miles.dev@outlook.comm (firemiles)</webMaster><lastBuildDate>Sun, 19 Jul 2020 22:17:49 &#43;0800</lastBuildDate><atom:link href="https://blog.firemiles.top/posts/" rel="self" type="application/rss+xml" /><item>
+    <title>容器网络的怪问题</title>
+    <link>https://blog.firemiles.top/2020/%E5%AE%B9%E5%99%A8%E7%BD%91%E7%BB%9C%E7%9A%84%E6%80%AA%E9%97%AE%E9%A2%98/</link>
+    <pubDate>Sun, 19 Jul 2020 22:17:49 &#43;0800</pubDate>
+    <author>作者</author>
+    <guid>https://blog.firemiles.top/2020/%E5%AE%B9%E5%99%A8%E7%BD%91%E7%BB%9C%E7%9A%84%E6%80%AA%E9%97%AE%E9%A2%98/</guid>
+    <description><![CDATA[案例太多，一次写完有点太难为我，我就想到哪写到哪，保持更新。 长连接报文重传失败 有个客户来找，说他们的应用Server端日志里经常有长连接中断]]></description>
+</item><item>
     <title>golang的reflect使用</title>
     <link>https://blog.firemiles.top/2020/golang%E7%9A%84reflect%E4%BD%BF%E7%94%A8/</link>
     <pubDate>Sun, 29 Mar 2020 09:30:51 &#43;0000</pubDate>
@@ -100,13 +107,5 @@
 <li>你必须在<a href="https://github.com/kubernetes/kubernetes/blob/v1.8.0-alpha.2/cmd/kube-apiserver/app/aggregator.go#L172" target="_blank" rel="noopener noreffer">cmd/kube-apiserver/app#apiVersionPriorities</a></li>
 <li>你必须为新version安装storage <a href="https://github.com/kubernetes/kubernetes/blob/v1.8.0-alpha.2/pkg/registry/authentication/rest/storage_authentication.go" target="_blank" rel="noopener noreffer">pkg/registry/group_name/rest</a></li>
 </ul>]]></description>
-</item><item>
-    <title>Golang json 序列化</title>
-    <link>https://blog.firemiles.top/2018/golang-json-%E5%BA%8F%E5%88%97%E5%8C%96/</link>
-    <pubDate>Sun, 23 Dec 2018 17:24:12 &#43;0000</pubDate>
-    <author>作者</author>
-    <guid>https://blog.firemiles.top/2018/golang-json-%E5%BA%8F%E5%88%97%E5%8C%96/</guid>
-    <description><![CDATA[<h2 id="前言">前言</h2>
-<p>这两天升级 client-go 版本，涉及 grpc proto 相关代码生成。升级完成后在调试的过程中，发现当数据存入etcd时，一个boolean类型的字段消失了，仔细研究了相关代码半天，最后才发现 go 在 Marshal 结构体时，如果字段是boolean类型，并且设置了omitempty，则会在false的事后作为empty删除。为了避免以后再次栽倒同样的坑里，特意写作本篇博客详细记录golang对json的处理。</p>]]></description>
 </item></channel>
 </rss>

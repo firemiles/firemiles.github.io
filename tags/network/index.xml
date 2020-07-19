@@ -4,7 +4,14 @@
         <link>https://blog.firemiles.top/tags/network/</link>
         <description>network - 标签 - Firemiles 的技术生活</description>
         <generator>Hugo -- gohugo.io</generator><language>zh-CN</language><managingEditor>miles.dev@outlook.comm (firemiles)</managingEditor>
-            <webMaster>miles.dev@outlook.comm (firemiles)</webMaster><lastBuildDate>Mon, 24 Feb 2020 23:41:33 &#43;0000</lastBuildDate><atom:link href="https://blog.firemiles.top/tags/network/" rel="self" type="application/rss+xml" /><item>
+            <webMaster>miles.dev@outlook.comm (firemiles)</webMaster><lastBuildDate>Sun, 19 Jul 2020 22:17:49 &#43;0800</lastBuildDate><atom:link href="https://blog.firemiles.top/tags/network/" rel="self" type="application/rss+xml" /><item>
+    <title>容器网络的怪问题</title>
+    <link>https://blog.firemiles.top/2020/%E5%AE%B9%E5%99%A8%E7%BD%91%E7%BB%9C%E7%9A%84%E6%80%AA%E9%97%AE%E9%A2%98/</link>
+    <pubDate>Sun, 19 Jul 2020 22:17:49 &#43;0800</pubDate>
+    <author>作者</author>
+    <guid>https://blog.firemiles.top/2020/%E5%AE%B9%E5%99%A8%E7%BD%91%E7%BB%9C%E7%9A%84%E6%80%AA%E9%97%AE%E9%A2%98/</guid>
+    <description><![CDATA[案例太多，一次写完有点太难为我，我就想到哪写到哪，保持更新。 长连接报文重传失败 有个客户来找，说他们的应用Server端日志里经常有长连接中断]]></description>
+</item><item>
     <title>DHCP协议</title>
     <link>https://blog.firemiles.top/2020/dhcp%E5%8D%8F%E8%AE%AE/</link>
     <pubDate>Mon, 24 Feb 2020 23:41:33 &#43;0000</pubDate>
