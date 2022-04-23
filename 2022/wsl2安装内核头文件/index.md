@@ -23,7 +23,7 @@ apt install bison build-essential flex libssl-dev libelf-dev bc
 tar -zvxf 4.19.121-microsoft-standard.tar.gz
 cd WSL2-Linux-Kernel-4.19.121-microsoft-standard.tar.gz
 zcat /proc/config.gz > .config
-make -j $(nproc)               
+make -j $(nproc)
 make -j $(nproc) modules_install
 ```
 
