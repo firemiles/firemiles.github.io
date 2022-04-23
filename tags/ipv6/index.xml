@@ -1,15 +1,1 @@
-<rss xmlns:atom="http://www.w3.org/2005/Atom" version="2.0">
-    <channel>
-        <title>IPv6 - 标签 - Firemiles 的技术生活</title>
-        <link>https://blog.firemiles.top/tags/ipv6/</link>
-        <description>IPv6 - 标签 - Firemiles 的技术生活</description>
-        <generator>Hugo -- gohugo.io</generator><language>zh-CN</language><managingEditor>miles.dev@outlook.comm (firemiles)</managingEditor>
-            <webMaster>miles.dev@outlook.comm (firemiles)</webMaster><lastBuildDate>Wed, 27 Nov 2019 09:47:43 &#43;0000</lastBuildDate><atom:link href="https://blog.firemiles.top/tags/ipv6/" rel="self" type="application/rss+xml" /><item>
-    <title>IPv6特性介绍</title>
-    <link>https://blog.firemiles.top/2019/ipv6%E7%89%B9%E6%80%A7%E4%BB%8B%E7%BB%8D/</link>
-    <pubDate>Wed, 27 Nov 2019 09:47:43 &#43;0000</pubDate>
-    <author>作者</author>
-    <guid>https://blog.firemiles.top/2019/ipv6%E7%89%B9%E6%80%A7%E4%BB%8B%E7%BB%8D/</guid>
-    <description><![CDATA[IPv6 概述 IPv6（互联网协议版本6）是一种新的寻址协议，旨在包含未来互联网的所有可能需求。 为什么是新的IP版本 到目前为止，IPv4已经证明自己]]></description>
-</item></channel>
-</rss>
+<rss xmlns:atom="http://www.w3.org/2005/Atom" version="2.0"><channel><title>IPv6 - 标签 - Firemiles 的技术生活</title><link>https://blog.firemiles.top/tags/ipv6/</link><description>IPv6 - 标签 - Firemiles 的技术生活</description><generator>Hugo -- gohugo.io</generator><language>zh-CN</language><managingEditor>miles.dev@outlook.comm (firemiles)</managingEditor><webMaster>miles.dev@outlook.comm (firemiles)</webMaster><lastBuildDate>Wed, 27 Nov 2019 09:47:43 +0000</lastBuildDate><atom:link href="https://blog.firemiles.top/tags/ipv6/" rel="self" type="application/rss+xml"/><item><title>IPv6特性介绍</title><link>https://blog.firemiles.top/2019/ipv6%E7%89%B9%E6%80%A7%E4%BB%8B%E7%BB%8D/</link><pubDate>Wed, 27 Nov 2019 09:47:43 +0000</pubDate><author>作者</author><guid>https://blog.firemiles.top/2019/ipv6%E7%89%B9%E6%80%A7%E4%BB%8B%E7%BB%8D/</guid><description>IPv6 概述 IPv6（互联网协议版本6）是一种新的寻址协议，旨在包含未来互联网的所有可能需求。 为什么是新的IP版本 到目前为止，IPv4已经证明自己</description></item></channel></rss>

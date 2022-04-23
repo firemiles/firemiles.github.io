@@ -1,371 +1,104 @@
-<!DOCTYPE html>
-<html lang="zh-CN">
-    <head>
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <meta name="robots" content="noodp" />
-        <meta http-equiv="X-UA-Compatible" content="IE=edge, chrome=1">
-        <title>常见容器网络问题诊断 - Firemiles 的技术生活</title><meta name="Description" content="最近经常有同事来求助修复容器网络，定位发现大多数网络问题的都是操作系统的网络配置被修改导致的，本文记录下这些常见配置问题，并本着程序员的偷懒精神，在文末提供检测脚本。"><meta property="og:title" content="常见容器网络问题诊断" />
-<meta property="og:description" content="最近经常有同事来求助修复容器网络，定位发现大多数网络问题的都是操作系统的网络配置被修改导致的，本文记录下这些常见配置问题，并本着程序员的偷懒精神，在文末提供检测脚本。" />
-<meta property="og:type" content="article" />
-<meta property="og:url" content="https://blog.firemiles.top/2019/%E5%B8%B8%E8%A7%81%E5%AE%B9%E5%99%A8%E7%BD%91%E7%BB%9C%E9%97%AE%E9%A2%98%E8%AF%8A%E6%96%AD/" />
-<meta property="og:image" content="https://blog.firemiles.top/logo.png"/>
-<meta property="article:published_time" content="2019-11-24T14:36:23+00:00" />
-<meta property="article:modified_time" content="2019-11-24T14:36:23+00:00" />
-<meta name="twitter:card" content="summary_large_image"/>
-<meta name="twitter:image" content="https://blog.firemiles.top/logo.png"/>
-
-<meta name="twitter:title" content="常见容器网络问题诊断"/>
-<meta name="twitter:description" content="最近经常有同事来求助修复容器网络，定位发现大多数网络问题的都是操作系统的网络配置被修改导致的，本文记录下这些常见配置问题，并本着程序员的偷懒精神，在文末提供检测脚本。"/>
-<meta name="application-name" content="LoveIt">
-<meta name="apple-mobile-web-app-title" content="LoveIt"><meta name="theme-color" content="#ffffff"><meta name="msapplication-TileColor" content="#da532c"><link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
-        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
-        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png"><link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"><link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5"><link rel="manifest" href="/site.webmanifest"><link rel="canonical" href="https://blog.firemiles.top/2019/%E5%B8%B8%E8%A7%81%E5%AE%B9%E5%99%A8%E7%BD%91%E7%BB%9C%E9%97%AE%E9%A2%98%E8%AF%8A%E6%96%AD/" /><link rel="prev" href="https://blog.firemiles.top/2019/preserve-source-ip-in-k8s/" /><link rel="next" href="https://blog.firemiles.top/2019/ipv6%E7%89%B9%E6%80%A7%E4%BB%8B%E7%BB%8D/" /><link rel="stylesheet" href="/lib/normalize/normalize.min.css"><link rel="stylesheet" href="/css/style.min.css"><link rel="stylesheet" href="/lib/fontawesome-free/all.min.css"><link rel="stylesheet" href="/lib/animate/animate.min.css"><script type="application/ld+json">
-    {
-        "@context": "http://schema.org",
-        "@type": "BlogPosting",
-        "headline": "常见容器网络问题诊断",
-        "inLanguage": "zh-CN",
-        "mainEntityOfPage": {
-            "@type": "WebPage",
-            "@id": "https:\/\/blog.firemiles.top\/2019\/%E5%B8%B8%E8%A7%81%E5%AE%B9%E5%99%A8%E7%BD%91%E7%BB%9C%E9%97%AE%E9%A2%98%E8%AF%8A%E6%96%AD\/"
-        },"genre": "posts","keywords": "network, tools","wordcount":  1904 ,
-        "url": "https:\/\/blog.firemiles.top\/2019\/%E5%B8%B8%E8%A7%81%E5%AE%B9%E5%99%A8%E7%BD%91%E7%BB%9C%E9%97%AE%E9%A2%98%E8%AF%8A%E6%96%AD\/","datePublished": "2019-11-24T14:36:23+00:00","dateModified": "2019-11-24T14:36:23+00:00","publisher": {
-            "@type": "Organization",
-            "name": ""},"author": {
-                "@type": "Person",
-                "name": "firemiles"
-            },"description": "最近经常有同事来求助修复容器网络，定位发现大多数网络问题的都是操作系统的网络配置被修改导致的，本文记录下这些常见配置问题，并本着程序员的偷懒精神，在文末提供检测脚本。"
-    }
-    </script></head>
-    <body header-desktop="fixed" header-mobile="auto"><script type="text/javascript">(window.localStorage && localStorage.getItem('theme') ? localStorage.getItem('theme') === 'dark' : ('auto' === 'auto' ? window.matchMedia('(prefers-color-scheme: dark)').matches : 'auto' === 'dark')) && document.body.setAttribute('theme', 'dark');</script>
-
-        <div id="mask"></div><div class="wrapper"><header class="desktop" id="header-desktop">
-    <div class="header-wrapper">
-        <div class="header-title">
-            <a href="/" title="Firemiles 的技术生活"><span class="header-title-pre"><i class='fa fa-rocket'></i></span>Firemiles 的个人博客</a>
-        </div>
-        <div class="menu">
-            <div class="menu-inner"><a class="menu-item" href="/posts/"> 文章 </a><a class="menu-item" href="/tags/"> 标签 </a><a class="menu-item" href="/categories/"> 分类 </a><a class="menu-item" href="/about/"> 关于 </a><a class="menu-item" href="https://github.com/firemiles/firemiles.github.io" title="GitHub" rel="noopener noreffer" target="_blank"><i class='fab fa-github fa-fw'></i>  </a><span class="menu-item delimiter"></span><span class="menu-item search" id="search-desktop">
-                        <input type="text" placeholder="搜索文章标题或内容..." id="search-input-desktop">
-                        <a href="javascript:void(0);" class="search-button search-toggle" id="search-toggle-desktop" title="搜索">
-                            <i class="fas fa-search fa-fw"></i>
-                        </a>
-                        <a href="javascript:void(0);" class="search-button search-clear" id="search-clear-desktop" title="清空">
-                            <i class="fas fa-times-circle fa-fw"></i>
-                        </a>
-                        <span class="search-button search-loading" id="search-loading-desktop">
-                            <i class="fas fa-spinner fa-fw fa-spin"></i>
-                        </span>
-                    </span><a href="javascript:void(0);" class="menu-item theme-switch" title="切换主题">
-                    <i class="fas fa-adjust fa-fw"></i>
-                </a>
-            </div>
-        </div>
-    </div>
-</header><header class="mobile" id="header-mobile">
-    <div class="header-container">
-        <div class="header-wrapper">
-            <div class="header-title">
-                <a href="/" title="Firemiles 的技术生活"><span class="header-title-pre"><i class='fa fa-rocket'></i></span>Firemiles 的个人博客</a>
-            </div>
-            <div class="menu-toggle" id="menu-toggle-mobile">
-                <span></span><span></span><span></span>
-            </div>
-        </div>
-        <div class="menu" id="menu-mobile"><div class="search-wrapper">
-                    <div class="search mobile" id="search-mobile">
-                        <input type="text" placeholder="搜索文章标题或内容..." id="search-input-mobile">
-                        <a href="javascript:void(0);" class="search-button search-toggle" id="search-toggle-mobile" title="搜索">
-                            <i class="fas fa-search fa-fw"></i>
-                        </a>
-                        <a href="javascript:void(0);" class="search-button search-clear" id="search-clear-mobile" title="清空">
-                            <i class="fas fa-times-circle fa-fw"></i>
-                        </a>
-                        <span class="search-button search-loading" id="search-loading-mobile">
-                            <i class="fas fa-spinner fa-fw fa-spin"></i>
-                        </span>
-                    </div>
-                    <a href="javascript:void(0);" class="search-cancel" id="search-cancel-mobile">
-                        取消
-                    </a>
-                </div><a class="menu-item" href="/posts/" title="">文章</a><a class="menu-item" href="/tags/" title="">标签</a><a class="menu-item" href="/categories/" title="">分类</a><a class="menu-item" href="/about/" title="">关于</a><a class="menu-item" href="https://github.com/firemiles/firemiles.github.io" title="GitHub" rel="noopener noreffer" target="_blank"><i class='fab fa-github fa-fw'></i></a><a href="javascript:void(0);" class="menu-item theme-switch" title="切换主题">
-                <i class="fas fa-adjust fa-fw"></i>
-            </a></div>
-    </div>
-</header>
-<div class="search-dropdown desktop">
-    <div id="search-dropdown-desktop"></div>
-</div>
-<div class="search-dropdown mobile">
-    <div id="search-dropdown-mobile"></div>
-</div>
-<main class="main">
-                <div class="container"><div class="toc" id="toc-auto">
-            <h2 class="toc-title">目录</h2>
-            <div class="toc-content" id="toc-content-auto"></div>
-        </div><article class="page single"><h1 class="single-title animated flipInX">常见容器网络问题诊断</h1><div class="post-meta">
-            <div class="post-meta-line"><span class="post-author"><a href="/" title="Author" rel=" author" class="author"><i class="fas fa-user-circle fa-fw"></i>firemiles</a></span>&nbsp;<span class="post-category">收录于 <a href="/categories/network/"><i class="far fa-folder fa-fw"></i>network</a></span></div>
-            <div class="post-meta-line"><i class="far fa-calendar-alt fa-fw"></i>&nbsp;<time datetime="2019-11-24">2019-11-24</time>&nbsp;<i class="fas fa-pencil-alt fa-fw"></i>&nbsp;约 1904 字&nbsp;
-                <i class="far fa-clock fa-fw"></i>&nbsp;预计阅读 4 分钟&nbsp;</div>
-        </div><div class="details toc" id="toc-static"  kept="true">
-                <div class="details-summary toc-title">
-                    <span>目录</span>
-                    <span><i class="details-icon fas fa-angle-right"></i></span>
-                </div>
-                <div class="details-content toc-content" id="toc-content-static"><nav id="TableOfContents">
-  <ul>
-    <li><a href="#系统配置">系统配置</a>
-      <ul>
-        <li><a href="#sysctl">sysctl</a></li>
-        <li><a href="#iptables">iptables</a></li>
-        <li><a href="#route">route</a></li>
-      </ul>
-    </li>
-    <li><a href="#定位工具">定位工具</a></li>
-    <li><a href="#配置扫描脚本">配置扫描脚本</a></li>
-    <li><a href="#参考资料">参考资料</a></li>
-  </ul>
-</nav></div>
-            </div><div class="content" id="content"><p>Kubernetes 的容器网络插件家族越来越庞大，各种模式层出不穷，但是万变不离其宗，overlay 和 underlay。overlay 常使用 vxlan 或者 ipip，underlay 使用 host-gw、bgp，或者结合云厂商提供的底层路由，如：vpc router，virtual switch；还有一类underlay 是目前各大云厂商主推的 eni（Elastic Network Interface）模式，将本来虚拟机使用的网卡插入到容器使用，使容器网络和虚拟机网络一样成为一等公民，拥有相同的网络访问权限，这个场景下容器网络被极度简化，大部分功能都由公有云虚拟机网络完成。</p>
-<p>容器网络发展到现在，基本的组网方式已经十分成熟，抛开负载的性能优化问题不谈，网络功能问题的根因定位已经没多少新花样了，下面我就介绍下我在工作中使用的三板斧。</p>
-<h2 id="系统配置">系统配置</h2>
-<p>系统配置被修改导致网络行为改变，容器网络故障是最常出现的。</p>
-<h3 id="sysctl">sysctl</h3>
-<ul>
-<li>net.ipv4.ip_forward（需要打开）</li>
-<li>net.ipv4.conf.{all,interface}.rp_filter（非对称路由环境设置为0或2）</li>
-<li>net.ipv4.tcp_tw_recycle（NAT环境关闭）</li>
-<li>net.ipv4.tcp_tw_reuse</li>
-</ul>
-<p><code>net.ipv4.ip_forward</code> 控制主机是否允许转发数据报文，该值一般是 1，为0时常常导致容器访问service失败。</p>
-<p><code>net.ipv4.conf.all.rp_filter</code> 控制系统是否开启对数据包源地址的校验。先看下文档中的介绍：</p>
-<div class="highlight"><div class="chroma">
-<table class="lntable"><tr><td class="lntd">
-<pre class="chroma"><code><span class="lnt"> 1
-</span><span class="lnt"> 2
-</span><span class="lnt"> 3
-</span><span class="lnt"> 4
-</span><span class="lnt"> 5
-</span><span class="lnt"> 6
-</span><span class="lnt"> 7
-</span><span class="lnt"> 8
-</span><span class="lnt"> 9
-</span><span class="lnt">10
-</span><span class="lnt">11
-</span><span class="lnt">12
-</span><span class="lnt">13
-</span><span class="lnt">14
-</span><span class="lnt">15
-</span><span class="lnt">16
-</span><span class="lnt">17
-</span></code></pre></td>
-<td class="lntd">
-<pre class="chroma"><code class="language-txt" data-lang="txt">rp_filter - INTEGER
-0 - No source validation.
-1 - Strict mode as defined in RFC3704 Strict Reverse Path
-    Each incoming packet is tested against the FIB and if the interface
-    is not the best reverse path the packet check will fail.
-    By default failed packets are discarded.
-2 - Loose mode as defined in RFC3704 Loose Reverse Path
-    Each incoming packet&#39;s source address is also tested against the FIB
-    and if the source address is not reachable via any interface
-    the packet check will fail.
-
-　　Current recommended practice in RFC3704 is to enable strict mode
-to prevent IP spoofing from DDos attacks. If using asymmetric routing
-or other complicated routing, then loose mode is recommended.
-　　The max value from conf/{all,interface}/rp_filter is used
-when doing source validation on the {interface}.
-　　Default value is 0. Note that some distributions enable itin startup scripts.
-</code></pre></td></tr></table>
-</div>
-</div><p>即rp_filter参数有三个值，0，1，2，具体含义：</p>
-<ul>
-<li>0: 不开启源地址校验</li>
-<li>1: 开启严格的反向路径校验，对每个进来的包，校验其反向路径是否最佳。如果不是最佳，则丢弃该数据包</li>
-<li>2: 开启松散的反向路径校验。对每个进来的包，校验其反向源地址是否可达（通过任意网口），如果不可达，则丢弃该数据包。</li>
-</ul>
-<p>容器网络假如使用了非对称路由，rp_filter 一定要设置成2或者0.</p>
-<p><code>net.ipv4.tcp_tw_recycle</code> 参数是为了服务端快速回收 <code>TIME_WAIT</code> 状态的 sockets 设置的，一些网络调优的文档可能会提到设置这个参数，但是该参数并不建议在 NAT(Network Address Translation) 环境中使用。</p>
-<p>TCP 为了避免序列号反转的问题，使用时间戳（非标准时间，只是一个计数器）识别过时的报文并丢弃，即 PAWS(<a href="https://www.freesoft.org/CIE/RFC/1323/13.htm" target="_blank" rel="noopener noreffer">PROTECT AGAINST WRAPPED SEQUENCE NUMBERS</a>)。默认PAWS是针对单个连接的，如果开启了 <code>net.ipv4.tcp_tw_recycle</code> ，为了解决重用 <code>TIME_WAIT</code> 导致的前一个连接发来的数据包在新连接中被当成有效数据包处理，Per-Connection 被升级成了 Per-Host。在SNAT环境中，来自不同HOST的连接被当成来自同一个HOST，导致时间戳数字小的友军会被系统误认为是过时报文丢弃。</p>
-<blockquote>
-<p>该参数在 Linux 4.1 内核中已经移除</p>
-</blockquote>
-<p><code>net.ipv4.tcp_tw_reuse</code> 和上一个 <code>net.ipv4.tcp_tw_recycle</code> 功能类似，主要用于客户端快速回收 <code>TIME_WAIT</code> 状态的 port 重用。该参数当前还没有发现明显的问题，打不开开都可以。</p>
-<h3 id="iptables">iptables</h3>
-<ul>
-<li>iptalbes &ndash;policy FORWARD ACCEPT</li>
-<li>DROP</li>
-<li>SNAT</li>
-</ul>
-<p>数据包经过主机时第二道关口一般是 iptables，常常 tcpdump 抓到了数据包，但是应用就是没有收到，这个时候很可能是 iptables 把数据包过滤了。</p>
-<p>大多数容器网络需要iptables默认接受数据包转发，即设置：<code>iptables --policy FORWARD ACCEPT</code>。</p>
-<p>这个可以用 iptables -nvL FORWARD 查看当前默认规则。</p>
-<p><img
-        class="lazyload"
-        src="/svg/loading.min.svg"
-        data-src="https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/20191124181730.png"
-        data-srcset="https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/20191124181730.png, https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/20191124181730.png 1.5x, https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/20191124181730.png 2x"
-        data-sizes="auto"
-        alt="https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/20191124181730.png"
-        title="https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/20191124181730.png" /></p>
-<p>iptables 还有其他规则可能导致丢包，使用 <code>iptables -nvL ｜ grep DROP</code> 查看丢包统计。</p>
-<p>除了丢包，错误的处理 SNAT 也可能导致容器网络访问外网失败，可以查看 iptables 的 SNAT 规则，并在主机上抓包确认。</p>
-<h3 id="route">route</h3>
-<ul>
-<li>default route</li>
-<li>ip rule</li>
-</ul>
-<p>如果容器访问某个ip报错 <code>no route to host</code>，这个时候自然要查看下路由了。不光要排查容器内部，还要排查报文经过路径上的路由，并且需要注意 iptables 的 DNAT 规则改写目的ip，以及 <code>ip rule</code> 的 route table 查找规则。</p>
-<h2 id="定位工具">定位工具</h2>
-<p>当我们排查了一遍系统参数还没有头绪的时候，这个时候就该网络调试工具上场了。</p>
-<ul>
-<li>tcpdump</li>
-<li>wireshark</li>
-<li>netstat/ss</li>
-<li>iptables</li>
-<li>lsof – p PID</li>
-</ul>
-<p>使用 <code>tcpdump</code> 抓包是网络问题排查的常见手段。</p>
-<div class="highlight"><div class="chroma">
-<table class="lntable"><tr><td class="lntd">
-<pre class="chroma"><code><span class="lnt">1
-</span></code></pre></td>
-<td class="lntd">
-<pre class="chroma"><code class="language-sh" data-lang="sh">tcpdump -i eth0 tcp host 192.168.4.3 and port <span class="m">4789</span> -ne
-</code></pre></td></tr></table>
-</div>
-</div><p>也可以将抓到的包信息写入文件放到 wireshark 中分析，可以得到更全面的信息。</p>
-<div class="highlight"><div class="chroma">
-<table class="lntable"><tr><td class="lntd">
-<pre class="chroma"><code><span class="lnt">1
-</span></code></pre></td>
-<td class="lntd">
-<pre class="chroma"><code class="language-sh" data-lang="sh">tcpdump -i eth0 tcp host 192.168.4.3 -w packet.pcap
-</code></pre></td></tr></table>
-</div>
-</div><p><code>netstat</code> 或 <code>ss</code> 命令用来查看当前连接统计信息，可以分析连接失败的原因。</p>
-<p><img
-        class="lazyload"
-        src="/svg/loading.min.svg"
-        data-src="https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/20191124182528.png"
-        data-srcset="https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/20191124182528.png, https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/20191124182528.png 1.5x, https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/20191124182528.png 2x"
-        data-sizes="auto"
-        alt="https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/20191124182528.png"
-        title="https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/20191124182528.png" /></p>
-<p><img
-        class="lazyload"
-        src="/svg/loading.min.svg"
-        data-src="https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/20191124182228.png"
-        data-srcset="https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/20191124182228.png, https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/20191124182228.png 1.5x, https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/20191124182228.png 2x"
-        data-sizes="auto"
-        alt="https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/20191124182228.png"
-        title="https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/20191124182228.png" /></p>
-<p><code>iptables</code> 需要排查规则是否符合期望，具体使用可以参见 <a href="https://blog.firemiles.top/2019/03/16/iptables%E5%BF%AB%E9%80%9F%E5%85%A5%E9%97%A8/" target="_blank" rel="noopener noreffer">iptables快速入门</a></p>
-<p><code>lsof</code> 可以用来查看进程占用的句柄数，有时候新的连接无法建立，可能是程序句柄泄露或者最大值设置太小（<code>ulimits -a</code>查看）</p>
-<h2 id="配置扫描脚本">配置扫描脚本</h2>
-<div class="highlight"><div class="chroma">
-<table class="lntable"><tr><td class="lntd">
-<pre class="chroma"><code><span class="lnt"> 1
-</span><span class="lnt"> 2
-</span><span class="lnt"> 3
-</span><span class="lnt"> 4
-</span><span class="lnt"> 5
-</span><span class="lnt"> 6
-</span><span class="lnt"> 7
-</span><span class="lnt"> 8
-</span><span class="lnt"> 9
-</span><span class="lnt">10
-</span><span class="lnt">11
-</span><span class="lnt">12
-</span><span class="lnt">13
-</span><span class="lnt">14
-</span><span class="lnt">15
-</span><span class="lnt">16
-</span><span class="lnt">17
-</span><span class="lnt">18
-</span><span class="lnt">19
-</span><span class="lnt">20
-</span><span class="lnt">21
-</span><span class="lnt">22
-</span><span class="lnt">23
-</span><span class="lnt">24
-</span><span class="lnt">25
-</span><span class="lnt">26
-</span></code></pre></td>
-<td class="lntd">
-<pre class="chroma"><code class="language-sh" data-lang="sh"><span class="c1">## green to echo</span> 
-<span class="k">function</span> green<span class="o">(){</span>
-    <span class="nb">echo</span> -e <span class="s2">&#34;\033[32m[ </span><span class="nv">$1</span><span class="s2"> ]\033[0m&#34;</span>
-<span class="o">}</span>
-
-<span class="nv">containerID</span><span class="o">=</span><span class="nv">$1</span>
-green kernel: <span class="sb">`</span>uname -r<span class="sb">`</span>
-green cni.conf
-cat /etc/cni/net.d/cni.conf
-green IP in container:
-docker <span class="nb">exec</span> -ti <span class="nv">$containerID</span> ip a s
-green Route in container:
-docker <span class="nb">exec</span> -ti <span class="nv">$containerID</span> ip r s
-green rp_filter in container:
-docker <span class="nb">exec</span> -ti <span class="nv">$containerID</span> sysctl -a<span class="p">|</span>grep rp_filter
-green route in host:
-ip r s
-green ip rule in host:
-ip rule
-green ip forward in host:
-sysctl sysctl net.ipv4.ip_forward
-iptables -nvL<span class="p">|</span>grep FORWARD
-green rp_filter in host:
-sysctl -a<span class="p">|</span>grep rp_filter
-green tcp_tw_recycle in host:
-sysctl net.ipv4.tcp_tw_recycle
-</code></pre></td></tr></table>
-</div>
-</div><h2 id="参考资料">参考资料</h2>
-<ul>
-<li><a href="https://computingforgeeks.com/netstat-vs-ss-usage-guide-linux/">https://computingforgeeks.com/netstat-vs-ss-usage-guide-linux/</a></li>
-</ul>
-</div><div class="post-footer" id="post-footer">
-    <div class="post-info">
-        <div class="post-info-line">
-            <div class="post-info-mod">
-                <span>更新于 2019-11-24</span>
-            </div>
-            <div class="post-info-license"></div>
-        </div>
-        <div class="post-info-line">
-            <div class="post-info-md"><span>
-                            <a class="link-to-markdown" href="/2019/%E5%B8%B8%E8%A7%81%E5%AE%B9%E5%99%A8%E7%BD%91%E7%BB%9C%E9%97%AE%E9%A2%98%E8%AF%8A%E6%96%AD/index.md" target="_blank">阅读原始文档</a>
-                        </span></div>
-            <div class="post-info-share">
-                <span><a href="javascript:void(0);" title="分享到 Twitter" data-sharer="twitter" data-url="https://blog.firemiles.top/2019/%E5%B8%B8%E8%A7%81%E5%AE%B9%E5%99%A8%E7%BD%91%E7%BB%9C%E9%97%AE%E9%A2%98%E8%AF%8A%E6%96%AD/" data-title="常见容器网络问题诊断" data-hashtags="network,tools"><i class="fab fa-twitter fa-fw"></i></a><a href="javascript:void(0);" title="分享到 Facebook" data-sharer="facebook" data-url="https://blog.firemiles.top/2019/%E5%B8%B8%E8%A7%81%E5%AE%B9%E5%99%A8%E7%BD%91%E7%BB%9C%E9%97%AE%E9%A2%98%E8%AF%8A%E6%96%AD/" data-hashtag="network"><i class="fab fa-facebook-square fa-fw"></i></a><a href="javascript:void(0);" title="分享到 WhatsApp" data-sharer="whatsapp" data-url="https://blog.firemiles.top/2019/%E5%B8%B8%E8%A7%81%E5%AE%B9%E5%99%A8%E7%BD%91%E7%BB%9C%E9%97%AE%E9%A2%98%E8%AF%8A%E6%96%AD/" data-title="常见容器网络问题诊断" data-web><i class="fab fa-whatsapp fa-fw"></i></a><a href="javascript:void(0);" title="分享到 Line" data-sharer="line" data-url="https://blog.firemiles.top/2019/%E5%B8%B8%E8%A7%81%E5%AE%B9%E5%99%A8%E7%BD%91%E7%BB%9C%E9%97%AE%E9%A2%98%E8%AF%8A%E6%96%AD/" data-title="常见容器网络问题诊断"><i data-svg-src="/lib/simple-icons/icons/line.min.svg"></i></a><a href="javascript:void(0);" title="分享到 微博" data-sharer="weibo" data-url="https://blog.firemiles.top/2019/%E5%B8%B8%E8%A7%81%E5%AE%B9%E5%99%A8%E7%BD%91%E7%BB%9C%E9%97%AE%E9%A2%98%E8%AF%8A%E6%96%AD/" data-title="常见容器网络问题诊断"><i class="fab fa-weibo fa-fw"></i></a><a href="javascript:void(0);" title="分享到 Myspace" data-sharer="myspace" data-url="https://blog.firemiles.top/2019/%E5%B8%B8%E8%A7%81%E5%AE%B9%E5%99%A8%E7%BD%91%E7%BB%9C%E9%97%AE%E9%A2%98%E8%AF%8A%E6%96%AD/" data-title="常见容器网络问题诊断" data-description="最近经常有同事来求助修复容器网络，定位发现大多数网络问题的都是操作系统的网络配置被修改导致的，本文记录下这些常见配置问题，并本着程序员的偷懒精神，在文末提供检测脚本。"><i data-svg-src="/lib/simple-icons/icons/myspace.min.svg"></i></a><a href="javascript:void(0);" title="分享到 Blogger" data-sharer="blogger" data-url="https://blog.firemiles.top/2019/%E5%B8%B8%E8%A7%81%E5%AE%B9%E5%99%A8%E7%BD%91%E7%BB%9C%E9%97%AE%E9%A2%98%E8%AF%8A%E6%96%AD/" data-title="常见容器网络问题诊断" data-description="最近经常有同事来求助修复容器网络，定位发现大多数网络问题的都是操作系统的网络配置被修改导致的，本文记录下这些常见配置问题，并本着程序员的偷懒精神，在文末提供检测脚本。"><i class="fab fa-blogger fa-fw"></i></a><a href="javascript:void(0);" title="分享到 Evernote" data-sharer="evernote" data-url="https://blog.firemiles.top/2019/%E5%B8%B8%E8%A7%81%E5%AE%B9%E5%99%A8%E7%BD%91%E7%BB%9C%E9%97%AE%E9%A2%98%E8%AF%8A%E6%96%AD/" data-title="常见容器网络问题诊断"><i class="fab fa-evernote fa-fw"></i></a></span>
-            </div>
-        </div>
-    </div>
-
-    <div class="post-info-more">
-        <section class="post-tags"><i class="fas fa-tags fa-fw"></i>&nbsp;<a href="/tags/network/">network</a>,&nbsp;<a href="/tags/tools/">tools</a></section>
-        <section>
-            <span><a href="javascript:void(0);" onclick="window.history.back();">返回</a></span>&nbsp;|&nbsp;<span><a href="/">主页</a></span>
-        </section>
-    </div>
-
-    <div class="post-nav"><a href="/2019/preserve-source-ip-in-k8s/" class="prev" rel="prev" title="Load Balance 访问 Kubernetes Pod 源 IP 保留方案探索"><i class="fas fa-angle-left fa-fw"></i>Load Balance 访问 Kubernetes Pod 源 IP 保留方案探索</a>
-            <a href="/2019/ipv6%E7%89%B9%E6%80%A7%E4%BB%8B%E7%BB%8D/" class="next" rel="next" title="IPv6特性介绍">IPv6特性介绍<i class="fas fa-angle-right fa-fw"></i></a></div>
-</div>
-<div id="comments"></div></article></div>
-            </main><footer class="footer">
-        <div class="footer-container"><div class="footer-line">由 <a href="https://gohugo.io/" target="_blank" rel="noopener noreffer" title="Hugo 0.72.0-DEV">Hugo</a> 强力驱动 | 主题 - <a href="https://github.com/dillonzq/LoveIt" target="_blank" rel="noopener noreffer" title="LoveIt 0.2.10"><i class="far fa-kiss-wink-heart fa-fw"></i> LoveIt</a>
-                </div><div class="footer-line"><i class="far fa-copyright fa-fw"></i><span itemprop="copyrightYear">2019 - 2020</span><span class="author" itemprop="copyrightHolder">&nbsp;<a href="/" target="_blank">firemiles</a></span>&nbsp;|&nbsp;<span class="license"><a rel="license external nofollow noopener noreffer" href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank">CC BY-NC 4.0</a></span></div>
-        </div>
-    </footer></div>
-
-        <div id="fixed-buttons"><a href="#" id="back-to-top" class="fixed-button" title="回到顶部">
-                <i class="fas fa-arrow-up fa-fw"></i>
-            </a><a href="#" id="view-comments" class="fixed-button" title="查看评论">
-                <i class="fas fa-comment fa-fw"></i>
-            </a>
-        </div><link rel="stylesheet" href="/lib/katex/katex.min.css"><link rel="stylesheet" href="/lib/katex/copy-tex.min.css"><link rel="stylesheet" href="/lib/cookieconsent/cookieconsent.min.css"><script type="text/javascript" src="/lib/smooth-scroll/smooth-scroll.min.js"></script><script type="text/javascript" src="/lib/autocomplete/autocomplete.min.js"></script><script type="text/javascript" src="/lib/lunr/lunr.min.js"></script><script type="text/javascript" src="/lib/lunr/lunr.stemmer.support.min.js"></script><script type="text/javascript" src="/lib/lunr/lunr.zh.min.js"></script><script type="text/javascript" src="/lib/lazysizes/lazysizes.min.js"></script><script type="text/javascript" src="/lib/clipboard/clipboard.min.js"></script><script type="text/javascript" src="/lib/sharer/sharer.min.js"></script><script type="text/javascript" src="/lib/katex/katex.min.js"></script><script type="text/javascript" src="/lib/katex/auto-render.min.js"></script><script type="text/javascript" src="/lib/katex/copy-tex.min.js"></script><script type="text/javascript" src="/lib/katex/mhchem.min.js"></script><script type="text/javascript" src="/lib/cookieconsent/cookieconsent.min.js"></script><script type="text/javascript">window.config={"code":{"copyTitle":"复制到剪贴板","maxShownLines":10},"comment":{},"cookieconsent":{"content":{"dismiss":"同意","link":"了解更多","message":"本网站使用 Cookies 来改善您的浏览体验."},"enable":true,"palette":{"button":{"background":"#f0f0f0"},"popup":{"background":"#1aa3ff"}},"theme":"edgeless"},"math":{"delimiters":[{"display":true,"left":"$$","right":"$$"},{"display":true,"left":"\\[","right":"\\]"},{"display":false,"left":"$","right":"$"},{"display":false,"left":"\\(","right":"\\)"}],"strict":false},"search":{"highlightTag":"em","lunrIndexURL":"/index.json","lunrLanguageCode":"zh","lunrSegmentitURL":"/lib/lunr/lunr.segmentit.js","maxResultLength":10,"noResultsFound":"没有找到结果","snippetLength":50,"type":"lunr"}};</script><script type="text/javascript" src="/js/theme.min.js"></script></body>
-</html>
+<!doctype html><html lang=zh-cn><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=robots content="noodp"><meta http-equiv=x-ua-compatible content="IE=edge, chrome=1"><title>常见容器网络问题诊断 - Firemiles 的技术生活</title><meta name=Description content="最近经常有同事来求助修复容器网络，定位发现大多数网络问题的都是操作系统的网络配置被修改导致的，本文记录下这些常见配置问题，并本着程序员的偷懒精神，在文末提供检测脚本。"><meta property="og:title" content="常见容器网络问题诊断"><meta property="og:description" content="最近经常有同事来求助修复容器网络，定位发现大多数网络问题的都是操作系统的网络配置被修改导致的，本文记录下这些常见配置问题，并本着程序员的偷懒精神，在文末提供检测脚本。"><meta property="og:type" content="article"><meta property="og:url" content="https://blog.firemiles.top/2019/%E5%B8%B8%E8%A7%81%E5%AE%B9%E5%99%A8%E7%BD%91%E7%BB%9C%E9%97%AE%E9%A2%98%E8%AF%8A%E6%96%AD/"><meta property="og:image" content="https://blog.firemiles.top/logo.png"><meta property="article:section" content="posts"><meta property="article:published_time" content="2019-11-24T14:36:23+00:00"><meta property="article:modified_time" content="2019-11-24T14:36:23+00:00"><meta name=twitter:card content="summary_large_image"><meta name=twitter:image content="https://blog.firemiles.top/logo.png"><meta name=twitter:title content="常见容器网络问题诊断"><meta name=twitter:description content="最近经常有同事来求助修复容器网络，定位发现大多数网络问题的都是操作系统的网络配置被修改导致的，本文记录下这些常见配置问题，并本着程序员的偷懒精神，在文末提供检测脚本。"><meta name=application-name content="LoveIt"><meta name=apple-mobile-web-app-title content="LoveIt"><meta name=theme-color content="#ffffff"><meta name=msapplication-TileColor content="#da532c"><link rel="shortcut icon" type=image/x-icon href=/favicon.ico><link rel=icon type=image/png sizes=32x32 href=/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/favicon-16x16.png><link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png><link rel=mask-icon href=/safari-pinned-tab.svg color=#5bbad5><link rel=manifest href=/site.webmanifest><link rel=canonical href=https://blog.firemiles.top/2019/%E5%B8%B8%E8%A7%81%E5%AE%B9%E5%99%A8%E7%BD%91%E7%BB%9C%E9%97%AE%E9%A2%98%E8%AF%8A%E6%96%AD/><link rel=prev href=https://blog.firemiles.top/2019/preserve-source-ip-in-k8s/><link rel=next href=https://blog.firemiles.top/2019/ipv6%E7%89%B9%E6%80%A7%E4%BB%8B%E7%BB%8D/><link rel=stylesheet href=/lib/normalize/normalize.min.css><link rel=stylesheet href=/css/style.min.css><link rel=stylesheet href=/lib/fontawesome-free/all.min.css><link rel=stylesheet href=/lib/animate/animate.min.css><script type=application/ld+json>{"@context":"http://schema.org","@type":"BlogPosting","headline":"常见容器网络问题诊断","inLanguage":"zh-CN","mainEntityOfPage":{"@type":"WebPage","@id":"https:\/\/blog.firemiles.top\/2019\/%E5%B8%B8%E8%A7%81%E5%AE%B9%E5%99%A8%E7%BD%91%E7%BB%9C%E9%97%AE%E9%A2%98%E8%AF%8A%E6%96%AD\/"},"genre":"posts","keywords":"network, tools","wordcount":1904,"url":"https:\/\/blog.firemiles.top\/2019\/%E5%B8%B8%E8%A7%81%E5%AE%B9%E5%99%A8%E7%BD%91%E7%BB%9C%E9%97%AE%E9%A2%98%E8%AF%8A%E6%96%AD\/","datePublished":"2019-11-24T14:36:23+00:00","dateModified":"2019-11-24T14:36:23+00:00","publisher":{"@type":"Organization","name":""},"author":{"@type":"Person","name":"firemiles"},"description":"最近经常有同事来求助修复容器网络，定位发现大多数网络问题的都是操作系统的网络配置被修改导致的，本文记录下这些常见配置问题，并本着程序员的偷懒精神，在文末提供检测脚本。"}</script></head><body header-desktop=fixed header-mobile=auto><script type=text/javascript>(window.localStorage&&localStorage.getItem("theme")?localStorage.getItem("theme")==="dark":"auto"==="auto"?window.matchMedia("(prefers-color-scheme: dark)").matches:"auto"==="dark")&&document.body.setAttribute("theme","dark")</script><div id=mask></div><div class=wrapper><header class=desktop id=header-desktop><div class=header-wrapper><div class=header-title><a href=/ title="Firemiles 的技术生活"><span class=header-title-pre><i class="fa fa-rocket"></i></span>Firemiles 的个人博客</a></div><div class=menu><div class=menu-inner><a class=menu-item href=/posts/>文章 </a><a class=menu-item href=/tags/>标签 </a><a class=menu-item href=/categories/>分类 </a><a class=menu-item href=/about/>关于 </a><a class=menu-item href=https://github.com/firemiles/firemiles.github.io title=GitHub rel="noopener noreffer" target=_blank><i class="fab fa-github fa-fw"></i> </a><span class="menu-item delimiter"></span><span class="menu-item search" id=search-desktop>
+<input type=text placeholder=搜索文章标题或内容... id=search-input-desktop>
+<a href=javascript:void(0); class="search-button search-toggle" id=search-toggle-desktop title=搜索><i class="fas fa-search fa-fw"></i></a>
+<a href=javascript:void(0); class="search-button search-clear" id=search-clear-desktop title=清空><i class="fas fa-times-circle fa-fw"></i></a>
+<span class="search-button search-loading" id=search-loading-desktop><i class="fas fa-spinner fa-fw fa-spin"></i></span>
+</span><a href=javascript:void(0); class="menu-item theme-switch" title=切换主题><i class="fas fa-adjust fa-fw"></i></a></div></div></div></header><header class=mobile id=header-mobile><div class=header-container><div class=header-wrapper><div class=header-title><a href=/ title="Firemiles 的技术生活"><span class=header-title-pre><i class="fa fa-rocket"></i></span>Firemiles 的个人博客</a></div><div class=menu-toggle id=menu-toggle-mobile><span></span><span></span><span></span></div></div><div class=menu id=menu-mobile><div class=search-wrapper><div class="search mobile" id=search-mobile><input type=text placeholder=搜索文章标题或内容... id=search-input-mobile>
+<a href=javascript:void(0); class="search-button search-toggle" id=search-toggle-mobile title=搜索><i class="fas fa-search fa-fw"></i></a>
+<a href=javascript:void(0); class="search-button search-clear" id=search-clear-mobile title=清空><i class="fas fa-times-circle fa-fw"></i></a>
+<span class="search-button search-loading" id=search-loading-mobile><i class="fas fa-spinner fa-fw fa-spin"></i></span></div><a href=javascript:void(0); class=search-cancel id=search-cancel-mobile>取消</a></div><a class=menu-item href=/posts/ title>文章</a><a class=menu-item href=/tags/ title>标签</a><a class=menu-item href=/categories/ title>分类</a><a class=menu-item href=/about/ title>关于</a><a class=menu-item href=https://github.com/firemiles/firemiles.github.io title=GitHub rel="noopener noreffer" target=_blank><i class="fab fa-github fa-fw"></i></a><a href=javascript:void(0); class="menu-item theme-switch" title=切换主题>
+<i class="fas fa-adjust fa-fw"></i></a></div></div></header><div class="search-dropdown desktop"><div id=search-dropdown-desktop></div></div><div class="search-dropdown mobile"><div id=search-dropdown-mobile></div></div><main class=main><div class=container><div class=toc id=toc-auto><h2 class=toc-title>目录</h2><div class=toc-content id=toc-content-auto></div></div><article class="page single"><h1 class="single-title animated flipInX">常见容器网络问题诊断</h1><div class=post-meta><div class=post-meta-line><span class=post-author><a href=/ title=Author rel=author class=author><i class="fas fa-user-circle fa-fw"></i>firemiles</a></span>&nbsp;<span class=post-category>收录于 <a href=/categories/network/><i class="far fa-folder fa-fw"></i>network</a></span></div><div class=post-meta-line><i class="far fa-calendar-alt fa-fw"></i>&nbsp;<time datetime=2019-11-24>2019-11-24</time>&nbsp;<i class="fas fa-pencil-alt fa-fw"></i>&nbsp;约 1904 字&nbsp;
+<i class="far fa-clock fa-fw"></i>&nbsp;预计阅读 4 分钟&nbsp;</div></div><div class="details toc" id=toc-static kept=true><div class="details-summary toc-title"><span>目录</span>
+<span><i class="details-icon fas fa-angle-right"></i></span></div><div class="details-content toc-content" id=toc-content-static><nav id=TableOfContents><ul><li><a href=#系统配置>系统配置</a><ul><li><a href=#sysctl>sysctl</a></li><li><a href=#iptables>iptables</a></li><li><a href=#route>route</a></li></ul></li><li><a href=#定位工具>定位工具</a></li><li><a href=#配置扫描脚本>配置扫描脚本</a></li><li><a href=#参考资料>参考资料</a></li></ul></nav></div></div><div class=content id=content><p>Kubernetes 的容器网络插件家族越来越庞大，各种模式层出不穷，但是万变不离其宗，overlay 和 underlay。overlay 常使用 vxlan 或者 ipip，underlay 使用 host-gw、bgp，或者结合云厂商提供的底层路由，如：vpc router，virtual switch；还有一类underlay 是目前各大云厂商主推的 eni（Elastic Network Interface）模式，将本来虚拟机使用的网卡插入到容器使用，使容器网络和虚拟机网络一样成为一等公民，拥有相同的网络访问权限，这个场景下容器网络被极度简化，大部分功能都由公有云虚拟机网络完成。</p><p>容器网络发展到现在，基本的组网方式已经十分成熟，抛开负载的性能优化问题不谈，网络功能问题的根因定位已经没多少新花样了，下面我就介绍下我在工作中使用的三板斧。</p><h2 id=系统配置>系统配置</h2><p>系统配置被修改导致网络行为改变，容器网络故障是最常出现的。</p><h3 id=sysctl>sysctl</h3><ul><li>net.ipv4.ip_forward（需要打开）</li><li>net.ipv4.conf.{all,interface}.rp_filter（非对称路由环境设置为0或2）</li><li>net.ipv4.tcp_tw_recycle（NAT环境关闭）</li><li>net.ipv4.tcp_tw_reuse</li></ul><p><code>net.ipv4.ip_forward</code> 控制主机是否允许转发数据报文，该值一般是 1，为0时常常导致容器访问service失败。</p><p><code>net.ipv4.conf.all.rp_filter</code> 控制系统是否开启对数据包源地址的校验。先看下文档中的介绍：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-txt data-lang=txt><span class=line><span class=cl>rp_filter - INTEGER
+</span></span><span class=line><span class=cl>0 - No source validation.
+</span></span><span class=line><span class=cl>1 - Strict mode as defined in RFC3704 Strict Reverse Path
+</span></span><span class=line><span class=cl>    Each incoming packet is tested against the FIB and if the interface
+</span></span><span class=line><span class=cl>    is not the best reverse path the packet check will fail.
+</span></span><span class=line><span class=cl>    By default failed packets are discarded.
+</span></span><span class=line><span class=cl>2 - Loose mode as defined in RFC3704 Loose Reverse Path
+</span></span><span class=line><span class=cl>    Each incoming packet&#39;s source address is also tested against the FIB
+</span></span><span class=line><span class=cl>    and if the source address is not reachable via any interface
+</span></span><span class=line><span class=cl>    the packet check will fail.
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>　　Current recommended practice in RFC3704 is to enable strict mode
+</span></span><span class=line><span class=cl>to prevent IP spoofing from DDos attacks. If using asymmetric routing
+</span></span><span class=line><span class=cl>or other complicated routing, then loose mode is recommended.
+</span></span><span class=line><span class=cl>　　The max value from conf/{all,interface}/rp_filter is used
+</span></span><span class=line><span class=cl>when doing source validation on the {interface}.
+</span></span><span class=line><span class=cl>　　Default value is 0. Note that some distributions enable itin startup scripts.
+</span></span></code></pre></td></tr></table></div></div><p>即rp_filter参数有三个值，0，1，2，具体含义：</p><ul><li>0: 不开启源地址校验</li><li>1: 开启严格的反向路径校验，对每个进来的包，校验其反向路径是否最佳。如果不是最佳，则丢弃该数据包</li><li>2: 开启松散的反向路径校验。对每个进来的包，校验其反向源地址是否可达（通过任意网口），如果不可达，则丢弃该数据包。</li></ul><p>容器网络假如使用了非对称路由，rp_filter 一定要设置成2或者0.</p><p><code>net.ipv4.tcp_tw_recycle</code> 参数是为了服务端快速回收 <code>TIME_WAIT</code> 状态的 sockets 设置的，一些网络调优的文档可能会提到设置这个参数，但是该参数并不建议在 NAT(Network Address Translation) 环境中使用。</p><p>TCP 为了避免序列号反转的问题，使用时间戳（非标准时间，只是一个计数器）识别过时的报文并丢弃，即 PAWS(<a href=https://www.freesoft.org/CIE/RFC/1323/13.htm target=_blank rel="noopener noreffer">PROTECT AGAINST WRAPPED SEQUENCE NUMBERS</a>)。默认PAWS是针对单个连接的，如果开启了 <code>net.ipv4.tcp_tw_recycle</code> ，为了解决重用 <code>TIME_WAIT</code> 导致的前一个连接发来的数据包在新连接中被当成有效数据包处理，Per-Connection 被升级成了 Per-Host。在SNAT环境中，来自不同HOST的连接被当成来自同一个HOST，导致时间戳数字小的友军会被系统误认为是过时报文丢弃。</p><blockquote><p>该参数在 Linux 4.1 内核中已经移除</p></blockquote><p><code>net.ipv4.tcp_tw_reuse</code> 和上一个 <code>net.ipv4.tcp_tw_recycle</code> 功能类似，主要用于客户端快速回收 <code>TIME_WAIT</code> 状态的 port 重用。该参数当前还没有发现明显的问题，打不开开都可以。</p><h3 id=iptables>iptables</h3><ul><li>iptalbes &ndash;policy FORWARD ACCEPT</li><li>DROP</li><li>SNAT</li></ul><p>数据包经过主机时第二道关口一般是 iptables，常常 tcpdump 抓到了数据包，但是应用就是没有收到，这个时候很可能是 iptables 把数据包过滤了。</p><p>大多数容器网络需要iptables默认接受数据包转发，即设置：<code>iptables --policy FORWARD ACCEPT</code>。</p><p>这个可以用 iptables -nvL FORWARD 查看当前默认规则。</p><p><img class=lazyload src=/svg/loading.min.svg data-src=https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/20191124181730.png data-srcset="https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/20191124181730.png, https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/20191124181730.png 1.5x, https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/20191124181730.png 2x" data-sizes=auto alt=https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/20191124181730.png title=https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/20191124181730.png></p><p>iptables 还有其他规则可能导致丢包，使用 <code>iptables -nvL ｜ grep DROP</code> 查看丢包统计。</p><p>除了丢包，错误的处理 SNAT 也可能导致容器网络访问外网失败，可以查看 iptables 的 SNAT 规则，并在主机上抓包确认。</p><h3 id=route>route</h3><ul><li>default route</li><li>ip rule</li></ul><p>如果容器访问某个ip报错 <code>no route to host</code>，这个时候自然要查看下路由了。不光要排查容器内部，还要排查报文经过路径上的路由，并且需要注意 iptables 的 DNAT 规则改写目的ip，以及 <code>ip rule</code> 的 route table 查找规则。</p><h2 id=定位工具>定位工具</h2><p>当我们排查了一遍系统参数还没有头绪的时候，这个时候就该网络调试工具上场了。</p><ul><li>tcpdump</li><li>wireshark</li><li>netstat/ss</li><li>iptables</li><li>lsof – p PID</li></ul><p>使用 <code>tcpdump</code> 抓包是网络问题排查的常见手段。</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-sh data-lang=sh><span class=line><span class=cl>tcpdump -i eth0 tcp host 192.168.4.3 and port <span class=m>4789</span> -ne
+</span></span></code></pre></td></tr></table></div></div><p>也可以将抓到的包信息写入文件放到 wireshark 中分析，可以得到更全面的信息。</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-sh data-lang=sh><span class=line><span class=cl>tcpdump -i eth0 tcp host 192.168.4.3 -w packet.pcap
+</span></span></code></pre></td></tr></table></div></div><p><code>netstat</code> 或 <code>ss</code> 命令用来查看当前连接统计信息，可以分析连接失败的原因。</p><p><img class=lazyload src=/svg/loading.min.svg data-src=https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/20191124182528.png data-srcset="https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/20191124182528.png, https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/20191124182528.png 1.5x, https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/20191124182528.png 2x" data-sizes=auto alt=https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/20191124182528.png title=https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/20191124182528.png></p><p><img class=lazyload src=/svg/loading.min.svg data-src=https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/20191124182228.png data-srcset="https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/20191124182228.png, https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/20191124182228.png 1.5x, https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/20191124182228.png 2x" data-sizes=auto alt=https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/20191124182228.png title=https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/20191124182228.png></p><p><code>iptables</code> 需要排查规则是否符合期望，具体使用可以参见 <a href=https://blog.firemiles.top/2019/03/16/iptables%E5%BF%AB%E9%80%9F%E5%85%A5%E9%97%A8/ target=_blank rel="noopener noreffer">iptables快速入门</a></p><p><code>lsof</code> 可以用来查看进程占用的句柄数，有时候新的连接无法建立，可能是程序句柄泄露或者最大值设置太小（<code>ulimits -a</code>查看）</p><h2 id=配置扫描脚本>配置扫描脚本</h2><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span><span class=lnt>26
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-sh data-lang=sh><span class=line><span class=cl><span class=c1>## green to echo </span>
+</span></span><span class=line><span class=cl><span class=k>function</span> green<span class=o>(){</span>
+</span></span><span class=line><span class=cl>    <span class=nb>echo</span> -e <span class=s2>&#34;\033[32m[ </span><span class=nv>$1</span><span class=s2> ]\033[0m&#34;</span>
+</span></span><span class=line><span class=cl><span class=o>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=nv>containerID</span><span class=o>=</span><span class=nv>$1</span>
+</span></span><span class=line><span class=cl>green kernel: <span class=sb>`</span>uname -r<span class=sb>`</span>
+</span></span><span class=line><span class=cl>green cni.conf
+</span></span><span class=line><span class=cl>cat /etc/cni/net.d/cni.conf
+</span></span><span class=line><span class=cl>green IP in container:
+</span></span><span class=line><span class=cl>docker <span class=nb>exec</span> -ti <span class=nv>$containerID</span> ip a s
+</span></span><span class=line><span class=cl>green Route in container:
+</span></span><span class=line><span class=cl>docker <span class=nb>exec</span> -ti <span class=nv>$containerID</span> ip r s
+</span></span><span class=line><span class=cl>green rp_filter in container:
+</span></span><span class=line><span class=cl>docker <span class=nb>exec</span> -ti <span class=nv>$containerID</span> sysctl -a<span class=p>|</span>grep rp_filter
+</span></span><span class=line><span class=cl>green route in host:
+</span></span><span class=line><span class=cl>ip r s
+</span></span><span class=line><span class=cl>green ip rule in host:
+</span></span><span class=line><span class=cl>ip rule
+</span></span><span class=line><span class=cl>green ip forward in host:
+</span></span><span class=line><span class=cl>sysctl sysctl net.ipv4.ip_forward
+</span></span><span class=line><span class=cl>iptables -nvL<span class=p>|</span>grep FORWARD
+</span></span><span class=line><span class=cl>green rp_filter in host:
+</span></span><span class=line><span class=cl>sysctl -a<span class=p>|</span>grep rp_filter
+</span></span><span class=line><span class=cl>green tcp_tw_recycle in host:
+</span></span><span class=line><span class=cl>sysctl net.ipv4.tcp_tw_recycle
+</span></span></code></pre></td></tr></table></div></div><h2 id=参考资料>参考资料</h2><ul><li><a href=https://computingforgeeks.com/netstat-vs-ss-usage-guide-linux/ target=_blank rel="noopener noreffer">https://computingforgeeks.com/netstat-vs-ss-usage-guide-linux/</a></li></ul></div><div class=post-footer id=post-footer><div class=post-info><div class=post-info-line><div class=post-info-mod><span>更新于 2019-11-24</span></div><div class=post-info-license></div></div><div class=post-info-line><div class=post-info-md><span><a class=link-to-markdown href=/2019/%E5%B8%B8%E8%A7%81%E5%AE%B9%E5%99%A8%E7%BD%91%E7%BB%9C%E9%97%AE%E9%A2%98%E8%AF%8A%E6%96%AD/index.md target=_blank>阅读原始文档</a></span></div><div class=post-info-share><span><a href=javascript:void(0); title="分享到 Twitter" data-sharer=twitter data-url=https://blog.firemiles.top/2019/%E5%B8%B8%E8%A7%81%E5%AE%B9%E5%99%A8%E7%BD%91%E7%BB%9C%E9%97%AE%E9%A2%98%E8%AF%8A%E6%96%AD/ data-title=常见容器网络问题诊断 data-hashtags=network,tools><i class="fab fa-twitter fa-fw"></i></a><a href=javascript:void(0); title="分享到 Facebook" data-sharer=facebook data-url=https://blog.firemiles.top/2019/%E5%B8%B8%E8%A7%81%E5%AE%B9%E5%99%A8%E7%BD%91%E7%BB%9C%E9%97%AE%E9%A2%98%E8%AF%8A%E6%96%AD/ data-hashtag=network><i class="fab fa-facebook-square fa-fw"></i></a><a href=javascript:void(0); title="分享到 WhatsApp" data-sharer=whatsapp data-url=https://blog.firemiles.top/2019/%E5%B8%B8%E8%A7%81%E5%AE%B9%E5%99%A8%E7%BD%91%E7%BB%9C%E9%97%AE%E9%A2%98%E8%AF%8A%E6%96%AD/ data-title=常见容器网络问题诊断 data-web><i class="fab fa-whatsapp fa-fw"></i></a><a href=javascript:void(0); title="分享到 Line" data-sharer=line data-url=https://blog.firemiles.top/2019/%E5%B8%B8%E8%A7%81%E5%AE%B9%E5%99%A8%E7%BD%91%E7%BB%9C%E9%97%AE%E9%A2%98%E8%AF%8A%E6%96%AD/ data-title=常见容器网络问题诊断><i data-svg-src=/lib/simple-icons/icons/line.min.svg></i></a><a href=javascript:void(0); title="分享到 微博" data-sharer=weibo data-url=https://blog.firemiles.top/2019/%E5%B8%B8%E8%A7%81%E5%AE%B9%E5%99%A8%E7%BD%91%E7%BB%9C%E9%97%AE%E9%A2%98%E8%AF%8A%E6%96%AD/ data-title=常见容器网络问题诊断><i class="fab fa-weibo fa-fw"></i></a><a href=javascript:void(0); title="分享到 Myspace" data-sharer=myspace data-url=https://blog.firemiles.top/2019/%E5%B8%B8%E8%A7%81%E5%AE%B9%E5%99%A8%E7%BD%91%E7%BB%9C%E9%97%AE%E9%A2%98%E8%AF%8A%E6%96%AD/ data-title=常见容器网络问题诊断 data-description=最近经常有同事来求助修复容器网络，定位发现大多数网络问题的都是操作系统的网络配置被修改导致的，本文记录下这些常见配置问题，并本着程序员的偷懒精神，在文末提供检测脚本。><i data-svg-src=/lib/simple-icons/icons/myspace.min.svg></i></a><a href=javascript:void(0); title="分享到 Blogger" data-sharer=blogger data-url=https://blog.firemiles.top/2019/%E5%B8%B8%E8%A7%81%E5%AE%B9%E5%99%A8%E7%BD%91%E7%BB%9C%E9%97%AE%E9%A2%98%E8%AF%8A%E6%96%AD/ data-title=常见容器网络问题诊断 data-description=最近经常有同事来求助修复容器网络，定位发现大多数网络问题的都是操作系统的网络配置被修改导致的，本文记录下这些常见配置问题，并本着程序员的偷懒精神，在文末提供检测脚本。><i class="fab fa-blogger fa-fw"></i></a><a href=javascript:void(0); title="分享到 Evernote" data-sharer=evernote data-url=https://blog.firemiles.top/2019/%E5%B8%B8%E8%A7%81%E5%AE%B9%E5%99%A8%E7%BD%91%E7%BB%9C%E9%97%AE%E9%A2%98%E8%AF%8A%E6%96%AD/ data-title=常见容器网络问题诊断><i class="fab fa-evernote fa-fw"></i></a></span></div></div></div><div class=post-info-more><section class=post-tags><i class="fas fa-tags fa-fw"></i>&nbsp;<a href=/tags/network/>network</a>,&nbsp;<a href=/tags/tools/>tools</a></section><section><span><a href=javascript:void(0); onclick=window.history.back()>返回</a></span>&nbsp;|&nbsp;<span><a href=/>主页</a></span></section></div><div class=post-nav><a href=/2019/preserve-source-ip-in-k8s/ class=prev rel=prev title="Load Balance 访问 Kubernetes Pod 源 IP 保留方案探索"><i class="fas fa-angle-left fa-fw"></i>Load Balance 访问 Kubernetes Pod 源 IP 保留方案探索</a>
+<a href=/2019/ipv6%E7%89%B9%E6%80%A7%E4%BB%8B%E7%BB%8D/ class=next rel=next title=IPv6特性介绍>IPv6特性介绍<i class="fas fa-angle-right fa-fw"></i></a></div></div><div id=comments></div></article></div></main><footer class=footer><div class=footer-container><div class=footer-line>由 <a href=https://gohugo.io/ target=_blank rel="noopener noreffer" title="Hugo 0.97.3">Hugo</a> 强力驱动 | 主题 - <a href=https://github.com/dillonzq/LoveIt target=_blank rel="noopener noreffer" title="LoveIt 0.2.10"><i class="far fa-kiss-wink-heart fa-fw"></i> LoveIt</a></div><div class=footer-line><i class="far fa-copyright fa-fw"></i><span itemprop=copyrightYear>2019 - 2022</span><span class=author itemprop=copyrightHolder>&nbsp;<a href=/ target=_blank>firemiles</a></span>&nbsp;|&nbsp;<span class=license><a rel="license external nofollow noopener noreffer" href=https://creativecommons.org/licenses/by-nc/4.0/ target=_blank>CC BY-NC 4.0</a></span></div></div></footer></div><div id=fixed-buttons><a href=# id=back-to-top class=fixed-button title=回到顶部><i class="fas fa-arrow-up fa-fw"></i>
+</a><a href=# id=view-comments class=fixed-button title=查看评论><i class="fas fa-comment fa-fw"></i></a></div><link rel=stylesheet href=/lib/katex/katex.min.css><link rel=stylesheet href=/lib/katex/copy-tex.min.css><link rel=stylesheet href=/lib/cookieconsent/cookieconsent.min.css><script type=text/javascript src=/lib/smooth-scroll/smooth-scroll.min.js></script><script type=text/javascript src=/lib/autocomplete/autocomplete.min.js></script><script type=text/javascript src=/lib/lunr/lunr.min.js></script><script type=text/javascript src=/lib/lunr/lunr.stemmer.support.min.js></script><script type=text/javascript src=/lib/lunr/lunr.zh.min.js></script><script type=text/javascript src=/lib/lazysizes/lazysizes.min.js></script><script type=text/javascript src=/lib/clipboard/clipboard.min.js></script><script type=text/javascript src=/lib/sharer/sharer.min.js></script><script type=text/javascript src=/lib/katex/katex.min.js></script><script type=text/javascript src=/lib/katex/auto-render.min.js></script><script type=text/javascript src=/lib/katex/copy-tex.min.js></script><script type=text/javascript src=/lib/katex/mhchem.min.js></script><script type=text/javascript src=/lib/cookieconsent/cookieconsent.min.js></script><script type=text/javascript>window.config={code:{copyTitle:"复制到剪贴板",maxShownLines:10},comment:{},cookieconsent:{content:{dismiss:"同意",link:"了解更多",message:"本网站使用 Cookies 来改善您的浏览体验."},enable:!0,palette:{button:{background:"#f0f0f0"},popup:{background:"#1aa3ff"}},theme:"edgeless"},math:{delimiters:[{display:!0,left:"$$",right:"$$"},{display:!0,left:"\\[",right:"\\]"},{display:!1,left:"$",right:"$"},{display:!1,left:"\\(",right:"\\)"}],strict:!1},search:{highlightTag:"em",lunrIndexURL:"/index.json",lunrLanguageCode:"zh",lunrSegmentitURL:"/lib/lunr/lunr.segmentit.js",maxResultLength:10,noResultsFound:"没有找到结果",snippetLength:50,type:"lunr"}}</script><script type=text/javascript src=/js/theme.min.js></script></body></html>

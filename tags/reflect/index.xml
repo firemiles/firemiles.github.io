@@ -1,21 +1,7 @@
-<rss xmlns:atom="http://www.w3.org/2005/Atom" version="2.0">
-    <channel>
-        <title>reflect - 标签 - Firemiles 的技术生活</title>
-        <link>https://blog.firemiles.top/tags/reflect/</link>
-        <description>reflect - 标签 - Firemiles 的技术生活</description>
-        <generator>Hugo -- gohugo.io</generator><language>zh-CN</language><managingEditor>miles.dev@outlook.comm (firemiles)</managingEditor>
-            <webMaster>miles.dev@outlook.comm (firemiles)</webMaster><lastBuildDate>Sun, 29 Mar 2020 09:30:51 &#43;0000</lastBuildDate><atom:link href="https://blog.firemiles.top/tags/reflect/" rel="self" type="application/rss+xml" /><item>
-    <title>golang的reflect使用</title>
-    <link>https://blog.firemiles.top/2020/golang%E7%9A%84reflect%E4%BD%BF%E7%94%A8/</link>
-    <pubDate>Sun, 29 Mar 2020 09:30:51 &#43;0000</pubDate>
-    <author>作者</author>
-    <guid>https://blog.firemiles.top/2020/golang%E7%9A%84reflect%E4%BD%BF%E7%94%A8/</guid>
-    <description><![CDATA[<div class="featured-image">
+<rss xmlns:atom="http://www.w3.org/2005/Atom" version="2.0"><channel><title>reflect - 标签 - Firemiles 的技术生活</title><link>https://blog.firemiles.top/tags/reflect/</link><description>reflect - 标签 - Firemiles 的技术生活</description><generator>Hugo -- gohugo.io</generator><language>zh-CN</language><managingEditor>miles.dev@outlook.comm (firemiles)</managingEditor><webMaster>miles.dev@outlook.comm (firemiles)</webMaster><lastBuildDate>Sun, 29 Mar 2020 09:30:51 +0000</lastBuildDate><atom:link href="https://blog.firemiles.top/tags/reflect/" rel="self" type="application/rss+xml"/><item><title>golang的reflect使用</title><link>https://blog.firemiles.top/2020/golang%E7%9A%84reflect%E4%BD%BF%E7%94%A8/</link><pubDate>Sun, 29 Mar 2020 09:30:51 +0000</pubDate><author>作者</author><guid>https://blog.firemiles.top/2020/golang%E7%9A%84reflect%E4%BD%BF%E7%94%A8/</guid><description><![CDATA[<div class="featured-image">
                 <img src="https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/20200329093558.png" referrerpolicy="no-referrer">
             </div><h2 id="reflect-介绍">reflect 介绍</h2>
 <p>计算机科学中，反射(reflect) 指计算机程序在运行时（runtime）可以访问、检测和修改它本身状态或行为的一种能力。用比喻来说，反射就是程序在运行时能够“观察”并且修改自己的行为。</p>
 <p>反射和内省（type introspection）不同，内省机制仅指程序在运行时对自身信息（称为元数据）的检测；反射机制不仅包括要能运行在对程序自身信息进行，还要能进一步根据这些信息改变程序状态或结构。</p>
 <p>早期语言汇编包含反射能力，动态修改指令或对它们进行分析等等反射功能时很平常的。编程发展到如C语言等高抽象层次语言时，这种实践消失了，带有反射特性的高级编程语言要更晚出现。</p>
-<p>golang 作为一个诞生较晚的现代语言，自然也支持反射能力。通过标准库 <code>reflect</code> 包我们可以使用 golang 提供的这个能力。</p>]]></description>
-</item></channel>
-</rss>
+<p>golang 作为一个诞生较晚的现代语言，自然也支持反射能力。通过标准库 <code>reflect</code> 包我们可以使用 golang 提供的这个能力。</p>]]></description></item></channel></rss>

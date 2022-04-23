@@ -1,18 +1,4 @@
-<rss xmlns:atom="http://www.w3.org/2005/Atom" version="2.0">
-    <channel>
-        <title>security - 标签 - Firemiles 的技术生活</title>
-        <link>https://blog.firemiles.top/tags/security/</link>
-        <description>security - 标签 - Firemiles 的技术生活</description>
-        <generator>Hugo -- gohugo.io</generator><language>zh-CN</language><managingEditor>miles.dev@outlook.comm (firemiles)</managingEditor>
-            <webMaster>miles.dev@outlook.comm (firemiles)</webMaster><lastBuildDate>Wed, 19 Jul 2017 22:40:27 &#43;0000</lastBuildDate><atom:link href="https://blog.firemiles.top/tags/security/" rel="self" type="application/rss+xml" /><item>
-    <title>数字证书初探</title>
-    <link>https://blog.firemiles.top/2017/%E6%95%B0%E5%AD%97%E8%AF%81%E4%B9%A6%E5%88%9D%E6%8E%A2/</link>
-    <pubDate>Wed, 19 Jul 2017 22:40:27 &#43;0000</pubDate>
-    <author>作者</author>
-    <guid>https://blog.firemiles.top/2017/%E6%95%B0%E5%AD%97%E8%AF%81%E4%B9%A6%E5%88%9D%E6%8E%A2/</guid>
-    <description><![CDATA[<h2 id="什么是数字证书">什么是数字证书</h2>
+<rss xmlns:atom="http://www.w3.org/2005/Atom" version="2.0"><channel><title>security - 标签 - Firemiles 的技术生活</title><link>https://blog.firemiles.top/tags/security/</link><description>security - 标签 - Firemiles 的技术生活</description><generator>Hugo -- gohugo.io</generator><language>zh-CN</language><managingEditor>miles.dev@outlook.comm (firemiles)</managingEditor><webMaster>miles.dev@outlook.comm (firemiles)</webMaster><lastBuildDate>Wed, 19 Jul 2017 22:40:27 +0000</lastBuildDate><atom:link href="https://blog.firemiles.top/tags/security/" rel="self" type="application/rss+xml"/><item><title>数字证书初探</title><link>https://blog.firemiles.top/2017/%E6%95%B0%E5%AD%97%E8%AF%81%E4%B9%A6%E5%88%9D%E6%8E%A2/</link><pubDate>Wed, 19 Jul 2017 22:40:27 +0000</pubDate><author>作者</author><guid>https://blog.firemiles.top/2017/%E6%95%B0%E5%AD%97%E8%AF%81%E4%B9%A6%E5%88%9D%E6%8E%A2/</guid><description><![CDATA[<h2 id="什么是数字证书">什么是数字证书</h2>
 <p>数字证书是一种进行身份识别的电子凭证。</p>
 <p>理论上任何人都可以签发数字证书，但是个人签发的数字证书并不被别人信任，不具有安全性。数字证书一般从权威身份认证机构处获得，权威机构使用根证书对申请人的公钥进行数字签名，表明该公钥及相关信息真实可行，由于数字证书一般不可伪造，其他用户可以信任该数字证书。</p>
-<p>e字证书可以多级签发，这就形成了证书链，用户通过证书链向签发源头查找，一直找到根证书，如果用户信任根证书，则信任证书链上的所有证书。HTTPS 网站都需要使用数字证书认证，用户通过对网站的数字证书进行认证来确认网站是否可信。</p>]]></description>
-</item></channel>
-</rss>
+<p>e字证书可以多级签发，这就形成了证书链，用户通过证书链向签发源头查找，一直找到根证书，如果用户信任根证书，则信任证书链上的所有证书。HTTPS 网站都需要使用数字证书认证，用户通过对网站的数字证书进行认证来确认网站是否可信。</p>]]></description></item></channel></rss>

@@ -1,579 +1,232 @@
-<!DOCTYPE html>
-<html lang="zh-CN">
-    <head>
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <meta name="robots" content="noodp" />
-        <meta http-equiv="X-UA-Compatible" content="IE=edge, chrome=1">
-        <title>openvswitch 使用速查 - Firemiles 的技术生活</title><meta name="Description" content="openvswitch 已经成为 SDN 网络的一块基石，是网络开发者无法绕过的一道关口。本文总结 openvswitch 的模块结构以及命令行工具，方便日常开发查询。2020年的第一篇博客，我们就来谈谈openvswitch。"><meta property="og:title" content="openvswitch 使用速查" />
-<meta property="og:description" content="openvswitch 已经成为 SDN 网络的一块基石，是网络开发者无法绕过的一道关口。本文总结 openvswitch 的模块结构以及命令行工具，方便日常开发查询。2020年的第一篇博客，我们就来谈谈openvswitch。" />
-<meta property="og:type" content="article" />
-<meta property="og:url" content="https://blog.firemiles.top/2020/openvswitch%E4%BD%BF%E7%94%A8%E9%80%9F%E6%9F%A5/" />
-<meta property="og:image" content="https://blog.firemiles.top/logo.png"/>
-<meta property="article:published_time" content="2020-01-01T15:47:09+00:00" />
-<meta property="article:modified_time" content="2020-01-01T15:47:09+00:00" />
-<meta name="twitter:card" content="summary_large_image"/>
-<meta name="twitter:image" content="https://blog.firemiles.top/logo.png"/>
-
-<meta name="twitter:title" content="openvswitch 使用速查"/>
-<meta name="twitter:description" content="openvswitch 已经成为 SDN 网络的一块基石，是网络开发者无法绕过的一道关口。本文总结 openvswitch 的模块结构以及命令行工具，方便日常开发查询。2020年的第一篇博客，我们就来谈谈openvswitch。"/>
-<meta name="application-name" content="LoveIt">
-<meta name="apple-mobile-web-app-title" content="LoveIt"><meta name="theme-color" content="#ffffff"><meta name="msapplication-TileColor" content="#da532c"><link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
-        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
-        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png"><link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"><link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5"><link rel="manifest" href="/site.webmanifest"><link rel="canonical" href="https://blog.firemiles.top/2020/openvswitch%E4%BD%BF%E7%94%A8%E9%80%9F%E6%9F%A5/" /><link rel="prev" href="https://blog.firemiles.top/2019/ipv6%E7%89%B9%E6%80%A7%E4%BB%8B%E7%BB%8D/" /><link rel="next" href="https://blog.firemiles.top/2020/%E5%85%B7%E4%BD%93%E6%95%B0%E5%AD%A6-%E7%BA%A6%E7%91%9F%E5%A4%AB%E9%97%AE%E9%A2%98/" /><link rel="stylesheet" href="/lib/normalize/normalize.min.css"><link rel="stylesheet" href="/css/style.min.css"><link rel="stylesheet" href="/lib/fontawesome-free/all.min.css"><link rel="stylesheet" href="/lib/animate/animate.min.css"><script type="application/ld+json">
-    {
-        "@context": "http://schema.org",
-        "@type": "BlogPosting",
-        "headline": "openvswitch 使用速查",
-        "inLanguage": "zh-CN",
-        "mainEntityOfPage": {
-            "@type": "WebPage",
-            "@id": "https:\/\/blog.firemiles.top\/2020\/openvswitch%E4%BD%BF%E7%94%A8%E9%80%9F%E6%9F%A5\/"
-        },"genre": "posts","keywords": "tool, openvswitch","wordcount":  1587 ,
-        "url": "https:\/\/blog.firemiles.top\/2020\/openvswitch%E4%BD%BF%E7%94%A8%E9%80%9F%E6%9F%A5\/","datePublished": "2020-01-01T15:47:09+00:00","dateModified": "2020-01-01T15:47:09+00:00","publisher": {
-            "@type": "Organization",
-            "name": ""},"author": {
-                "@type": "Person",
-                "name": "firemiles"
-            },"description": "openvswitch 已经成为 SDN 网络的一块基石，是网络开发者无法绕过的一道关口。本文总结 openvswitch 的模块结构以及命令行工具，方便日常开发查询。2020年的第一篇博客，我们就来谈谈openvswitch。"
-    }
-    </script></head>
-    <body header-desktop="fixed" header-mobile="auto"><script type="text/javascript">(window.localStorage && localStorage.getItem('theme') ? localStorage.getItem('theme') === 'dark' : ('auto' === 'auto' ? window.matchMedia('(prefers-color-scheme: dark)').matches : 'auto' === 'dark')) && document.body.setAttribute('theme', 'dark');</script>
-
-        <div id="mask"></div><div class="wrapper"><header class="desktop" id="header-desktop">
-    <div class="header-wrapper">
-        <div class="header-title">
-            <a href="/" title="Firemiles 的技术生活"><span class="header-title-pre"><i class='fa fa-rocket'></i></span>Firemiles 的个人博客</a>
-        </div>
-        <div class="menu">
-            <div class="menu-inner"><a class="menu-item" href="/posts/"> 文章 </a><a class="menu-item" href="/tags/"> 标签 </a><a class="menu-item" href="/categories/"> 分类 </a><a class="menu-item" href="/about/"> 关于 </a><a class="menu-item" href="https://github.com/firemiles/firemiles.github.io" title="GitHub" rel="noopener noreffer" target="_blank"><i class='fab fa-github fa-fw'></i>  </a><span class="menu-item delimiter"></span><span class="menu-item search" id="search-desktop">
-                        <input type="text" placeholder="搜索文章标题或内容..." id="search-input-desktop">
-                        <a href="javascript:void(0);" class="search-button search-toggle" id="search-toggle-desktop" title="搜索">
-                            <i class="fas fa-search fa-fw"></i>
-                        </a>
-                        <a href="javascript:void(0);" class="search-button search-clear" id="search-clear-desktop" title="清空">
-                            <i class="fas fa-times-circle fa-fw"></i>
-                        </a>
-                        <span class="search-button search-loading" id="search-loading-desktop">
-                            <i class="fas fa-spinner fa-fw fa-spin"></i>
-                        </span>
-                    </span><a href="javascript:void(0);" class="menu-item theme-switch" title="切换主题">
-                    <i class="fas fa-adjust fa-fw"></i>
-                </a>
-            </div>
-        </div>
-    </div>
-</header><header class="mobile" id="header-mobile">
-    <div class="header-container">
-        <div class="header-wrapper">
-            <div class="header-title">
-                <a href="/" title="Firemiles 的技术生活"><span class="header-title-pre"><i class='fa fa-rocket'></i></span>Firemiles 的个人博客</a>
-            </div>
-            <div class="menu-toggle" id="menu-toggle-mobile">
-                <span></span><span></span><span></span>
-            </div>
-        </div>
-        <div class="menu" id="menu-mobile"><div class="search-wrapper">
-                    <div class="search mobile" id="search-mobile">
-                        <input type="text" placeholder="搜索文章标题或内容..." id="search-input-mobile">
-                        <a href="javascript:void(0);" class="search-button search-toggle" id="search-toggle-mobile" title="搜索">
-                            <i class="fas fa-search fa-fw"></i>
-                        </a>
-                        <a href="javascript:void(0);" class="search-button search-clear" id="search-clear-mobile" title="清空">
-                            <i class="fas fa-times-circle fa-fw"></i>
-                        </a>
-                        <span class="search-button search-loading" id="search-loading-mobile">
-                            <i class="fas fa-spinner fa-fw fa-spin"></i>
-                        </span>
-                    </div>
-                    <a href="javascript:void(0);" class="search-cancel" id="search-cancel-mobile">
-                        取消
-                    </a>
-                </div><a class="menu-item" href="/posts/" title="">文章</a><a class="menu-item" href="/tags/" title="">标签</a><a class="menu-item" href="/categories/" title="">分类</a><a class="menu-item" href="/about/" title="">关于</a><a class="menu-item" href="https://github.com/firemiles/firemiles.github.io" title="GitHub" rel="noopener noreffer" target="_blank"><i class='fab fa-github fa-fw'></i></a><a href="javascript:void(0);" class="menu-item theme-switch" title="切换主题">
-                <i class="fas fa-adjust fa-fw"></i>
-            </a></div>
-    </div>
-</header>
-<div class="search-dropdown desktop">
-    <div id="search-dropdown-desktop"></div>
-</div>
-<div class="search-dropdown mobile">
-    <div id="search-dropdown-mobile"></div>
-</div>
-<main class="main">
-                <div class="container"><div class="toc" id="toc-auto">
-            <h2 class="toc-title">目录</h2>
-            <div class="toc-content" id="toc-content-auto"></div>
-        </div><article class="page single"><h1 class="single-title animated flipInX">openvswitch 使用速查</h1><div class="post-meta">
-            <div class="post-meta-line"><span class="post-author"><a href="/" title="Author" rel=" author" class="author"><i class="fas fa-user-circle fa-fw"></i>firemiles</a></span>&nbsp;<span class="post-category">收录于 <a href="/categories/openvswitch/"><i class="far fa-folder fa-fw"></i>openvswitch</a></span></div>
-            <div class="post-meta-line"><i class="far fa-calendar-alt fa-fw"></i>&nbsp;<time datetime="2020-01-01">2020-01-01</time>&nbsp;<i class="fas fa-pencil-alt fa-fw"></i>&nbsp;约 1587 字&nbsp;
-                <i class="far fa-clock fa-fw"></i>&nbsp;预计阅读 4 分钟&nbsp;</div>
-        </div><div class="featured-image"><img
-        class="lazyload"
-        src="/svg/loading.min.svg"
-        data-src="https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/20200101155834.png"
-        data-srcset="https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/20200101155834.png, https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/20200101155834.png 1.5x, https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/20200101155834.png 2x"
-        data-sizes="auto"
-        alt="https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/20200101155834.png"
-        title="openvswitch 已经成为 SDN 网络的一块基石，是网络开发者无法绕过的一道关口。本文总结 openvswitch 的模块结构以及命令行工具，方便日常开发查询。2020年的第一篇博客，我们就来谈谈openvswitch。" /></div><div class="details toc" id="toc-static"  kept="true">
-                <div class="details-summary toc-title">
-                    <span>目录</span>
-                    <span><i class="details-icon fas fa-angle-right"></i></span>
-                </div>
-                <div class="details-content toc-content" id="toc-content-static"><nav id="TableOfContents">
-  <ul>
-    <li><a href="#ovs-架构">OVS 架构</a>
-      <ul>
-        <li><a href="#主要模块">主要模块</a></li>
-        <li><a href="#client与组件对应关系">client与组件对应关系</a></li>
-        <li><a href="#常用子命令说明">常用子命令说明</a></li>
-      </ul>
-    </li>
-    <li><a href="#日常操作">日常操作</a>
-      <ul>
-        <li><a href="#查看有哪些桥桥中有哪些ports哪些interfaces">查看有哪些桥，桥中有哪些ports，哪些interfaces</a></li>
-        <li><a href="#查看-portinterface属于那个bridge-xxx-to-br">查看 port，interface属于那个bridge， xxx-to-br</a></li>
-        <li><a href="#查看隐藏的流表规则很少使用">查看隐藏的流表规则，很少使用</a></li>
-        <li><a href="#查看一些有用的统计信息">查看一些有用的统计信息</a></li>
-        <li><a href="#查看bridge的转发表">查看bridge的转发表</a></li>
-      </ul>
-    </li>
-    <li><a href="#设置qos">设置qos</a></li>
-    <li><a href="#调试技巧">调试技巧</a>
-      <ul>
-        <li><a href="#查看流表匹配规则">查看流表匹配规则</a></li>
-        <li><a href="#查看统计信息">查看统计信息</a></li>
-        <li><a href="#使用tcpdump抓包需要设置端口镜像">使用tcpdump抓包,需要设置端口镜像</a></li>
-        <li><a href="#查看日志">查看日志</a></li>
-        <li><a href="#使用ovs-appctl-ofprototrace-bridge-k1v1k2v2测试流匹配">使用ovs-appctl ofproto/trace {bridge} k1=v1,k2=v2测试流匹配</a></li>
-      </ul>
-    </li>
-    <li><a href="#参考">参考</a></li>
-  </ul>
-</nav></div>
-            </div><div class="content" id="content"><h2 id="ovs-架构">OVS 架构</h2>
-<blockquote>
-<p>本文主要针对内核态 openvsiwth，用户态 openvswitch 的使用和调试不在本文的讨论范围内。</p>
-</blockquote>
-<p><img
-        class="lazyload"
-        src="/svg/loading.min.svg"
-        data-src="https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/C369CE5D-F9F8-4ECE-A01F-3C12115E74A8.jpg"
-        data-srcset="https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/C369CE5D-F9F8-4ECE-A01F-3C12115E74A8.jpg, https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/C369CE5D-F9F8-4ECE-A01F-3C12115E74A8.jpg 1.5x, https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/C369CE5D-F9F8-4ECE-A01F-3C12115E74A8.jpg 2x"
-        data-sizes="auto"
-        alt="https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/C369CE5D-F9F8-4ECE-A01F-3C12115E74A8.jpg"
-        title="ovs架构" /></p>
-<p><code>ovs</code> 架构如上图所示，主要由内核 <code>datapath</code> 和用户空间的 <code>vswitchd</code>、 <code>ovsdb</code> 组成。</p>
-<p><img
-        class="lazyload"
-        src="/svg/loading.min.svg"
-        data-src="https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/C718D270-8E15-4943-8A8E-A54C85EAF075.jpg"
-        data-srcset="https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/C718D270-8E15-4943-8A8E-A54C85EAF075.jpg, https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/C718D270-8E15-4943-8A8E-A54C85EAF075.jpg 1.5x, https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/C718D270-8E15-4943-8A8E-A54C85EAF075.jpg 2x"
-        data-sizes="auto"
-        alt="https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/C718D270-8E15-4943-8A8E-A54C85EAF075.jpg"
-        title="openvswitch internals" /></p>
-<h3 id="主要模块">主要模块</h3>
-<ul>
-<li><code>datapath</code> 是负责数据交换的内核模块，从网口读取数据，并快速匹配Flowtable中的流表项，成功的直接转发，失败的 upcall 到 <code>vswitchd</code> 处理。它在初始化<code>port binding</code> 的时候注册钩子函数，把端口的报文处理接收到 ovs 内核模块。</li>
-<li><code>vswitchd</code> 是一个守护进程，是ovs的管理和控制服务，通过unix socket将配置信息保存到 <code>ovsdb</code> ，并通过 <code>netlink</code> 和内核模块交互。</li>
-<li><code>ovsdb</code> 则是 ovs 的数据库，保存 ovs 的配置信息。</li>
-</ul>
-<h3 id="client与组件对应关系">client与组件对应关系</h3>
-<table>
-<thead>
-<tr>
-<th>组件</th>
-<th>功能</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>ovs-dpctl</td>
-<td>datapath控制器,可以创建删除DP,控制DP中的FlowTables,最常使用show命令，其他很少手动操作</td>
-</tr>
-<tr>
-<td>ovs-ofctl</td>
-<td>流表控制器，控制bridge上的流表，查看端口统计信息等</td>
-</tr>
-<tr>
-<td>ovsdb-tool</td>
-<td>专门管理ovsdb的client</td>
-</tr>
-<tr>
-<td>ovs-vsctl</td>
-<td>最常用的命令,通过操作ovsdb去管理相关的bridge,ports什么的</td>
-</tr>
-<tr>
-<td>ovs-appctl</td>
-<td>这个可以直接与openvswitch daemon进行交互</td>
-</tr>
-</tbody>
-</table>
-<h3 id="常用子命令说明">常用子命令说明</h3>
-<ul>
-<li>ovs-dpctl <strong>show -s</strong></li>
-<li>ovs-ofctl <strong>show, dump-ports, dump-flows, add-flow, mod-flows, del-flows</strong></li>
-<li>ovsdb-tools <strong>show-log -m</strong></li>
-<li>ovs-vsctl
-<ul>
-<li>show 显示数据库内容</li>
-<li>关于桥的操作 <strong>add-br, list-br, del-br, br-exits</strong></li>
-<li>关于port的操作 <strong>list-ports, add-port, del-port, add-bond, port-to-br</strong></li>
-<li>关于interface 的操作 <strong>list-ifaces, iface-to-br</strong></li>
-<li><strong>ovs-vsctl list/set/get/add/remove/clear/destroy table record column [value]</strong> 常见的表有bridge,controller,interface,mirror,netflow,open_vswitch,port,qos,queue,ssl,sflow.</li>
-</ul>
-</li>
-<li>ovs-appctl <strong>list-commands, fdb/show, qos/show</strong></li>
-</ul>
-<h2 id="日常操作">日常操作</h2>
-<h3 id="查看有哪些桥桥中有哪些ports哪些interfaces">查看有哪些桥，桥中有哪些ports，哪些interfaces</h3>
-<div class="highlight"><div class="chroma">
-<table class="lntable"><tr><td class="lntd">
-<pre class="chroma"><code><span class="lnt"> 1
-</span><span class="lnt"> 2
-</span><span class="lnt"> 3
-</span><span class="lnt"> 4
-</span><span class="lnt"> 5
-</span><span class="lnt"> 6
-</span><span class="lnt"> 7
-</span><span class="lnt"> 8
-</span><span class="lnt"> 9
-</span><span class="lnt">10
-</span><span class="lnt">11
-</span><span class="lnt">12
-</span><span class="lnt">13
-</span><span class="lnt">14
-</span><span class="lnt">15
-</span><span class="lnt">16
-</span><span class="lnt">17
-</span><span class="lnt">18
-</span><span class="lnt">19
-</span></code></pre></td>
-<td class="lntd">
-<pre class="chroma"><code class="language-sh" data-lang="sh">root@l-network-1:~# ovs-vsctl list-br
-br-ex
-br-int
-br-tun
-
-root@l-network-1:~# ovs-vsctl list-ports br-tun
-patch-int
-vxlan-ac1c0509
-vxlan-ac1c050d
-vxlan-ac1c051c
-vxlan-ac1c053f
-
-root@l-network-1:~# ovs-vsctl list-ifaces br-tun
-patch-int
-vxlan-ac1c0509
-vxlan-ac1c050d
-vxlan-ac1c051c
-vxlan-ac1c053f
-<span class="c1"># iface与ports同名.</span>
-</code></pre></td></tr></table>
-</div>
-</div><h3 id="查看-portinterface属于那个bridge-xxx-to-br">查看 port，interface属于那个bridge， xxx-to-br</h3>
-<div class="highlight"><div class="chroma">
-<table class="lntable"><tr><td class="lntd">
-<pre class="chroma"><code><span class="lnt">1
-</span><span class="lnt">2
-</span><span class="lnt">3
-</span><span class="lnt">4
-</span></code></pre></td>
-<td class="lntd">
-<pre class="chroma"><code class="language-sh" data-lang="sh">root@l-network-1:~# ovs-vsctl port-to-br vxlan-ac1c0509
-br-tun
-root@l-network-1:~# ovs-vsctl iface-to-br vxlan-ac1c0509
-br-tun
-</code></pre></td></tr></table>
-</div>
-</div><h3 id="查看隐藏的流表规则很少使用">查看隐藏的流表规则，很少使用</h3>
-<div class="highlight"><div class="chroma">
-<table class="lntable"><tr><td class="lntd">
-<pre class="chroma"><code><span class="lnt">1
-</span><span class="lnt">2
-</span><span class="lnt">3
-</span><span class="lnt">4
-</span><span class="lnt">5
-</span><span class="lnt">6
-</span></code></pre></td>
-<td class="lntd">
-<pre class="chroma"><code class="language-sh" data-lang="sh">root@l-network-1:# ovs-appctl bridge/dump-flows br-ex
-<span class="nv">duration</span><span class="o">=</span>6067771s, <span class="nv">n_packets</span><span class="o">=</span>1313936898, <span class="nv">n_bytes</span><span class="o">=</span>881574100116, <span class="nv">priority</span><span class="o">=</span>0,actions<span class="o">=</span>NORMAL
-<span class="nv">table_id</span><span class="o">=</span>254, <span class="nv">duration</span><span class="o">=</span>6067771s, <span class="nv">n_packets</span><span class="o">=</span>0, <span class="nv">n_bytes</span><span class="o">=</span>0, <span class="nv">priority</span><span class="o">=</span>2,recirc_id<span class="o">=</span>0,actions<span class="o">=</span>drop
-<span class="nv">table_id</span><span class="o">=</span>254, <span class="nv">duration</span><span class="o">=</span>6067771s, <span class="nv">n_packets</span><span class="o">=</span>0, <span class="nv">n_bytes</span><span class="o">=</span>0, <span class="nv">priority</span><span class="o">=</span>0,reg0<span class="o">=</span>0x1,actions<span class="o">=</span>controller<span class="o">(</span><span class="nv">reason</span><span class="o">=</span>no_match<span class="o">)</span>
-<span class="nv">table_id</span><span class="o">=</span>254, <span class="nv">duration</span><span class="o">=</span>6067771s, <span class="nv">n_packets</span><span class="o">=</span>0, <span class="nv">n_bytes</span><span class="o">=</span>0, <span class="nv">priority</span><span class="o">=</span>0,reg0<span class="o">=</span>0x2,actions<span class="o">=</span>drop
-<span class="nv">table_id</span><span class="o">=</span>254, <span class="nv">duration</span><span class="o">=</span>6067771s, <span class="nv">n_packets</span><span class="o">=</span>0, <span class="nv">n_bytes</span><span class="o">=</span>0, <span class="nv">priority</span><span class="o">=</span>0,reg0<span class="o">=</span>0x3,actions<span class="o">=</span>drop
-</code></pre></td></tr></table>
-</div>
-</div><h3 id="查看一些有用的统计信息">查看一些有用的统计信息</h3>
-<p>查看datapath统计信息.主要关注lost数值.hit表示datapath命中数,missed未命中，lost表示没有传递到用户空间就丢弃了. 主要关注lost值是否上升，如果上升说明存在问题了.该命令可以使用-s选项，会将每个port的统计信息也显示出来。</p>
-<div class="highlight"><div class="chroma">
-<table class="lntable"><tr><td class="lntd">
-<pre class="chroma"><code><span class="lnt"> 1
-</span><span class="lnt"> 2
-</span><span class="lnt"> 3
-</span><span class="lnt"> 4
-</span><span class="lnt"> 5
-</span><span class="lnt"> 6
-</span><span class="lnt"> 7
-</span><span class="lnt"> 8
-</span><span class="lnt"> 9
-</span><span class="lnt">10
-</span><span class="lnt">11
-</span><span class="lnt">12
-</span><span class="lnt">13
-</span><span class="lnt">14
-</span><span class="lnt">15
-</span><span class="lnt">16
-</span><span class="lnt">17
-</span><span class="lnt">18
-</span><span class="lnt">19
-</span><span class="lnt">20
-</span><span class="lnt">21
-</span><span class="lnt">22
-</span><span class="lnt">23
-</span><span class="lnt">24
-</span><span class="lnt">25
-</span><span class="lnt">26
-</span><span class="lnt">27
-</span><span class="lnt">28
-</span><span class="lnt">29
-</span><span class="lnt">30
-</span><span class="lnt">31
-</span><span class="lnt">32
-</span><span class="lnt">33
-</span></code></pre></td>
-<td class="lntd">
-<pre class="chroma"><code class="language-sh" data-lang="sh">root@l-network-1:# ovs-dpctl show
-system@ovs-system:
-        lookups: hit:2596765540 missed:6438005 lost:0
-        flows: <span class="m">39</span>
-        masks: hit:19416324706 total:10 hit/pkt:7.46
-        port 0: ovs-system <span class="o">(</span>internal<span class="o">)</span>
-        port 1: tapd9a71635-53 <span class="o">(</span>internal<span class="o">)</span>
-        port 2: tap82059645-8e <span class="o">(</span>internal<span class="o">)</span>
-        port 3: tap3f0507b3-70 <span class="o">(</span>internal<span class="o">)</span>
-
-root@l-network-1:# ovs-dpctl show -s
-system@ovs-system:
-        lookups: hit:2596836956 missed:6438236 lost:0
-        flows: <span class="m">42</span>
-        masks: hit:19416902233 total:10 hit/pkt:7.46
-        port 0: ovs-system <span class="o">(</span>internal<span class="o">)</span>
-                RX packets:0 errors:0 dropped:0 overruns:0 frame:0
-                TX packets:0 errors:0 dropped:0 aborted:0 carrier:0
-                collisions:0
-                RX bytes:0  TX bytes:0
-        port 1: tapd9a71635-53 <span class="o">(</span>internal<span class="o">)</span>
-                RX packets:4170 errors:0 dropped:0 overruns:0 frame:0
-                TX packets:1091973 errors:0 dropped:0 aborted:0 carrier:0
-                collisions:0
-                RX bytes:906944 <span class="o">(</span>885.7 KiB<span class="o">)</span>  TX bytes:48392325 <span class="o">(</span>46.2 MiB<span class="o">)</span>
-        port 2: tap82059645-8e <span class="o">(</span>internal<span class="o">)</span>
-                RX packets:7130 errors:0 dropped:0 overruns:0 frame:0
-                TX packets:7379 errors:0 dropped:0 aborted:0 carrier:0
-                collisions:0
-                RX bytes:641578 <span class="o">(</span>626.5 KiB<span class="o">)</span>  TX bytes:650492 <span class="o">(</span>635.2 KiB<span class="o">)</span>
-        port 3: tap3f0507b3-70 <span class="o">(</span>internal<span class="o">)</span>
-                RX packets:5505 errors:0 dropped:0 overruns:0 frame:0
-                TX packets:7549 errors:0 dropped:0 aborted:0 carrier:0
-</code></pre></td></tr></table>
-</div>
-</div><p>ovs-ofctl dump-ports br [port]也可以查看port的统计信息.这个命令优势是可以指定port.</p>
-<div class="highlight"><div class="chroma">
-<table class="lntable"><tr><td class="lntd">
-<pre class="chroma"><code><span class="lnt">1
-</span><span class="lnt">2
-</span><span class="lnt">3
-</span></code></pre></td>
-<td class="lntd">
-<pre class="chroma"><code class="language-sh" data-lang="sh">root@l-network-1:# ovs-ofctl dump-ports br-ex
-OFPST_PORT reply <span class="o">(</span><span class="nv">xid</span><span class="o">=</span>0x2<span class="o">)</span>: <span class="m">19</span> ports
-  port LOCAL: rx <span class="nv">pkts</span><span class="o">=</span>78668524, <span class="nv">bytes</span><span class="o">=</span>34522064349, <span class="nv">drop</span><span class="o">=</span>0, <span class="nv">errs</span><span class="o">=</span>0, <span class="nv">frame</span><span class="o">=</span>0, <span class="nv">over</span><span class="o">=</span>0, <span class="nv">crc</span><span class="o">=</span><span class="m">0</span> tx <span class="nv">pkts</span><span class="o">=</span>78827893, <span class="nv">bytes</span><span class="o">=</span>5746347600, <span class="nv">drop</span><span class="o">=</span>0, <span class="nv">errs</span><span class="o">=</span>0, <span class="nv">coll</span><span class="o">=</span><span class="m">0</span> port 10: rx <span class="nv">pkts</span><span class="o">=</span>14386485, <span class="nv">bytes</span><span class="o">=</span>10843773932, <span class="nv">drop</span><span class="o">=</span>0, <span class="nv">errs</span><span class="o">=</span>0, <span class="nv">frame</span><span class="o">=</span>0, <span class="nv">over</span><span class="o">=</span>0, <span class="nv">crc</span><span class="o">=</span><span class="m">0</span> tx <span class="nv">pkts</span><span class="o">=</span>15666927, <span class="nv">bytes</span><span class="o">=</span>10659584526, <span class="nv">drop</span><span class="o">=</span>0, <span class="nv">errs</span><span class="o">=</span>0, <span class="nv">coll</span><span class="o">=</span><span class="m">0</span> port 26: rx <span class="nv">pkts</span><span class="o">=</span>3830, <span class="nv">bytes</span><span class="o">=</span>161388, <span class="nv">drop</span><span class="o">=</span>0, <span class="nv">errs</span><span class="o">=</span>0, <span class="nv">frame</span><span class="o">=</span>0, <span class="nv">over</span><span class="o">=</span>0, <span class="nv">crc</span><span class="o">=</span><span class="m">0</span> tx <span class="nv">pkts</span><span class="o">=</span>3025213, <span class="nv">bytes</span><span class="o">=</span>244511981, <span class="nv">drop</span><span class="o">=</span>0, <span class="nv">errs</span><span class="o">=</span>0, <span class="nv">coll</span><span class="o">=</span><span class="m">0</span> port 36: rx <span class="nv">pkts</span><span class="o">=</span>16, <span class="nv">bytes</span><span class="o">=</span>1200, <span class="nv">drop</span><span class="o">=</span>0, <span class="nv">errs</span><span class="o">=</span>0, <span class="nv">frame</span><span class="o">=</span>0, <span class="nv">over</span><span class="o">=</span>0, <span class="nv">crc</span><span class="o">=</span><span class="m">0</span> tx <span class="nv">pkts</span><span class="o">=</span>898463, <span class="nv">bytes</span><span class="o">=</span>68248745, <span class="nv">drop</span><span class="o">=</span>0, <span class="nv">errs</span><span class="o">=</span>0, <span class="nv">coll</span><span class="o">=</span><span class="m">0</span> port 25: rx <span class="nv">pkts</span><span class="o">=</span>4693, <span class="nv">bytes</span><span class="o">=</span>206958, <span class="nv">drop</span><span class="o">=</span>0, <span class="nv">errs</span><span class="o">=</span>0, <span class="nv">frame</span><span class="o">=</span>0, <span class="nv">over</span><span class="o">=</span>0, <span class="nv">crc</span><span class="o">=</span><span class="m">0</span> tx <span class="nv">pkts</span><span class="o">=</span>3256605, <span class="nv">bytes</span><span class="o">=</span>264430395, <span class="nv">drop</span><span class="o">=</span>0, <span class="nv">errs</span><span class="o">=</span>0, <span class="nv">coll</span><span class="o">=</span><span class="m">0</span> port 35: rx <span class="nv">pkts</span><span class="o">=</span>229447, <span class="nv">bytes</span><span class="o">=</span>21077911, <span class="nv">drop</span><span class="o">=</span>0, <span class="nv">errs</span><span class="o">=</span>0, <span class="nv">frame</span><span class="o">=</span>0, <span class="nv">over</span><span class="o">=</span>0, <span class="nv">crc</span><span class="o">=</span><span class="m">0</span> tx <span class="nv">pkts</span><span class="o">=</span>1905393, <span class="nv">bytes</span><span class="o">=</span>758729599, <span class="nv">drop</span><span class="o">=</span>0, <span class="nv">errs</span><span class="o">=</span>0, <span class="nv">coll</span><span class="o">=</span><span class="m">0</span> port 28: rx <span class="nv">pkts</span><span class="o">=</span>13, <span class="nv">bytes</span><span class="o">=</span>1074, <span class="nv">drop</span><span class="o">=</span>0, <span class="nv">errs</span><span class="o">=</span>0, <span class="nv">frame</span><span class="o">=</span>0, <span class="nv">over</span><span class="o">=</span>0, <span class="nv">crc</span><span class="o">=</span><span class="m">0</span> tx <span class="nv">pkts</span><span class="o">=</span>2266685, <span class="nv">bytes</span><span class="o">=</span>179166266, <span class="nv">drop</span><span class="o">=</span>0, <span class="nv">errs</span><span class="o">=</span>0, <span class="nv">coll</span><span class="o">=</span><span class="m">0</span> port 23: rx <span class="nv">pkts</span><span class="o">=</span>10345, <span class="nv">bytes</span><span class="o">=</span>636977, <span class="nv">drop</span><span class="o">=</span>0, <span class="nv">errs</span><span class="o">=</span>0, <span class="nv">frame</span><span class="o">=</span>0, <span class="nv">over</span><span class="o">=</span>0, <span class="nv">crc</span><span class="o">=</span><span class="m">0</span> tx <span class="nv">pkts</span><span class="o">=</span>3345437, <span class="nv">bytes</span><span class="o">=</span>272099392, <span class="nv">drop</span><span class="o">=</span>0, <span class="nv">errs</span><span class="o">=</span>0, <span class="nv">coll</span><span class="o">=</span><span class="m">0</span>
-</code></pre></td></tr></table>
-</div>
-</div><h3 id="查看bridge的转发表">查看bridge的转发表</h3>
-<div class="highlight"><div class="chroma">
-<table class="lntable"><tr><td class="lntd">
-<pre class="chroma"><code><span class="lnt"> 1
-</span><span class="lnt"> 2
-</span><span class="lnt"> 3
-</span><span class="lnt"> 4
-</span><span class="lnt"> 5
-</span><span class="lnt"> 6
-</span><span class="lnt"> 7
-</span><span class="lnt"> 8
-</span><span class="lnt"> 9
-</span><span class="lnt">10
-</span><span class="lnt">11
-</span><span class="lnt">12
-</span><span class="lnt">13
-</span><span class="lnt">14
-</span></code></pre></td>
-<td class="lntd">
-<pre class="chroma"><code class="language-sh" data-lang="sh">root@l-network-1:# ovs-appctl fdb/show br-ex
- port  VLAN  MAC                Age
-   <span class="m">10</span>     <span class="m">0</span>  fa:16:3e:f8:28:9f    <span class="m">9</span>
-   <span class="m">11</span>     <span class="m">0</span>  fa:16:3e:a7:d2:f5    <span class="m">8</span>
-   <span class="m">34</span>     <span class="m">0</span>  fa:16:3e:2f:b2:71    <span class="m">8</span>
-    <span class="m">4</span>     <span class="m">0</span>  2c:44:fd:89:cf:3a    <span class="m">6</span>
-    <span class="m">6</span>     <span class="m">0</span>  fa:16:3e:45:c7:c5    <span class="m">5</span>
-    <span class="m">4</span>     <span class="m">0</span>  fa:16:3e:44:15:eb    <span class="m">5</span>
-    <span class="m">4</span>     <span class="m">0</span>  2c:44:fd:8a:78:06    <span class="m">4</span>
-    <span class="m">1</span>     <span class="m">0</span>  fa:16:3e:be:08:35    <span class="m">2</span>
-    <span class="m">3</span>     <span class="m">0</span>  fa:16:3e:2f:dd:71    <span class="m">1</span>
-    <span class="m">2</span>     <span class="m">0</span>  fa:16:3e:d7:f0:c1    <span class="m">0</span>
-LOCAL     <span class="m">0</span>  2c:44:fd:8a:32:ce    <span class="m">0</span>
-    <span class="m">4</span>     <span class="m">0</span>  20:0b:c7:37:d0:05    <span class="m">0</span>
-</code></pre></td></tr></table>
-</div>
-</div><h2 id="设置qos">设置qos</h2>
-<div class="highlight"><div class="chroma">
-<table class="lntable"><tr><td class="lntd">
-<pre class="chroma"><code><span class="lnt">1
-</span></code></pre></td>
-<td class="lntd">
-<pre class="chroma"><code class="language-sh" data-lang="sh">ovs-vsctl <span class="nb">set</span> Interface tap0 <span class="nv">ingress_policing_rate</span><span class="o">=</span><span class="m">100000</span> ovs-vsctl <span class="nb">set</span> Intervace tap <span class="nv">ingress_policing_burst</span><span class="o">=</span><span class="m">10000</span> ovs-appctl qos/show &lt;iface&gt;
-</code></pre></td></tr></table>
-</div>
-</div><h2 id="调试技巧">调试技巧</h2>
-<h3 id="查看流表匹配规则">查看流表匹配规则</h3>
-<div class="highlight"><div class="chroma">
-<table class="lntable"><tr><td class="lntd">
-<pre class="chroma"><code><span class="lnt">1
-</span></code></pre></td>
-<td class="lntd">
-<pre class="chroma"><code class="language-sh" data-lang="sh">watch -d -n <span class="m">1</span> <span class="s2">&#34;ovs-ofctl dump-flows &lt;bridge&gt;&#34;</span>
-</code></pre></td></tr></table>
-</div>
-</div><h3 id="查看统计信息">查看统计信息</h3>
-<div class="highlight"><div class="chroma">
-<table class="lntable"><tr><td class="lntd">
-<pre class="chroma"><code><span class="lnt">1
-</span><span class="lnt">2
-</span></code></pre></td>
-<td class="lntd">
-<pre class="chroma"><code class="language-sh" data-lang="sh">ovs-dpctl show -s
-ovs-ofctl dump-ports &lt;br&gt; <span class="o">[</span>port<span class="o">]</span>
-</code></pre></td></tr></table>
-</div>
-</div><h3 id="使用tcpdump抓包需要设置端口镜像">使用tcpdump抓包,需要设置端口镜像</h3>
-<div class="highlight"><div class="chroma">
-<table class="lntable"><tr><td class="lntd">
-<pre class="chroma"><code><span class="lnt"> 1
-</span><span class="lnt"> 2
-</span><span class="lnt"> 3
-</span><span class="lnt"> 4
-</span><span class="lnt"> 5
-</span><span class="lnt"> 6
-</span><span class="lnt"> 7
-</span><span class="lnt"> 8
-</span><span class="lnt"> 9
-</span><span class="lnt">10
-</span><span class="lnt">11
-</span><span class="lnt">12
-</span><span class="lnt">13
-</span><span class="lnt">14
-</span></code></pre></td>
-<td class="lntd">
-<pre class="chroma"><code class="language-sh" data-lang="sh">ip link add name snooper0 <span class="nb">type</span> dummy
-ip link <span class="nb">set</span> dev snooper0 up
-ovs-vsctl add-port br-int snooper0
-
-ovs-vsctl -- <span class="nb">set</span> Bridge br-int <span class="nv">mirrors</span><span class="o">=</span>@m -- --id<span class="o">=</span>@snooper0 <span class="se">\
-</span><span class="se"></span>  get Port snooper0  -- --id<span class="o">=</span>@patch-tun get Port patch-tun <span class="se">\
-</span><span class="se"></span>  -- --id<span class="o">=</span>@m create Mirror <span class="nv">name</span><span class="o">=</span>mymirror <span class="k">select</span>-dst-port<span class="o">=</span>@patch-tun <span class="se">\
-</span><span class="se"></span>  <span class="k">select</span>-src-port<span class="o">=</span>@patch-tun output-port<span class="o">=</span>@snooper0 <span class="nv">select_all</span><span class="o">=</span><span class="m">1</span>
-
-tcpdump -i snooper0
-
-ovs-vsctl clear Bridge br-int mirrors
-ovs-vsctl del-port br-int snooper0
-ip link delete dev snooper0
-</code></pre></td></tr></table>
-</div>
-</div><h3 id="查看日志">查看日志</h3>
-<div class="highlight"><div class="chroma">
-<table class="lntable"><tr><td class="lntd">
-<pre class="chroma"><code><span class="lnt">1
-</span></code></pre></td>
-<td class="lntd">
-<pre class="chroma"><code class="language-sh" data-lang="sh">cat /var/log/openvswitch/*.log
-</code></pre></td></tr></table>
-</div>
-</div><h3 id="使用ovs-appctl-ofprototrace-bridge-k1v1k2v2测试流匹配">使用ovs-appctl ofproto/trace {bridge} k1=v1,k2=v2测试流匹配</h3>
-<div class="highlight"><div class="chroma">
-<table class="lntable"><tr><td class="lntd">
-<pre class="chroma"><code><span class="lnt"> 1
-</span><span class="lnt"> 2
-</span><span class="lnt"> 3
-</span><span class="lnt"> 4
-</span><span class="lnt"> 5
-</span><span class="lnt"> 6
-</span><span class="lnt"> 7
-</span><span class="lnt"> 8
-</span><span class="lnt"> 9
-</span><span class="lnt">10
-</span><span class="lnt">11
-</span></code></pre></td>
-<td class="lntd">
-<pre class="chroma"><code class="language-sh" data-lang="sh">root@l-network-1:~# ovs-appctl ofproto/trace br-ex <span class="nv">in_port</span><span class="o">=</span>10,dl_src<span class="o">=</span>66:4e:cc:ae:4d:20,dl_dst<span class="o">=</span>46:54:8a:95:dd:f8 -generate
-Bridge: br-ex
-Flow: <span class="nv">in_port</span><span class="o">=</span>10,vlan_tci<span class="o">=</span>0x0000,dl_src<span class="o">=</span>66:4e:cc:ae:4d:20,dl_dst<span class="o">=</span>46:54:8a:95:dd:f8,dl_type<span class="o">=</span>0x0000
-
-Rule: <span class="nv">table</span><span class="o">=</span><span class="m">0</span> <span class="nv">cookie</span><span class="o">=</span><span class="m">0</span> <span class="nv">priority</span><span class="o">=</span><span class="m">0</span>
-OpenFlow <span class="nv">actions</span><span class="o">=</span>NORMAL
-no learned MAC <span class="k">for</span> destination, flooding
-
-Final flow: <span class="nv">in_port</span><span class="o">=</span>10,vlan_tci<span class="o">=</span>0x0000,dl_src<span class="o">=</span>66:4e:cc:ae:4d:20,dl_dst<span class="o">=</span>46:54:8a:95:dd:f8,dl_type<span class="o">=</span>0x0000
-Megaflow: <span class="nv">in_port</span><span class="o">=</span>10,vlan_tci<span class="o">=</span>0x0000/0x1fff,dl_src<span class="o">=</span>66:4e:cc:ae:4d:20,dl_dst<span class="o">=</span>46:54:8a:95:dd:f8,dl_type<span class="o">=</span>0x0000
-Datapath actions: 27,30,12,14,15,17,20,37,9,28,47,48,54,57,29,25,61,21
-</code></pre></td></tr></table>
-</div>
-</div><h2 id="参考">参考</h2>
-<ul>
-<li><a href="https://docs.openvswitch.org/en/latest/">https://docs.openvswitch.org/en/latest/</a></li>
-<li><a href="http://fishcried.com/2016-02-09/openvswitch-ops-guide/">http://fishcried.com/2016-02-09/openvswitch-ops-guide/</a></li>
-</ul>
-</div><div class="post-footer" id="post-footer">
-    <div class="post-info">
-        <div class="post-info-line">
-            <div class="post-info-mod">
-                <span>更新于 2020-01-01</span>
-            </div>
-            <div class="post-info-license"></div>
-        </div>
-        <div class="post-info-line">
-            <div class="post-info-md"><span>
-                            <a class="link-to-markdown" href="/2020/openvswitch%E4%BD%BF%E7%94%A8%E9%80%9F%E6%9F%A5/index.md" target="_blank">阅读原始文档</a>
-                        </span></div>
-            <div class="post-info-share">
-                <span><a href="javascript:void(0);" title="分享到 Twitter" data-sharer="twitter" data-url="https://blog.firemiles.top/2020/openvswitch%E4%BD%BF%E7%94%A8%E9%80%9F%E6%9F%A5/" data-title="openvswitch 使用速查" data-hashtags="tool,openvswitch"><i class="fab fa-twitter fa-fw"></i></a><a href="javascript:void(0);" title="分享到 Facebook" data-sharer="facebook" data-url="https://blog.firemiles.top/2020/openvswitch%E4%BD%BF%E7%94%A8%E9%80%9F%E6%9F%A5/" data-hashtag="tool"><i class="fab fa-facebook-square fa-fw"></i></a><a href="javascript:void(0);" title="分享到 WhatsApp" data-sharer="whatsapp" data-url="https://blog.firemiles.top/2020/openvswitch%E4%BD%BF%E7%94%A8%E9%80%9F%E6%9F%A5/" data-title="openvswitch 使用速查" data-web><i class="fab fa-whatsapp fa-fw"></i></a><a href="javascript:void(0);" title="分享到 Line" data-sharer="line" data-url="https://blog.firemiles.top/2020/openvswitch%E4%BD%BF%E7%94%A8%E9%80%9F%E6%9F%A5/" data-title="openvswitch 使用速查"><i data-svg-src="/lib/simple-icons/icons/line.min.svg"></i></a><a href="javascript:void(0);" title="分享到 微博" data-sharer="weibo" data-url="https://blog.firemiles.top/2020/openvswitch%E4%BD%BF%E7%94%A8%E9%80%9F%E6%9F%A5/" data-title="openvswitch 使用速查" data-image="https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/20200101155834.png"><i class="fab fa-weibo fa-fw"></i></a><a href="javascript:void(0);" title="分享到 Myspace" data-sharer="myspace" data-url="https://blog.firemiles.top/2020/openvswitch%E4%BD%BF%E7%94%A8%E9%80%9F%E6%9F%A5/" data-title="openvswitch 使用速查" data-description="openvswitch 已经成为 SDN 网络的一块基石，是网络开发者无法绕过的一道关口。本文总结 openvswitch 的模块结构以及命令行工具，方便日常开发查询。2020年的第一篇博客，我们就来谈谈openvswitch。"><i data-svg-src="/lib/simple-icons/icons/myspace.min.svg"></i></a><a href="javascript:void(0);" title="分享到 Blogger" data-sharer="blogger" data-url="https://blog.firemiles.top/2020/openvswitch%E4%BD%BF%E7%94%A8%E9%80%9F%E6%9F%A5/" data-title="openvswitch 使用速查" data-description="openvswitch 已经成为 SDN 网络的一块基石，是网络开发者无法绕过的一道关口。本文总结 openvswitch 的模块结构以及命令行工具，方便日常开发查询。2020年的第一篇博客，我们就来谈谈openvswitch。"><i class="fab fa-blogger fa-fw"></i></a><a href="javascript:void(0);" title="分享到 Evernote" data-sharer="evernote" data-url="https://blog.firemiles.top/2020/openvswitch%E4%BD%BF%E7%94%A8%E9%80%9F%E6%9F%A5/" data-title="openvswitch 使用速查"><i class="fab fa-evernote fa-fw"></i></a></span>
-            </div>
-        </div>
-    </div>
-
-    <div class="post-info-more">
-        <section class="post-tags"><i class="fas fa-tags fa-fw"></i>&nbsp;<a href="/tags/tool/">tool</a>,&nbsp;<a href="/tags/openvswitch/">openvswitch</a></section>
-        <section>
-            <span><a href="javascript:void(0);" onclick="window.history.back();">返回</a></span>&nbsp;|&nbsp;<span><a href="/">主页</a></span>
-        </section>
-    </div>
-
-    <div class="post-nav"><a href="/2019/ipv6%E7%89%B9%E6%80%A7%E4%BB%8B%E7%BB%8D/" class="prev" rel="prev" title="IPv6特性介绍"><i class="fas fa-angle-left fa-fw"></i>IPv6特性介绍</a>
-            <a href="/2020/%E5%85%B7%E4%BD%93%E6%95%B0%E5%AD%A6-%E7%BA%A6%E7%91%9F%E5%A4%AB%E9%97%AE%E9%A2%98/" class="next" rel="next" title="具体数学-约瑟夫问题">具体数学-约瑟夫问题<i class="fas fa-angle-right fa-fw"></i></a></div>
-</div>
-<div id="comments"></div></article></div>
-            </main><footer class="footer">
-        <div class="footer-container"><div class="footer-line">由 <a href="https://gohugo.io/" target="_blank" rel="noopener noreffer" title="Hugo 0.72.0-DEV">Hugo</a> 强力驱动 | 主题 - <a href="https://github.com/dillonzq/LoveIt" target="_blank" rel="noopener noreffer" title="LoveIt 0.2.10"><i class="far fa-kiss-wink-heart fa-fw"></i> LoveIt</a>
-                </div><div class="footer-line"><i class="far fa-copyright fa-fw"></i><span itemprop="copyrightYear">2019 - 2020</span><span class="author" itemprop="copyrightHolder">&nbsp;<a href="/" target="_blank">firemiles</a></span>&nbsp;|&nbsp;<span class="license"><a rel="license external nofollow noopener noreffer" href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank">CC BY-NC 4.0</a></span></div>
-        </div>
-    </footer></div>
-
-        <div id="fixed-buttons"><a href="#" id="back-to-top" class="fixed-button" title="回到顶部">
-                <i class="fas fa-arrow-up fa-fw"></i>
-            </a><a href="#" id="view-comments" class="fixed-button" title="查看评论">
-                <i class="fas fa-comment fa-fw"></i>
-            </a>
-        </div><link rel="stylesheet" href="/lib/katex/katex.min.css"><link rel="stylesheet" href="/lib/katex/copy-tex.min.css"><link rel="stylesheet" href="/lib/cookieconsent/cookieconsent.min.css"><script type="text/javascript" src="/lib/smooth-scroll/smooth-scroll.min.js"></script><script type="text/javascript" src="/lib/autocomplete/autocomplete.min.js"></script><script type="text/javascript" src="/lib/lunr/lunr.min.js"></script><script type="text/javascript" src="/lib/lunr/lunr.stemmer.support.min.js"></script><script type="text/javascript" src="/lib/lunr/lunr.zh.min.js"></script><script type="text/javascript" src="/lib/lazysizes/lazysizes.min.js"></script><script type="text/javascript" src="/lib/clipboard/clipboard.min.js"></script><script type="text/javascript" src="/lib/sharer/sharer.min.js"></script><script type="text/javascript" src="/lib/katex/katex.min.js"></script><script type="text/javascript" src="/lib/katex/auto-render.min.js"></script><script type="text/javascript" src="/lib/katex/copy-tex.min.js"></script><script type="text/javascript" src="/lib/katex/mhchem.min.js"></script><script type="text/javascript" src="/lib/cookieconsent/cookieconsent.min.js"></script><script type="text/javascript">window.config={"code":{"copyTitle":"复制到剪贴板","maxShownLines":10},"comment":{},"cookieconsent":{"content":{"dismiss":"同意","link":"了解更多","message":"本网站使用 Cookies 来改善您的浏览体验."},"enable":true,"palette":{"button":{"background":"#f0f0f0"},"popup":{"background":"#1aa3ff"}},"theme":"edgeless"},"math":{"delimiters":[{"display":true,"left":"$$","right":"$$"},{"display":true,"left":"\\[","right":"\\]"},{"display":false,"left":"$","right":"$"},{"display":false,"left":"\\(","right":"\\)"}],"strict":false},"search":{"highlightTag":"em","lunrIndexURL":"/index.json","lunrLanguageCode":"zh","lunrSegmentitURL":"/lib/lunr/lunr.segmentit.js","maxResultLength":10,"noResultsFound":"没有找到结果","snippetLength":50,"type":"lunr"}};</script><script type="text/javascript" src="/js/theme.min.js"></script></body>
-</html>
+<!doctype html><html lang=zh-cn><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=robots content="noodp"><meta http-equiv=x-ua-compatible content="IE=edge, chrome=1"><title>openvswitch 使用速查 - Firemiles 的技术生活</title><meta name=Description content="openvswitch 已经成为 SDN 网络的一块基石，是网络开发者无法绕过的一道关口。本文总结 openvswitch 的模块结构以及命令行工具，方便日常开发查询。2020年的第一篇博客，我们就来谈谈openvswitch。"><meta property="og:title" content="openvswitch 使用速查"><meta property="og:description" content="openvswitch 已经成为 SDN 网络的一块基石，是网络开发者无法绕过的一道关口。本文总结 openvswitch 的模块结构以及命令行工具，方便日常开发查询。2020年的第一篇博客，我们就来谈谈openvswitch。"><meta property="og:type" content="article"><meta property="og:url" content="https://blog.firemiles.top/2020/openvswitch%E4%BD%BF%E7%94%A8%E9%80%9F%E6%9F%A5/"><meta property="og:image" content="https://blog.firemiles.top/logo.png"><meta property="article:section" content="posts"><meta property="article:published_time" content="2020-01-01T15:47:09+00:00"><meta property="article:modified_time" content="2020-01-01T15:47:09+00:00"><meta name=twitter:card content="summary_large_image"><meta name=twitter:image content="https://blog.firemiles.top/logo.png"><meta name=twitter:title content="openvswitch 使用速查"><meta name=twitter:description content="openvswitch 已经成为 SDN 网络的一块基石，是网络开发者无法绕过的一道关口。本文总结 openvswitch 的模块结构以及命令行工具，方便日常开发查询。2020年的第一篇博客，我们就来谈谈openvswitch。"><meta name=application-name content="LoveIt"><meta name=apple-mobile-web-app-title content="LoveIt"><meta name=theme-color content="#ffffff"><meta name=msapplication-TileColor content="#da532c"><link rel="shortcut icon" type=image/x-icon href=/favicon.ico><link rel=icon type=image/png sizes=32x32 href=/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/favicon-16x16.png><link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png><link rel=mask-icon href=/safari-pinned-tab.svg color=#5bbad5><link rel=manifest href=/site.webmanifest><link rel=canonical href=https://blog.firemiles.top/2020/openvswitch%E4%BD%BF%E7%94%A8%E9%80%9F%E6%9F%A5/><link rel=prev href=https://blog.firemiles.top/2019/ipv6%E7%89%B9%E6%80%A7%E4%BB%8B%E7%BB%8D/><link rel=next href=https://blog.firemiles.top/2020/%E5%85%B7%E4%BD%93%E6%95%B0%E5%AD%A6-%E7%BA%A6%E7%91%9F%E5%A4%AB%E9%97%AE%E9%A2%98/><link rel=stylesheet href=/lib/normalize/normalize.min.css><link rel=stylesheet href=/css/style.min.css><link rel=stylesheet href=/lib/fontawesome-free/all.min.css><link rel=stylesheet href=/lib/animate/animate.min.css><script type=application/ld+json>{"@context":"http://schema.org","@type":"BlogPosting","headline":"openvswitch 使用速查","inLanguage":"zh-CN","mainEntityOfPage":{"@type":"WebPage","@id":"https:\/\/blog.firemiles.top\/2020\/openvswitch%E4%BD%BF%E7%94%A8%E9%80%9F%E6%9F%A5\/"},"genre":"posts","keywords":"tool, openvswitch","wordcount":1587,"url":"https:\/\/blog.firemiles.top\/2020\/openvswitch%E4%BD%BF%E7%94%A8%E9%80%9F%E6%9F%A5\/","datePublished":"2020-01-01T15:47:09+00:00","dateModified":"2020-01-01T15:47:09+00:00","publisher":{"@type":"Organization","name":""},"author":{"@type":"Person","name":"firemiles"},"description":"openvswitch 已经成为 SDN 网络的一块基石，是网络开发者无法绕过的一道关口。本文总结 openvswitch 的模块结构以及命令行工具，方便日常开发查询。2020年的第一篇博客，我们就来谈谈openvswitch。"}</script></head><body header-desktop=fixed header-mobile=auto><script type=text/javascript>(window.localStorage&&localStorage.getItem("theme")?localStorage.getItem("theme")==="dark":"auto"==="auto"?window.matchMedia("(prefers-color-scheme: dark)").matches:"auto"==="dark")&&document.body.setAttribute("theme","dark")</script><div id=mask></div><div class=wrapper><header class=desktop id=header-desktop><div class=header-wrapper><div class=header-title><a href=/ title="Firemiles 的技术生活"><span class=header-title-pre><i class="fa fa-rocket"></i></span>Firemiles 的个人博客</a></div><div class=menu><div class=menu-inner><a class=menu-item href=/posts/>文章 </a><a class=menu-item href=/tags/>标签 </a><a class=menu-item href=/categories/>分类 </a><a class=menu-item href=/about/>关于 </a><a class=menu-item href=https://github.com/firemiles/firemiles.github.io title=GitHub rel="noopener noreffer" target=_blank><i class="fab fa-github fa-fw"></i> </a><span class="menu-item delimiter"></span><span class="menu-item search" id=search-desktop>
+<input type=text placeholder=搜索文章标题或内容... id=search-input-desktop>
+<a href=javascript:void(0); class="search-button search-toggle" id=search-toggle-desktop title=搜索><i class="fas fa-search fa-fw"></i></a>
+<a href=javascript:void(0); class="search-button search-clear" id=search-clear-desktop title=清空><i class="fas fa-times-circle fa-fw"></i></a>
+<span class="search-button search-loading" id=search-loading-desktop><i class="fas fa-spinner fa-fw fa-spin"></i></span>
+</span><a href=javascript:void(0); class="menu-item theme-switch" title=切换主题><i class="fas fa-adjust fa-fw"></i></a></div></div></div></header><header class=mobile id=header-mobile><div class=header-container><div class=header-wrapper><div class=header-title><a href=/ title="Firemiles 的技术生活"><span class=header-title-pre><i class="fa fa-rocket"></i></span>Firemiles 的个人博客</a></div><div class=menu-toggle id=menu-toggle-mobile><span></span><span></span><span></span></div></div><div class=menu id=menu-mobile><div class=search-wrapper><div class="search mobile" id=search-mobile><input type=text placeholder=搜索文章标题或内容... id=search-input-mobile>
+<a href=javascript:void(0); class="search-button search-toggle" id=search-toggle-mobile title=搜索><i class="fas fa-search fa-fw"></i></a>
+<a href=javascript:void(0); class="search-button search-clear" id=search-clear-mobile title=清空><i class="fas fa-times-circle fa-fw"></i></a>
+<span class="search-button search-loading" id=search-loading-mobile><i class="fas fa-spinner fa-fw fa-spin"></i></span></div><a href=javascript:void(0); class=search-cancel id=search-cancel-mobile>取消</a></div><a class=menu-item href=/posts/ title>文章</a><a class=menu-item href=/tags/ title>标签</a><a class=menu-item href=/categories/ title>分类</a><a class=menu-item href=/about/ title>关于</a><a class=menu-item href=https://github.com/firemiles/firemiles.github.io title=GitHub rel="noopener noreffer" target=_blank><i class="fab fa-github fa-fw"></i></a><a href=javascript:void(0); class="menu-item theme-switch" title=切换主题>
+<i class="fas fa-adjust fa-fw"></i></a></div></div></header><div class="search-dropdown desktop"><div id=search-dropdown-desktop></div></div><div class="search-dropdown mobile"><div id=search-dropdown-mobile></div></div><main class=main><div class=container><div class=toc id=toc-auto><h2 class=toc-title>目录</h2><div class=toc-content id=toc-content-auto></div></div><article class="page single"><h1 class="single-title animated flipInX">openvswitch 使用速查</h1><div class=post-meta><div class=post-meta-line><span class=post-author><a href=/ title=Author rel=author class=author><i class="fas fa-user-circle fa-fw"></i>firemiles</a></span>&nbsp;<span class=post-category>收录于 <a href=/categories/openvswitch/><i class="far fa-folder fa-fw"></i>openvswitch</a></span></div><div class=post-meta-line><i class="far fa-calendar-alt fa-fw"></i>&nbsp;<time datetime=2020-01-01>2020-01-01</time>&nbsp;<i class="fas fa-pencil-alt fa-fw"></i>&nbsp;约 1587 字&nbsp;
+<i class="far fa-clock fa-fw"></i>&nbsp;预计阅读 4 分钟&nbsp;</div></div><div class=featured-image><img class=lazyload src=/svg/loading.min.svg data-src=https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/20200101155834.png data-srcset="https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/20200101155834.png, https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/20200101155834.png 1.5x, https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/20200101155834.png 2x" data-sizes=auto alt=https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/20200101155834.png title="openvswitch 已经成为 SDN 网络的一块基石，是网络开发者无法绕过的一道关口。本文总结 openvswitch 的模块结构以及命令行工具，方便日常开发查询。2020年的第一篇博客，我们就来谈谈openvswitch。"></div><div class="details toc" id=toc-static kept=true><div class="details-summary toc-title"><span>目录</span>
+<span><i class="details-icon fas fa-angle-right"></i></span></div><div class="details-content toc-content" id=toc-content-static><nav id=TableOfContents><ul><li><a href=#ovs-架构>OVS 架构</a><ul><li><a href=#主要模块>主要模块</a></li><li><a href=#client与组件对应关系>client与组件对应关系</a></li><li><a href=#常用子命令说明>常用子命令说明</a></li></ul></li><li><a href=#日常操作>日常操作</a><ul><li><a href=#查看有哪些桥桥中有哪些ports哪些interfaces>查看有哪些桥，桥中有哪些ports，哪些interfaces</a></li><li><a href=#查看-portinterface属于那个bridge-xxx-to-br>查看 port，interface属于那个bridge， xxx-to-br</a></li><li><a href=#查看隐藏的流表规则很少使用>查看隐藏的流表规则，很少使用</a></li><li><a href=#查看一些有用的统计信息>查看一些有用的统计信息</a></li><li><a href=#查看bridge的转发表>查看bridge的转发表</a></li></ul></li><li><a href=#设置qos>设置qos</a></li><li><a href=#调试技巧>调试技巧</a><ul><li><a href=#查看流表匹配规则>查看流表匹配规则</a></li><li><a href=#查看统计信息>查看统计信息</a></li><li><a href=#使用tcpdump抓包需要设置端口镜像>使用tcpdump抓包,需要设置端口镜像</a></li><li><a href=#查看日志>查看日志</a></li><li><a href=#使用ovs-appctl-ofprototrace-bridge-k1v1k2v2测试流匹配>使用ovs-appctl ofproto/trace {bridge} k1=v1,k2=v2测试流匹配</a></li></ul></li><li><a href=#参考>参考</a></li></ul></nav></div></div><div class=content id=content><h2 id=ovs-架构>OVS 架构</h2><blockquote><p>本文主要针对内核态 openvsiwth，用户态 openvswitch 的使用和调试不在本文的讨论范围内。</p></blockquote><p><img class=lazyload src=/svg/loading.min.svg data-src=https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/C369CE5D-F9F8-4ECE-A01F-3C12115E74A8.jpg data-srcset="https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/C369CE5D-F9F8-4ECE-A01F-3C12115E74A8.jpg, https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/C369CE5D-F9F8-4ECE-A01F-3C12115E74A8.jpg 1.5x, https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/C369CE5D-F9F8-4ECE-A01F-3C12115E74A8.jpg 2x" data-sizes=auto alt=https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/C369CE5D-F9F8-4ECE-A01F-3C12115E74A8.jpg title=ovs架构></p><p><code>ovs</code> 架构如上图所示，主要由内核 <code>datapath</code> 和用户空间的 <code>vswitchd</code>、 <code>ovsdb</code> 组成。</p><p><img class=lazyload src=/svg/loading.min.svg data-src=https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/C718D270-8E15-4943-8A8E-A54C85EAF075.jpg data-srcset="https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/C718D270-8E15-4943-8A8E-A54C85EAF075.jpg, https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/C718D270-8E15-4943-8A8E-A54C85EAF075.jpg 1.5x, https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/C718D270-8E15-4943-8A8E-A54C85EAF075.jpg 2x" data-sizes=auto alt=https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/C718D270-8E15-4943-8A8E-A54C85EAF075.jpg title="openvswitch internals"></p><h3 id=主要模块>主要模块</h3><ul><li><code>datapath</code> 是负责数据交换的内核模块，从网口读取数据，并快速匹配Flowtable中的流表项，成功的直接转发，失败的 upcall 到 <code>vswitchd</code> 处理。它在初始化<code>port binding</code> 的时候注册钩子函数，把端口的报文处理接收到 ovs 内核模块。</li><li><code>vswitchd</code> 是一个守护进程，是ovs的管理和控制服务，通过unix socket将配置信息保存到 <code>ovsdb</code> ，并通过 <code>netlink</code> 和内核模块交互。</li><li><code>ovsdb</code> 则是 ovs 的数据库，保存 ovs 的配置信息。</li></ul><h3 id=client与组件对应关系>client与组件对应关系</h3><table><thead><tr><th>组件</th><th>功能</th></tr></thead><tbody><tr><td>ovs-dpctl</td><td>datapath控制器,可以创建删除DP,控制DP中的FlowTables,最常使用show命令，其他很少手动操作</td></tr><tr><td>ovs-ofctl</td><td>流表控制器，控制bridge上的流表，查看端口统计信息等</td></tr><tr><td>ovsdb-tool</td><td>专门管理ovsdb的client</td></tr><tr><td>ovs-vsctl</td><td>最常用的命令,通过操作ovsdb去管理相关的bridge,ports什么的</td></tr><tr><td>ovs-appctl</td><td>这个可以直接与openvswitch daemon进行交互</td></tr></tbody></table><h3 id=常用子命令说明>常用子命令说明</h3><ul><li>ovs-dpctl <strong>show -s</strong></li><li>ovs-ofctl <strong>show, dump-ports, dump-flows, add-flow, mod-flows, del-flows</strong></li><li>ovsdb-tools <strong>show-log -m</strong></li><li>ovs-vsctl<ul><li>show 显示数据库内容</li><li>关于桥的操作 <strong>add-br, list-br, del-br, br-exits</strong></li><li>关于port的操作 <strong>list-ports, add-port, del-port, add-bond, port-to-br</strong></li><li>关于interface 的操作 <strong>list-ifaces, iface-to-br</strong></li><li><strong>ovs-vsctl list/set/get/add/remove/clear/destroy table record column [value]</strong> 常见的表有bridge,controller,interface,mirror,netflow,open_vswitch,port,qos,queue,ssl,sflow.</li></ul></li><li>ovs-appctl <strong>list-commands, fdb/show, qos/show</strong></li></ul><h2 id=日常操作>日常操作</h2><h3 id=查看有哪些桥桥中有哪些ports哪些interfaces>查看有哪些桥，桥中有哪些ports，哪些interfaces</h3><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-sh data-lang=sh><span class=line><span class=cl>root@l-network-1:~# ovs-vsctl list-br
+</span></span><span class=line><span class=cl>br-ex
+</span></span><span class=line><span class=cl>br-int
+</span></span><span class=line><span class=cl>br-tun
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>root@l-network-1:~# ovs-vsctl list-ports br-tun
+</span></span><span class=line><span class=cl>patch-int
+</span></span><span class=line><span class=cl>vxlan-ac1c0509
+</span></span><span class=line><span class=cl>vxlan-ac1c050d
+</span></span><span class=line><span class=cl>vxlan-ac1c051c
+</span></span><span class=line><span class=cl>vxlan-ac1c053f
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>root@l-network-1:~# ovs-vsctl list-ifaces br-tun
+</span></span><span class=line><span class=cl>patch-int
+</span></span><span class=line><span class=cl>vxlan-ac1c0509
+</span></span><span class=line><span class=cl>vxlan-ac1c050d
+</span></span><span class=line><span class=cl>vxlan-ac1c051c
+</span></span><span class=line><span class=cl>vxlan-ac1c053f
+</span></span><span class=line><span class=cl><span class=c1># iface与ports同名.</span>
+</span></span></code></pre></td></tr></table></div></div><h3 id=查看-portinterface属于那个bridge-xxx-to-br>查看 port，interface属于那个bridge， xxx-to-br</h3><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-sh data-lang=sh><span class=line><span class=cl>root@l-network-1:~# ovs-vsctl port-to-br vxlan-ac1c0509
+</span></span><span class=line><span class=cl>br-tun
+</span></span><span class=line><span class=cl>root@l-network-1:~# ovs-vsctl iface-to-br vxlan-ac1c0509
+</span></span><span class=line><span class=cl>br-tun
+</span></span></code></pre></td></tr></table></div></div><h3 id=查看隐藏的流表规则很少使用>查看隐藏的流表规则，很少使用</h3><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-sh data-lang=sh><span class=line><span class=cl>root@l-network-1:# ovs-appctl bridge/dump-flows br-ex
+</span></span><span class=line><span class=cl><span class=nv>duration</span><span class=o>=</span>6067771s, <span class=nv>n_packets</span><span class=o>=</span>1313936898, <span class=nv>n_bytes</span><span class=o>=</span>881574100116, <span class=nv>priority</span><span class=o>=</span>0,actions<span class=o>=</span>NORMAL
+</span></span><span class=line><span class=cl><span class=nv>table_id</span><span class=o>=</span>254, <span class=nv>duration</span><span class=o>=</span>6067771s, <span class=nv>n_packets</span><span class=o>=</span>0, <span class=nv>n_bytes</span><span class=o>=</span>0, <span class=nv>priority</span><span class=o>=</span>2,recirc_id<span class=o>=</span>0,actions<span class=o>=</span>drop
+</span></span><span class=line><span class=cl><span class=nv>table_id</span><span class=o>=</span>254, <span class=nv>duration</span><span class=o>=</span>6067771s, <span class=nv>n_packets</span><span class=o>=</span>0, <span class=nv>n_bytes</span><span class=o>=</span>0, <span class=nv>priority</span><span class=o>=</span>0,reg0<span class=o>=</span>0x1,actions<span class=o>=</span>controller<span class=o>(</span><span class=nv>reason</span><span class=o>=</span>no_match<span class=o>)</span>
+</span></span><span class=line><span class=cl><span class=nv>table_id</span><span class=o>=</span>254, <span class=nv>duration</span><span class=o>=</span>6067771s, <span class=nv>n_packets</span><span class=o>=</span>0, <span class=nv>n_bytes</span><span class=o>=</span>0, <span class=nv>priority</span><span class=o>=</span>0,reg0<span class=o>=</span>0x2,actions<span class=o>=</span>drop
+</span></span><span class=line><span class=cl><span class=nv>table_id</span><span class=o>=</span>254, <span class=nv>duration</span><span class=o>=</span>6067771s, <span class=nv>n_packets</span><span class=o>=</span>0, <span class=nv>n_bytes</span><span class=o>=</span>0, <span class=nv>priority</span><span class=o>=</span>0,reg0<span class=o>=</span>0x3,actions<span class=o>=</span>drop
+</span></span></code></pre></td></tr></table></div></div><h3 id=查看一些有用的统计信息>查看一些有用的统计信息</h3><p>查看datapath统计信息.主要关注lost数值.hit表示datapath命中数,missed未命中，lost表示没有传递到用户空间就丢弃了. 主要关注lost值是否上升，如果上升说明存在问题了.该命令可以使用-s选项，会将每个port的统计信息也显示出来。</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span><span class=lnt>26
+</span><span class=lnt>27
+</span><span class=lnt>28
+</span><span class=lnt>29
+</span><span class=lnt>30
+</span><span class=lnt>31
+</span><span class=lnt>32
+</span><span class=lnt>33
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-sh data-lang=sh><span class=line><span class=cl>root@l-network-1:# ovs-dpctl show
+</span></span><span class=line><span class=cl>system@ovs-system:
+</span></span><span class=line><span class=cl>        lookups: hit:2596765540 missed:6438005 lost:0
+</span></span><span class=line><span class=cl>        flows: <span class=m>39</span>
+</span></span><span class=line><span class=cl>        masks: hit:19416324706 total:10 hit/pkt:7.46
+</span></span><span class=line><span class=cl>        port 0: ovs-system <span class=o>(</span>internal<span class=o>)</span>
+</span></span><span class=line><span class=cl>        port 1: tapd9a71635-53 <span class=o>(</span>internal<span class=o>)</span>
+</span></span><span class=line><span class=cl>        port 2: tap82059645-8e <span class=o>(</span>internal<span class=o>)</span>
+</span></span><span class=line><span class=cl>        port 3: tap3f0507b3-70 <span class=o>(</span>internal<span class=o>)</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>root@l-network-1:# ovs-dpctl show -s
+</span></span><span class=line><span class=cl>system@ovs-system:
+</span></span><span class=line><span class=cl>        lookups: hit:2596836956 missed:6438236 lost:0
+</span></span><span class=line><span class=cl>        flows: <span class=m>42</span>
+</span></span><span class=line><span class=cl>        masks: hit:19416902233 total:10 hit/pkt:7.46
+</span></span><span class=line><span class=cl>        port 0: ovs-system <span class=o>(</span>internal<span class=o>)</span>
+</span></span><span class=line><span class=cl>                RX packets:0 errors:0 dropped:0 overruns:0 frame:0
+</span></span><span class=line><span class=cl>                TX packets:0 errors:0 dropped:0 aborted:0 carrier:0
+</span></span><span class=line><span class=cl>                collisions:0
+</span></span><span class=line><span class=cl>                RX bytes:0  TX bytes:0
+</span></span><span class=line><span class=cl>        port 1: tapd9a71635-53 <span class=o>(</span>internal<span class=o>)</span>
+</span></span><span class=line><span class=cl>                RX packets:4170 errors:0 dropped:0 overruns:0 frame:0
+</span></span><span class=line><span class=cl>                TX packets:1091973 errors:0 dropped:0 aborted:0 carrier:0
+</span></span><span class=line><span class=cl>                collisions:0
+</span></span><span class=line><span class=cl>                RX bytes:906944 <span class=o>(</span>885.7 KiB<span class=o>)</span>  TX bytes:48392325 <span class=o>(</span>46.2 MiB<span class=o>)</span>
+</span></span><span class=line><span class=cl>        port 2: tap82059645-8e <span class=o>(</span>internal<span class=o>)</span>
+</span></span><span class=line><span class=cl>                RX packets:7130 errors:0 dropped:0 overruns:0 frame:0
+</span></span><span class=line><span class=cl>                TX packets:7379 errors:0 dropped:0 aborted:0 carrier:0
+</span></span><span class=line><span class=cl>                collisions:0
+</span></span><span class=line><span class=cl>                RX bytes:641578 <span class=o>(</span>626.5 KiB<span class=o>)</span>  TX bytes:650492 <span class=o>(</span>635.2 KiB<span class=o>)</span>
+</span></span><span class=line><span class=cl>        port 3: tap3f0507b3-70 <span class=o>(</span>internal<span class=o>)</span>
+</span></span><span class=line><span class=cl>                RX packets:5505 errors:0 dropped:0 overruns:0 frame:0
+</span></span><span class=line><span class=cl>                TX packets:7549 errors:0 dropped:0 aborted:0 carrier:0
+</span></span></code></pre></td></tr></table></div></div><p>ovs-ofctl dump-ports br [port]也可以查看port的统计信息.这个命令优势是可以指定port.</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-sh data-lang=sh><span class=line><span class=cl>root@l-network-1:# ovs-ofctl dump-ports br-ex
+</span></span><span class=line><span class=cl>OFPST_PORT reply <span class=o>(</span><span class=nv>xid</span><span class=o>=</span>0x2<span class=o>)</span>: <span class=m>19</span> ports
+</span></span><span class=line><span class=cl>  port LOCAL: rx <span class=nv>pkts</span><span class=o>=</span>78668524, <span class=nv>bytes</span><span class=o>=</span>34522064349, <span class=nv>drop</span><span class=o>=</span>0, <span class=nv>errs</span><span class=o>=</span>0, <span class=nv>frame</span><span class=o>=</span>0, <span class=nv>over</span><span class=o>=</span>0, <span class=nv>crc</span><span class=o>=</span><span class=m>0</span> tx <span class=nv>pkts</span><span class=o>=</span>78827893, <span class=nv>bytes</span><span class=o>=</span>5746347600, <span class=nv>drop</span><span class=o>=</span>0, <span class=nv>errs</span><span class=o>=</span>0, <span class=nv>coll</span><span class=o>=</span><span class=m>0</span> port 10: rx <span class=nv>pkts</span><span class=o>=</span>14386485, <span class=nv>bytes</span><span class=o>=</span>10843773932, <span class=nv>drop</span><span class=o>=</span>0, <span class=nv>errs</span><span class=o>=</span>0, <span class=nv>frame</span><span class=o>=</span>0, <span class=nv>over</span><span class=o>=</span>0, <span class=nv>crc</span><span class=o>=</span><span class=m>0</span> tx <span class=nv>pkts</span><span class=o>=</span>15666927, <span class=nv>bytes</span><span class=o>=</span>10659584526, <span class=nv>drop</span><span class=o>=</span>0, <span class=nv>errs</span><span class=o>=</span>0, <span class=nv>coll</span><span class=o>=</span><span class=m>0</span> port 26: rx <span class=nv>pkts</span><span class=o>=</span>3830, <span class=nv>bytes</span><span class=o>=</span>161388, <span class=nv>drop</span><span class=o>=</span>0, <span class=nv>errs</span><span class=o>=</span>0, <span class=nv>frame</span><span class=o>=</span>0, <span class=nv>over</span><span class=o>=</span>0, <span class=nv>crc</span><span class=o>=</span><span class=m>0</span> tx <span class=nv>pkts</span><span class=o>=</span>3025213, <span class=nv>bytes</span><span class=o>=</span>244511981, <span class=nv>drop</span><span class=o>=</span>0, <span class=nv>errs</span><span class=o>=</span>0, <span class=nv>coll</span><span class=o>=</span><span class=m>0</span> port 36: rx <span class=nv>pkts</span><span class=o>=</span>16, <span class=nv>bytes</span><span class=o>=</span>1200, <span class=nv>drop</span><span class=o>=</span>0, <span class=nv>errs</span><span class=o>=</span>0, <span class=nv>frame</span><span class=o>=</span>0, <span class=nv>over</span><span class=o>=</span>0, <span class=nv>crc</span><span class=o>=</span><span class=m>0</span> tx <span class=nv>pkts</span><span class=o>=</span>898463, <span class=nv>bytes</span><span class=o>=</span>68248745, <span class=nv>drop</span><span class=o>=</span>0, <span class=nv>errs</span><span class=o>=</span>0, <span class=nv>coll</span><span class=o>=</span><span class=m>0</span> port 25: rx <span class=nv>pkts</span><span class=o>=</span>4693, <span class=nv>bytes</span><span class=o>=</span>206958, <span class=nv>drop</span><span class=o>=</span>0, <span class=nv>errs</span><span class=o>=</span>0, <span class=nv>frame</span><span class=o>=</span>0, <span class=nv>over</span><span class=o>=</span>0, <span class=nv>crc</span><span class=o>=</span><span class=m>0</span> tx <span class=nv>pkts</span><span class=o>=</span>3256605, <span class=nv>bytes</span><span class=o>=</span>264430395, <span class=nv>drop</span><span class=o>=</span>0, <span class=nv>errs</span><span class=o>=</span>0, <span class=nv>coll</span><span class=o>=</span><span class=m>0</span> port 35: rx <span class=nv>pkts</span><span class=o>=</span>229447, <span class=nv>bytes</span><span class=o>=</span>21077911, <span class=nv>drop</span><span class=o>=</span>0, <span class=nv>errs</span><span class=o>=</span>0, <span class=nv>frame</span><span class=o>=</span>0, <span class=nv>over</span><span class=o>=</span>0, <span class=nv>crc</span><span class=o>=</span><span class=m>0</span> tx <span class=nv>pkts</span><span class=o>=</span>1905393, <span class=nv>bytes</span><span class=o>=</span>758729599, <span class=nv>drop</span><span class=o>=</span>0, <span class=nv>errs</span><span class=o>=</span>0, <span class=nv>coll</span><span class=o>=</span><span class=m>0</span> port 28: rx <span class=nv>pkts</span><span class=o>=</span>13, <span class=nv>bytes</span><span class=o>=</span>1074, <span class=nv>drop</span><span class=o>=</span>0, <span class=nv>errs</span><span class=o>=</span>0, <span class=nv>frame</span><span class=o>=</span>0, <span class=nv>over</span><span class=o>=</span>0, <span class=nv>crc</span><span class=o>=</span><span class=m>0</span> tx <span class=nv>pkts</span><span class=o>=</span>2266685, <span class=nv>bytes</span><span class=o>=</span>179166266, <span class=nv>drop</span><span class=o>=</span>0, <span class=nv>errs</span><span class=o>=</span>0, <span class=nv>coll</span><span class=o>=</span><span class=m>0</span> port 23: rx <span class=nv>pkts</span><span class=o>=</span>10345, <span class=nv>bytes</span><span class=o>=</span>636977, <span class=nv>drop</span><span class=o>=</span>0, <span class=nv>errs</span><span class=o>=</span>0, <span class=nv>frame</span><span class=o>=</span>0, <span class=nv>over</span><span class=o>=</span>0, <span class=nv>crc</span><span class=o>=</span><span class=m>0</span> tx <span class=nv>pkts</span><span class=o>=</span>3345437, <span class=nv>bytes</span><span class=o>=</span>272099392, <span class=nv>drop</span><span class=o>=</span>0, <span class=nv>errs</span><span class=o>=</span>0, <span class=nv>coll</span><span class=o>=</span><span class=m>0</span>
+</span></span></code></pre></td></tr></table></div></div><h3 id=查看bridge的转发表>查看bridge的转发表</h3><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-sh data-lang=sh><span class=line><span class=cl>root@l-network-1:# ovs-appctl fdb/show br-ex
+</span></span><span class=line><span class=cl> port  VLAN  MAC                Age
+</span></span><span class=line><span class=cl>   <span class=m>10</span>     <span class=m>0</span>  fa:16:3e:f8:28:9f    <span class=m>9</span>
+</span></span><span class=line><span class=cl>   <span class=m>11</span>     <span class=m>0</span>  fa:16:3e:a7:d2:f5    <span class=m>8</span>
+</span></span><span class=line><span class=cl>   <span class=m>34</span>     <span class=m>0</span>  fa:16:3e:2f:b2:71    <span class=m>8</span>
+</span></span><span class=line><span class=cl>    <span class=m>4</span>     <span class=m>0</span>  2c:44:fd:89:cf:3a    <span class=m>6</span>
+</span></span><span class=line><span class=cl>    <span class=m>6</span>     <span class=m>0</span>  fa:16:3e:45:c7:c5    <span class=m>5</span>
+</span></span><span class=line><span class=cl>    <span class=m>4</span>     <span class=m>0</span>  fa:16:3e:44:15:eb    <span class=m>5</span>
+</span></span><span class=line><span class=cl>    <span class=m>4</span>     <span class=m>0</span>  2c:44:fd:8a:78:06    <span class=m>4</span>
+</span></span><span class=line><span class=cl>    <span class=m>1</span>     <span class=m>0</span>  fa:16:3e:be:08:35    <span class=m>2</span>
+</span></span><span class=line><span class=cl>    <span class=m>3</span>     <span class=m>0</span>  fa:16:3e:2f:dd:71    <span class=m>1</span>
+</span></span><span class=line><span class=cl>    <span class=m>2</span>     <span class=m>0</span>  fa:16:3e:d7:f0:c1    <span class=m>0</span>
+</span></span><span class=line><span class=cl>LOCAL     <span class=m>0</span>  2c:44:fd:8a:32:ce    <span class=m>0</span>
+</span></span><span class=line><span class=cl>    <span class=m>4</span>     <span class=m>0</span>  20:0b:c7:37:d0:05    <span class=m>0</span>
+</span></span></code></pre></td></tr></table></div></div><h2 id=设置qos>设置qos</h2><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-sh data-lang=sh><span class=line><span class=cl>ovs-vsctl <span class=nb>set</span> Interface tap0 <span class=nv>ingress_policing_rate</span><span class=o>=</span><span class=m>100000</span> ovs-vsctl <span class=nb>set</span> Intervace tap <span class=nv>ingress_policing_burst</span><span class=o>=</span><span class=m>10000</span> ovs-appctl qos/show &lt;iface&gt;
+</span></span></code></pre></td></tr></table></div></div><h2 id=调试技巧>调试技巧</h2><h3 id=查看流表匹配规则>查看流表匹配规则</h3><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-sh data-lang=sh><span class=line><span class=cl>watch -d -n <span class=m>1</span> <span class=s2>&#34;ovs-ofctl dump-flows &lt;bridge&gt;&#34;</span>
+</span></span></code></pre></td></tr></table></div></div><h3 id=查看统计信息>查看统计信息</h3><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-sh data-lang=sh><span class=line><span class=cl>ovs-dpctl show -s
+</span></span><span class=line><span class=cl>ovs-ofctl dump-ports &lt;br&gt; <span class=o>[</span>port<span class=o>]</span>
+</span></span></code></pre></td></tr></table></div></div><h3 id=使用tcpdump抓包需要设置端口镜像>使用tcpdump抓包,需要设置端口镜像</h3><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-sh data-lang=sh><span class=line><span class=cl>ip link add name snooper0 <span class=nb>type</span> dummy
+</span></span><span class=line><span class=cl>ip link <span class=nb>set</span> dev snooper0 up
+</span></span><span class=line><span class=cl>ovs-vsctl add-port br-int snooper0
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>ovs-vsctl -- <span class=nb>set</span> Bridge br-int <span class=nv>mirrors</span><span class=o>=</span>@m -- --id<span class=o>=</span>@snooper0 <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>  get Port snooper0  -- --id<span class=o>=</span>@patch-tun get Port patch-tun <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>  -- --id<span class=o>=</span>@m create Mirror <span class=nv>name</span><span class=o>=</span>mymirror <span class=k>select</span>-dst-port<span class=o>=</span>@patch-tun <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>  <span class=k>select</span>-src-port<span class=o>=</span>@patch-tun output-port<span class=o>=</span>@snooper0 <span class=nv>select_all</span><span class=o>=</span><span class=m>1</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>tcpdump -i snooper0
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>ovs-vsctl clear Bridge br-int mirrors
+</span></span><span class=line><span class=cl>ovs-vsctl del-port br-int snooper0
+</span></span><span class=line><span class=cl>ip link delete dev snooper0
+</span></span></code></pre></td></tr></table></div></div><h3 id=查看日志>查看日志</h3><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-sh data-lang=sh><span class=line><span class=cl>cat /var/log/openvswitch/*.log
+</span></span></code></pre></td></tr></table></div></div><h3 id=使用ovs-appctl-ofprototrace-bridge-k1v1k2v2测试流匹配>使用ovs-appctl ofproto/trace {bridge} k1=v1,k2=v2测试流匹配</h3><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-sh data-lang=sh><span class=line><span class=cl>root@l-network-1:~# ovs-appctl ofproto/trace br-ex <span class=nv>in_port</span><span class=o>=</span>10,dl_src<span class=o>=</span>66:4e:cc:ae:4d:20,dl_dst<span class=o>=</span>46:54:8a:95:dd:f8 -generate
+</span></span><span class=line><span class=cl>Bridge: br-ex
+</span></span><span class=line><span class=cl>Flow: <span class=nv>in_port</span><span class=o>=</span>10,vlan_tci<span class=o>=</span>0x0000,dl_src<span class=o>=</span>66:4e:cc:ae:4d:20,dl_dst<span class=o>=</span>46:54:8a:95:dd:f8,dl_type<span class=o>=</span>0x0000
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>Rule: <span class=nv>table</span><span class=o>=</span><span class=m>0</span> <span class=nv>cookie</span><span class=o>=</span><span class=m>0</span> <span class=nv>priority</span><span class=o>=</span><span class=m>0</span>
+</span></span><span class=line><span class=cl>OpenFlow <span class=nv>actions</span><span class=o>=</span>NORMAL
+</span></span><span class=line><span class=cl>no learned MAC <span class=k>for</span> destination, flooding
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>Final flow: <span class=nv>in_port</span><span class=o>=</span>10,vlan_tci<span class=o>=</span>0x0000,dl_src<span class=o>=</span>66:4e:cc:ae:4d:20,dl_dst<span class=o>=</span>46:54:8a:95:dd:f8,dl_type<span class=o>=</span>0x0000
+</span></span><span class=line><span class=cl>Megaflow: <span class=nv>in_port</span><span class=o>=</span>10,vlan_tci<span class=o>=</span>0x0000/0x1fff,dl_src<span class=o>=</span>66:4e:cc:ae:4d:20,dl_dst<span class=o>=</span>46:54:8a:95:dd:f8,dl_type<span class=o>=</span>0x0000
+</span></span><span class=line><span class=cl>Datapath actions: 27,30,12,14,15,17,20,37,9,28,47,48,54,57,29,25,61,21
+</span></span></code></pre></td></tr></table></div></div><h2 id=参考>参考</h2><ul><li><a href=https://docs.openvswitch.org/en/latest/ target=_blank rel="noopener noreffer">https://docs.openvswitch.org/en/latest/</a></li><li><a href=http://fishcried.com/2016-02-09/openvswitch-ops-guide/ target=_blank rel="noopener noreffer">http://fishcried.com/2016-02-09/openvswitch-ops-guide/</a></li></ul></div><div class=post-footer id=post-footer><div class=post-info><div class=post-info-line><div class=post-info-mod><span>更新于 2020-01-01</span></div><div class=post-info-license></div></div><div class=post-info-line><div class=post-info-md><span><a class=link-to-markdown href=/2020/openvswitch%E4%BD%BF%E7%94%A8%E9%80%9F%E6%9F%A5/index.md target=_blank>阅读原始文档</a></span></div><div class=post-info-share><span><a href=javascript:void(0); title="分享到 Twitter" data-sharer=twitter data-url=https://blog.firemiles.top/2020/openvswitch%E4%BD%BF%E7%94%A8%E9%80%9F%E6%9F%A5/ data-title="openvswitch 使用速查" data-hashtags=tool,openvswitch><i class="fab fa-twitter fa-fw"></i></a><a href=javascript:void(0); title="分享到 Facebook" data-sharer=facebook data-url=https://blog.firemiles.top/2020/openvswitch%E4%BD%BF%E7%94%A8%E9%80%9F%E6%9F%A5/ data-hashtag=tool><i class="fab fa-facebook-square fa-fw"></i></a><a href=javascript:void(0); title="分享到 WhatsApp" data-sharer=whatsapp data-url=https://blog.firemiles.top/2020/openvswitch%E4%BD%BF%E7%94%A8%E9%80%9F%E6%9F%A5/ data-title="openvswitch 使用速查" data-web><i class="fab fa-whatsapp fa-fw"></i></a><a href=javascript:void(0); title="分享到 Line" data-sharer=line data-url=https://blog.firemiles.top/2020/openvswitch%E4%BD%BF%E7%94%A8%E9%80%9F%E6%9F%A5/ data-title="openvswitch 使用速查"><i data-svg-src=/lib/simple-icons/icons/line.min.svg></i></a><a href=javascript:void(0); title="分享到 微博" data-sharer=weibo data-url=https://blog.firemiles.top/2020/openvswitch%E4%BD%BF%E7%94%A8%E9%80%9F%E6%9F%A5/ data-title="openvswitch 使用速查" data-image=https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/20200101155834.png><i class="fab fa-weibo fa-fw"></i></a><a href=javascript:void(0); title="分享到 Myspace" data-sharer=myspace data-url=https://blog.firemiles.top/2020/openvswitch%E4%BD%BF%E7%94%A8%E9%80%9F%E6%9F%A5/ data-title="openvswitch 使用速查" data-description="openvswitch 已经成为 SDN 网络的一块基石，是网络开发者无法绕过的一道关口。本文总结 openvswitch 的模块结构以及命令行工具，方便日常开发查询。2020年的第一篇博客，我们就来谈谈openvswitch。"><i data-svg-src=/lib/simple-icons/icons/myspace.min.svg></i></a><a href=javascript:void(0); title="分享到 Blogger" data-sharer=blogger data-url=https://blog.firemiles.top/2020/openvswitch%E4%BD%BF%E7%94%A8%E9%80%9F%E6%9F%A5/ data-title="openvswitch 使用速查" data-description="openvswitch 已经成为 SDN 网络的一块基石，是网络开发者无法绕过的一道关口。本文总结 openvswitch 的模块结构以及命令行工具，方便日常开发查询。2020年的第一篇博客，我们就来谈谈openvswitch。"><i class="fab fa-blogger fa-fw"></i></a><a href=javascript:void(0); title="分享到 Evernote" data-sharer=evernote data-url=https://blog.firemiles.top/2020/openvswitch%E4%BD%BF%E7%94%A8%E9%80%9F%E6%9F%A5/ data-title="openvswitch 使用速查"><i class="fab fa-evernote fa-fw"></i></a></span></div></div></div><div class=post-info-more><section class=post-tags><i class="fas fa-tags fa-fw"></i>&nbsp;<a href=/tags/tool/>tool</a>,&nbsp;<a href=/tags/openvswitch/>openvswitch</a></section><section><span><a href=javascript:void(0); onclick=window.history.back()>返回</a></span>&nbsp;|&nbsp;<span><a href=/>主页</a></span></section></div><div class=post-nav><a href=/2019/ipv6%E7%89%B9%E6%80%A7%E4%BB%8B%E7%BB%8D/ class=prev rel=prev title=IPv6特性介绍><i class="fas fa-angle-left fa-fw"></i>IPv6特性介绍</a>
+<a href=/2020/%E5%85%B7%E4%BD%93%E6%95%B0%E5%AD%A6-%E7%BA%A6%E7%91%9F%E5%A4%AB%E9%97%AE%E9%A2%98/ class=next rel=next title=具体数学-约瑟夫问题>具体数学-约瑟夫问题<i class="fas fa-angle-right fa-fw"></i></a></div></div><div id=comments></div></article></div></main><footer class=footer><div class=footer-container><div class=footer-line>由 <a href=https://gohugo.io/ target=_blank rel="noopener noreffer" title="Hugo 0.97.3">Hugo</a> 强力驱动 | 主题 - <a href=https://github.com/dillonzq/LoveIt target=_blank rel="noopener noreffer" title="LoveIt 0.2.10"><i class="far fa-kiss-wink-heart fa-fw"></i> LoveIt</a></div><div class=footer-line><i class="far fa-copyright fa-fw"></i><span itemprop=copyrightYear>2019 - 2022</span><span class=author itemprop=copyrightHolder>&nbsp;<a href=/ target=_blank>firemiles</a></span>&nbsp;|&nbsp;<span class=license><a rel="license external nofollow noopener noreffer" href=https://creativecommons.org/licenses/by-nc/4.0/ target=_blank>CC BY-NC 4.0</a></span></div></div></footer></div><div id=fixed-buttons><a href=# id=back-to-top class=fixed-button title=回到顶部><i class="fas fa-arrow-up fa-fw"></i>
+</a><a href=# id=view-comments class=fixed-button title=查看评论><i class="fas fa-comment fa-fw"></i></a></div><link rel=stylesheet href=/lib/katex/katex.min.css><link rel=stylesheet href=/lib/katex/copy-tex.min.css><link rel=stylesheet href=/lib/cookieconsent/cookieconsent.min.css><script type=text/javascript src=/lib/smooth-scroll/smooth-scroll.min.js></script><script type=text/javascript src=/lib/autocomplete/autocomplete.min.js></script><script type=text/javascript src=/lib/lunr/lunr.min.js></script><script type=text/javascript src=/lib/lunr/lunr.stemmer.support.min.js></script><script type=text/javascript src=/lib/lunr/lunr.zh.min.js></script><script type=text/javascript src=/lib/lazysizes/lazysizes.min.js></script><script type=text/javascript src=/lib/clipboard/clipboard.min.js></script><script type=text/javascript src=/lib/sharer/sharer.min.js></script><script type=text/javascript src=/lib/katex/katex.min.js></script><script type=text/javascript src=/lib/katex/auto-render.min.js></script><script type=text/javascript src=/lib/katex/copy-tex.min.js></script><script type=text/javascript src=/lib/katex/mhchem.min.js></script><script type=text/javascript src=/lib/cookieconsent/cookieconsent.min.js></script><script type=text/javascript>window.config={code:{copyTitle:"复制到剪贴板",maxShownLines:10},comment:{},cookieconsent:{content:{dismiss:"同意",link:"了解更多",message:"本网站使用 Cookies 来改善您的浏览体验."},enable:!0,palette:{button:{background:"#f0f0f0"},popup:{background:"#1aa3ff"}},theme:"edgeless"},math:{delimiters:[{display:!0,left:"$$",right:"$$"},{display:!0,left:"\\[",right:"\\]"},{display:!1,left:"$",right:"$"},{display:!1,left:"\\(",right:"\\)"}],strict:!1},search:{highlightTag:"em",lunrIndexURL:"/index.json",lunrLanguageCode:"zh",lunrSegmentitURL:"/lib/lunr/lunr.segmentit.js",maxResultLength:10,noResultsFound:"没有找到结果",snippetLength:50,type:"lunr"}}</script><script type=text/javascript src=/js/theme.min.js></script></body></html>
