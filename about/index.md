@@ -1,4 +1,13 @@
-# 关于该博客
+# 关于我
 
 
-Firemiels 的个人博客。
+> Gopher，容器网络开发，开源贡献者。云计算行业多年从业者。
+
+## 基本技能
+
+- Linux
+- Kubernetes
+- Go
+- C/C++
+- Network
+
