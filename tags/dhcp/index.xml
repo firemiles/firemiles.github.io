@@ -10,4 +10,325 @@
 <p>甚至对于很少改变地址的服务器，DHCP仍然被建议用来设置它们的地址。如果服务器需要被重新分配地址，尽可能不改变之前的配置。对于一些设备，如路由器和防火墙，则不应该使用DHCP。</p>
 <p>DHCP 于 1993 年10月成为标准协议，前身是 BOOTP （Bootstrap Protocol， 引导程序协议），DHCP 被设计成向前兼容 BOOTP 协议。当前的DHCP定义可以在<a href="https://tools.ietf.org/html/rfc2131" target="_blank" rel="noopener noreffer">RFC 2131</a>
 找到，而基于IPv6的建议标准(DHCPv6)可以在<a href="https://tools.ietf.org/html/rfc3315" target="_blank" rel="noopener noreffer">RFC3315</a>
-中找到。</p>]]></description></item></channel></rss>
+中找到。</p>
+<h2 id="协议结构">协议结构</h2>
+<p></p>
+<ul>
+<li>Op：消息操作代码，既可以是引导请求（BOOTREQUEST 1）也可以是引导答复（BOOTREPLY 2）</li>
+<li>Htype：硬件地址类型</li>
+<li>Hlen：硬件地址长度</li>
+<li>Hops：客户端设置为0，relay agent使用</li>
+<li>Xid：处理ID</li>
+<li>Secs：从获取到IP地址或者续约过程开始到现在所消耗的时间</li>
+<li>Flags：标记</li>
+<li>Ciaddr：客户机IP地址</li>
+<li>Yiaddr：“你的”（客户机）IP地址</li>
+<li>Siaddr：在bootstrap中使用的下一台服务器的IP地址</li>
+<li>Giaddr：用于导入的接替代理IP地址</li>
+<li>Chaddr：客户机硬件</li>
+<li>Sname：任意服务器主机名称，空终止符</li>
+<li>File：DHCP发现协议中的引导文件名、空终止符、属名或者空，DHCP供应协议中的受限目录路径名</li>
+<li>Options：可选参数字段。参考定义选择列表中的选择文件</li>
+</ul>
+<h2 id="协议时序">协议时序</h2>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">sequenceDiagram
+</span></span><span class="line"><span class="cl">    participant  Server(not selected)
+</span></span><span class="line"><span class="cl">    participant  Client
+</span></span><span class="line"><span class="cl">    participant  Server(selected)
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    Note over Client: Begins initialization
+</span></span><span class="line"><span class="cl">    Client -&gt;&gt;+ Server(selected): DHCPDISCOVER
+</span></span><span class="line"><span class="cl">    Client -&gt;&gt;+ Server(not selected): DHCPDISCOVER
+</span></span><span class="line"><span class="cl">    Note over Server(selected): Determines configuration
+</span></span><span class="line"><span class="cl">    Server(selected) -&gt;&gt;- Client: DHCPOFFER
+</span></span><span class="line"><span class="cl">    Note over Server(not selected): Determines configuration
+</span></span><span class="line"><span class="cl">    Server(not selected) -&gt;&gt;- Client: DHCPOFFER
+</span></span><span class="line"><span class="cl">    Note over Client: Collects replies, Selects configuration
+</span></span><span class="line"><span class="cl">    Client -&gt;&gt;+ Server(selected): DHCPREQUEST
+</span></span><span class="line"><span class="cl">    Client -&gt;&gt; Server(not selected): DHCPREQUEST
+</span></span><span class="line"><span class="cl">    Note over Server(selected): Commits configuration
+</span></span><span class="line"><span class="cl">    Server(selected) -&gt;&gt;- Client: DHCPACK
+</span></span><span class="line"><span class="cl">    Note over Client: Initialization complete
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    Note over Client: Graceful shutdown
+</span></span><span class="line"><span class="cl">    Client -&gt;&gt; Server(selected): DHCPRELEASE
+</span></span><span class="line"><span class="cl">    Note over Server(selected): Discards lease
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>DHCP 客户端发送 DHCPDISCOVER 广播报文请求 DHCP 网络配置；</p>
+<p>Server 端收到后应答 DHCPOFFER 配置客户端；客户端选择一个 Server 以及它提供的网络参数，填写 <code>server identifier</code> option 后广播 DHCPREQUEST 报文；</p>
+<p>Server 接收到 DHCPREQUEST 报文，没被选中的 Sever 通过该报文确认 client 没有使用自己提供的配置，被选中的 Server 持久化客户端binding配置，并应答 DHCPACK 报文，DHCPACK 中的配置不能和之前的 DHCPOFFER 冲突，并且 Server 在该阶段并不检查提供的网络地址；</p>
+<p>客户端接收到 DHCPACK 后，应该对参数作最后的检查（例如ARP检查获得的网络地址），并记录lease时间。如果客户端发现网络地址已经被占用了，客户端需要发送 DHCPDECLINE 消息给 Server 并等待至少10s后重启配置流程。</p>
+<h2 id="dhcp-协议状态转移图">DHCP 协议状态转移图</h2>
+<p></p>
+<h2 id="dhcp-常用-option-字段">DHCP 常用 Option 字段</h2>
+<h3 id="subnet-mask">Subnet Mask</h3>
+<p>客户端子网掩码，如果subnet mask option和router option同时指定，subnet mask必须第一个。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-txt" data-lang="txt"><span class="line"><span class="cl">Code   Len        Subnet Mask
+</span></span><span class="line"><span class="cl">+-----+-----+-----+-----+-----+-----+
+</span></span><span class="line"><span class="cl">|  1  |  4  |  m1 |  m2 |  m3 |  m4 |
+</span></span><span class="line"><span class="cl">+-----+-----+-----+-----+-----+-----+
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="router-option">Router Option</h3>
+<p>指定客户端子网中的路由器IP列表。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-txt" data-lang="txt"><span class="line"><span class="cl">Code   Len         Address 1               Address 2
+</span></span><span class="line"><span class="cl">+-----+-----+-----+-----+-----+-----+-----+-----+--
+</span></span><span class="line"><span class="cl">|  3  |  n  |  a1 |  a2 |  a3 |  a4 |  a1 |  a2 |  ...
+</span></span><span class="line"><span class="cl">+-----+-----+-----+-----+-----+-----+-----+-----+--
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="domain-name-server-option">Domain Name Server Option</h3>
+<p>为客户端指定DNS列表。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-txt" data-lang="txt"><span class="line"><span class="cl">Code   Len         Address 1               Address 2
+</span></span><span class="line"><span class="cl">+-----+-----+-----+-----+-----+-----+-----+-----+--
+</span></span><span class="line"><span class="cl">|  6  |  n  |  a1 |  a2 |  a3 |  a4 |  a1 |  a2 |  ...
+</span></span><span class="line"><span class="cl">+-----+-----+-----+-----+-----+-----+-----+-----+--
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="host-name-option">Host Name Option</h3>
+<p>指定客户端名字。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-txt" data-lang="txt"><span class="line"><span class="cl">Code   Len                 Host Name
+</span></span><span class="line"><span class="cl">+-----+-----+-----+-----+-----+-----+-----+-----+--
+</span></span><span class="line"><span class="cl">|  12 |  n  |  h1 |  h2 |  h3 |  h4 |  h5 |  h6 |  ...
+</span></span><span class="line"><span class="cl">+-----+-----+-----+-----+-----+-----+-----+-----+--
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="domain-name">Domain Name</h3>
+<p>指定客户端hostname的在DNS中记录的域名。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-txt" data-lang="txt"><span class="line"><span class="cl">Code   Len        Domain Name
+</span></span><span class="line"><span class="cl">+-----+-----+-----+-----+-----+-----+--
+</span></span><span class="line"><span class="cl">|  15 |  n  |  d1 |  d2 |  d3 |  d4 |  ...
+</span></span><span class="line"><span class="cl">+-----+-----+-----+-----+-----+-----+--
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="interface-mtu-option">Interface MTU Option</h3>
+<p>网卡MTU。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-txt" data-lang="txt"><span class="line"><span class="cl">Code   Len      MTU
+</span></span><span class="line"><span class="cl">+-----+-----+-----+-----+
+</span></span><span class="line"><span class="cl">|  26 |  2  |  m1 |  m2 |
+</span></span><span class="line"><span class="cl">+-----+-----+-----+-----+
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="static-route-option">Static Route Option</h3>
+<p>指定客户端需要添加的静态路由。default route(0.0.0.0) 在静态路由中使用是非法的。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span><span class="lnt">8
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-txt" data-lang="txt"><span class="line"><span class="cl">Code   Len         Destination 1           Router 1
+</span></span><span class="line"><span class="cl">+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+
+</span></span><span class="line"><span class="cl">|  33 |  n  |  d1 |  d2 |  d3 |  d4 |  r1 |  r2 |  r3 |  r4 |
+</span></span><span class="line"><span class="cl">+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+
+</span></span><span class="line"><span class="cl">        Destination 2           Router 2
+</span></span><span class="line"><span class="cl">+-----+-----+-----+-----+-----+-----+-----+-----+---
+</span></span><span class="line"><span class="cl">|  d1 |  d2 |  d3 |  d4 |  r1 |  r2 |  r3 |  r4 | ...
+</span></span><span class="line"><span class="cl">+-----+-----+-----+-----+-----+-----+-----+-----+---
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="classless-route-option">Classless Route Option</h3>
+<p>支持CIDR目的路由，如果客户端不支持，忽略该配置；如果客户端支持，当static route 和 classless route 同时配置时，忽略static route option。如果Server同时返回 classless route和router option，忽略router option。</p>
+<p>很多客户端可能不支持该选项，Server 最好同时发送 classless route和router option，在 classless route和router option中同时指定默认网关。</p>
+<p>当客户端请求classless route，同时请求static routes或routers option时，Server只需要发送classless route，不要发送static routes和routers option。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span><span class="lnt">8
+</span><span class="lnt">9
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-txt" data-lang="txt"><span class="line"><span class="cl">Code Len Destination 1    Router 1
+</span></span><span class="line"><span class="cl">+-----+---+----+-----+----+----+----+----+----+
+</span></span><span class="line"><span class="cl">| 121 | n | d1 | ... | dN | r1 | r2 | r3 | r4 |
+</span></span><span class="line"><span class="cl">+-----+---+----+-----+----+----+----+----+----+
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">Destination 2       Router 2
+</span></span><span class="line"><span class="cl">+----+-----+----+----+----+----+----+
+</span></span><span class="line"><span class="cl">| d1 | ... | dN | r1 | r2 | r3 | r4 |
+</span></span><span class="line"><span class="cl">+----+-----+----+----+----+----+----+
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="server-identifier">Server Identifier</h3>
+<p>DHCPOFFER 和 DHCPREQUEST 中用于指定 DHCP Server。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-txt" data-lang="txt"><span class="line"><span class="cl">Code   Len            Address
+</span></span><span class="line"><span class="cl">+-----+-----+-----+-----+-----+-----+
+</span></span><span class="line"><span class="cl">|  54 |  4  |  a1 |  a2 |  a3 |  a4 |
+</span></span><span class="line"><span class="cl">+-----+-----+-----+-----+-----+-----+
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="client-identifier">Client-identifier</h3>
+<p>客户端默认用硬件地址来作为ID，但是也可以用这个值作为ID，Server 可以使用这个id来存取客户端的配置。服务器可以用域名，虚拟机用机器UUID来设置该值。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-txt" data-lang="txt"><span class="line"><span class="cl">Code   Len   Type  Client-Identifier
+</span></span><span class="line"><span class="cl">+-----+-----+-----+-----+-----+---
+</span></span><span class="line"><span class="cl">|  61 |  n  |  t1 |  i1 |  i2 | ...
+</span></span><span class="line"><span class="cl">+-----+-----+-----+-----+-----+---
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="参考资料">参考资料</h2>
+<ul>
+<li><a href="https://www.wikiwand.com/zh-hans/%E5%8A%A8%E6%80%81%E4%B8%BB%E6%9C%BA%E8%AE%BE%E7%BD%AE%E5%8D%8F%E8%AE%AE" target="_blank" rel="noopener noreffer">DHCP WIKI</a>
+</li>
+<li><a href="https://tools.ietf.org/html/rfc2131" target="_blank" rel="noopener noreffer"><strong>RFC2131</strong> Dynamic Host Configuration Protocol</a>
+</li>
+<li><a href="https://tools.ietf.org/html/rfc3315" target="_blank" rel="noopener noreffer"><strong>RFC3315</strong> Dynamic Host Configuration Protocol for IPv6 (DHCPv6)</a>
+</li>
+<li><a href="https://tools.ietf.org/html/rfc951" target="_blank" rel="noopener noreffer"><strong>RFC951</strong> BOOTSTRAP PROTOCOL (BOOTP)</a>
+</li>
+<li><a href="https://tools.ietf.org/html/rfc1542" target="_blank" rel="noopener noreffer"><strong>RFC1542</strong> Clarifications and Extensions for the Bootstrap Protocol</a>
+</li>
+<li><a href="https://tools.ietf.org/html/rfc1533" target="_blank" rel="noopener noreffer"><strong>RFC1533</strong> DHCP Options and BOOTP Vendor Extensions</a>
+</li>
+<li><a href="https://tools.ietf.org/html/rfc3442" target="_blank" rel="noopener noreffer"><strong>RFC3442</strong> The Classless Static Route Option for Dynamic Host Configuration Protocol (DHCP) version 4</a>
+</li>
+</ul>
+<h2 id="附录">附录</h2>
+<p>状态图源码</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-txt" data-lang="txt"><span class="line"><span class="cl">stateDiagram
+</span></span><span class="line"><span class="cl">    [*] --&gt; INIT
+</span></span><span class="line"><span class="cl">    INIT --&gt; SELECTING: -/Send DHCPDISCOVER
+</span></span><span class="line"><span class="cl">    SELECTING --&gt; SELECTING: DHCPOFFER/Collect replies
+</span></span><span class="line"><span class="cl">    SELECTING --&gt; REQUESTING: Select offerk/send DHCPREQUEST
+</span></span><span class="line"><span class="cl">    REQUESTING --&gt; REQUESTING: DHCPOFFER/Discard
+</span></span><span class="line"><span class="cl">    REQUESTING --&gt; INIT: DHCPNAK/Discard offer, DHCPACK (not accept.)/Send DHCPDECLINE
+</span></span><span class="line"><span class="cl">    REQUESTING --&gt; BOUND: DHCPACK/Record lease, set timers T1, T2
+</span></span><span class="line"><span class="cl">    BOUND --&gt; BOUND: DHCPOFFER, DHCPACK, DHCPNAK/Discard
+</span></span><span class="line"><span class="cl">    BOUND --&gt; RENEWING: T1 expires/Send DHCPREQUEST to leasing server
+</span></span><span class="line"><span class="cl">    RENEWING --&gt; BOUND: DHCPACK/Record lease, set timers T1, T2
+</span></span><span class="line"><span class="cl">    RENEWING --&gt; REBINDING: T2 expires/Broadcast DHCPREQUEST
+</span></span><span class="line"><span class="cl">    RENEWING --&gt; INIT: DHCPNAK/Halt network
+</span></span><span class="line"><span class="cl">    REBINDING --&gt; BOUND: DHCPACK/Record lease, set timers T1,T2
+</span></span><span class="line"><span class="cl">    REBINDING --&gt; INIT: DHCPNAK, Lease expired/Halt network
+</span></span><span class="line"><span class="cl">    INIT_REBOOT --&gt; REBOOTING: -/Send DHCPREQUEST
+</span></span><span class="line"><span class="cl">    REBOOTING --&gt; BOUND: DHCPACK/Record lease, set timers T1, T2
+</span></span><span class="line"><span class="cl">    REBOOTING --&gt; INIT: DHCPNAK/Restart
+</span></span></code></pre></td></tr></table>
+</div>
+</div>]]></description></item></channel></rss>

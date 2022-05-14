@@ -14,6 +14,45 @@
 </li>
 <li>你必须为新version安装storage <a href="https://github.com/kubernetes/kubernetes/blob/v1.8.0-alpha.2/pkg/registry/authentication/rest/storage_authentication.go" target="_blank" rel="noopener noreffer">pkg/registry/group_name/rest</a>
 </li>
+</ul>
+<h2 id="添加一个新-api-group">添加一个新 API Group</h2>
+<p>你需要在 <code>pkg/apis</code> 和 <code>staging/src/k8s.io/api</code> 中为 Group 创建新的目录。复制已有的 API Group 的目录结构，例如：<code>pkg/apis/authentication</code> 和 <code>staging/src/k8s.io/api/authentication</code>；用自己的 group 名替换 authentication，用自己的 version 替换旧的 version。替换 <a href="https://github.com/kubernetes/kubernetes/blob/v1.8.0-alpha.2/staging/src/k8s.io/api/authentication/v1/register.go#L47" target="_blank" rel="noopener noreffer">versioned</a>
+ 和 <a href="https://github.com/kubernetes/kubernetes/blob/v1.8.0-alpha.2/pkg/apis/authentication/register.go#L47" target="_blank" rel="noopener noreffer">internal</a>
+ 中 register.go 的 API Kinds，还有 install.go 中的 kinds (1.11版本后 install.go 不再需要修改kind)</p>
+<p>你需要在代码中一些未知加入你的 API Group/Verison，并且参考 <a href="#%e6%b7%bb%e5%8a%a0%e4%b8%80%e4%b8%aa%e6%96%b0-API-Version" rel="">添加一个新 API Version</a>
+ 段落，需要重新生成前面提到的代码。</p>
+<h2 id="更新-fuzzer">更新 fuzzer</h2>
+<p>测试APIs的相互转换稳定性的一个方法是&quot;fuzz&quot;（填充随机值）到 API 对象中，并且把它们在不同版本的API间进行转换。这个一个很好的方法，能够暴露代码中丢失的信息和错误的假设前提。如果你添加了任意字段需要很好的格式化（测试不进行validation），或者你假设 slice 至少包含一个元素，你可能会得到 <code>serialization_test</code> 的错误返回。如果遇到了这类问题，你可以自定义 fuzz 方法满足要求。</p>
+<p>fuzzer 可以在 <code>pkg/api/testing/fuzzer.go</code> 中找到。</p>
+<h2 id="更新语义比较">更新语义比较</h2>
+<p>非常非常少见的情况，但是还是简单说明。某些更新了 boject 的内容，用了不同的表达方式，但是又想要比较函数在比较旧的表达方式和新的表达方式时，能够通过语义进行对比。例如二进制格式化的10和十进制格式化的2语义上时相同的。Go 唯一支持的 Deep-Equal 是一个字段一个字段进行比特比较。</p>
+<p>首先你不应该这么做，如果不可避免，你需要了解 <code>apiequality.Semantic.DeepEqual</code> routine，它支持自定义指定类型——　可以在<code>pkg/api/helper/helpers.go</code> 中找</p>
+<p>还有一件事你可能需要了解：<code>unexported field</code>. Go 的 <code>relect</code> 包支持 <code>unexported fields</code>。但是我们不支持——<code>apiequality.Semantic.DeepEqual</code>. 幸运的时大部分 API Object 导出了所有的 fields. 但是有时你想要不导出字段（time.Time包含未导出字段），你可能需要在 <code>apiequality.Semantic.DeepEqual</code> 自定义函数。</p>
+<h2 id="实现你的修改">实现你的修改</h2>
+<p>到这里你已经完成了 API 的修改，接下来就是完成代码的实现。</p>
+<h2 id="编写-end-to-end-tests">编写 end-to-end tests</h2>
+<p>看以看这篇 <a href="https://github.com/kubernetes/community/blob/master/contributors/devel/e2e-tests.md" target="_blank" rel="noopener noreffer">e2e doc</a>
+
+文档学习如何为你的特性编写 end-to-end test。</p>
+<h2 id="example-和-docs">Example 和 docs</h2>
+<p>在最后，你通过了单元测试、e2e测试，但是还没有结束。你只是修改了 API，如果你修改了已存在的 API， 你必须要确定所有的例子和文档也同时更新。这其实很困难，尤其时在JSON和YAML中会默默丢弃未知的字段。你可以使用 <code>grep</code> 和 <code>ack</code> 来辅助。</p>
+<p>如果你添加了功能，你需要考虑添加文档和例子：</p>
+<p>通过运行以下脚本确认你跟个新了 swagger 和 OpenAPI spec：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-sh" data-lang="sh"><span class="line"><span class="cl">hack/update-swagger-spec.sh
+</span></span><span class="line"><span class="cl">hack/update-openapi-spec.sh
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>API spec 的修改 commit 应该和其他的修改分开。</p>
+<h2 id="参考">参考</h2>
+<ul>
+<li><a href="https://github.com/kubernetes/community/blob/master/contributors/devel/api_changes.md#making-a-new-api-version" target="_blank" rel="noopener noreffer">https://github.com/kubernetes/community/blob/master/contributors/devel/api_changes.md#making-a-new-api-version</a>
+</li>
 </ul>]]></description></item><item><title>Kubernetes API 开发（四）</title><link>https://blog.firemiles.top/2018/kubernetes-api-%E5%BC%80%E5%8F%91%E5%9B%9B/</link><pubDate>Sun, 16 Dec 2018 20:21:32 +0000</pubDate><author>firemiles</author><guid>https://blog.firemiles.top/2018/kubernetes-api-%E5%BC%80%E5%8F%91%E5%9B%9B/</guid><description><![CDATA[<div class="featured-image">
                 <img src="https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/2018-12-17-143714.jpg" referrerpolicy="no-referrer">
             </div><h2 id="生成代码">生成代码</h2>
@@ -30,10 +69,202 @@
 <p>生成器生成代码时有个 <code>--go-header-file</code> 选项，该选项指定包含生成代码头部内容的文件。头部内容一般是版权信息，放在生成代码的最前面，并且会被稍后的 <a href="https://git.k8s.io/repo-infra/verify/verify-boilerplate.sh" target="_blank" rel="noopener noreffer">repo-infra/verify/verify-boilerplane.sh </a>
  脚本检查。</p>
 <p>执行 <code>make update</code> 会调用一系列<a href="https://github.com/kubernetes/kubernetes/blob/v1.8.0-alpha.2/hack/update-all.sh#L63-L78" target="_blank" rel="noopener noreffer">脚本</a>
- 包括以上的生成器。请继续阅读以下段落，因为某些生成器的使用需要一些先决条件，而且执行 <code>make update</code> 耗时太久，下面还会介绍如何单独调用生成器。</p>]]></description></item><item><title>Kubernetes API 开发（三）</title><link>https://blog.firemiles.top/2018/kubernetes-api-%E5%BC%80%E5%8F%91%E4%B8%89/</link><pubDate>Fri, 14 Dec 2018 22:30:25 +0000</pubDate><author>firemiles</author><guid>https://blog.firemiles.top/2018/kubernetes-api-%E5%BC%80%E5%8F%91%E4%B8%89/</guid><description>&lt;h2 id="修改-internal-structures-unversioned-api">修改 Internal structures (unversioned API)&lt;/h2>
-&lt;p>现在是时候开始介绍如何修改内部结构体，这样你修改的 versioned API 才能正常使用。&lt;/p></description></item><item><title>Kubernetes API 开发（二）</title><link>https://blog.firemiles.top/2018/kubernetes-api-%E5%BC%80%E5%8F%91%E4%BA%8C/</link><pubDate>Wed, 12 Dec 2018 21:52:51 +0000</pubDate><author>firemiles</author><guid>https://blog.firemiles.top/2018/kubernetes-api-%E5%BC%80%E5%8F%91%E4%BA%8C/</guid><description><![CDATA[<div class="featured-image">
+ 包括以上的生成器。请继续阅读以下段落，因为某些生成器的使用需要一些先决条件，而且执行 <code>make update</code> 耗时太久，下面还会介绍如何单独调用生成器。</p>
+<h3 id="generate-protobuf-objects">Generate protobuf objects</h3>
+<p>对于任意 core API object ，我们需要生成 Protobuf IDL 和 marshallers。通过调用以下脚本生成：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-sh" data-lang="sh"><span class="line"><span class="cl">hack/update-generated-protobuf.sh
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>大部分 object 对于转换成 protobuf 不需要太多的考虑，但是我们需要注意哪些依赖 golang 标准库类型的的 object，可能需要提供一些额外的工作，实践上我们一般使用自定义的 JONST 串行化。<code>pkg/api/serialization_test.go</code> 会测试你的 protobuf 串行化，多运行几次确保没有非兼容的字段。</p>
+<h3 id="generate-clientset">Generate Clientset</h3>
+<p><code>client-gen</code> 是为顶层 API object 生成 clientsets 的工具。</p>
+<p><code>client-gen</code> 要求每个想要导出的类型前添加 <code>// +genclient</code> 注释，包括 internal type <code>pkg/apis/&lt;group&gt;/types.go</code> 和 versioned type <code>staging/src/k8s.io/api/&lt;group&gt;/&lt;version&gt;/types.go</code> 。</p>
+<p>如果 apiserver 注册的 API group 名字和文件系统中存储的 group 路径不相同（一般在文件系统中存储会删除 k8s.io 后缀，例如 admission vs admission.k8s.io），你可以在向 <code>client-gen</code> 指定正确的 group name，通过在 <code>doc.go</code> 添加 <code>// +groupName=</code> 注释，当然 internal version <code>pkg/apis/&lt;group&gt;/doc.go</code> 和 versioned API <code>staging/src/k8s.io/api/&lt;group&gt;/&lt;version&gt;/types.go</code> 都要添加。</p>
+<p>添加 groupName 注释后，执行以下命令生成 client：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-sh" data-lang="sh"><span class="line"><span class="cl">hack/update-codegen.sh
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>你可以使用可选选项  <code>// +groupGoName=</code> 使用 Golang 驼峰标识符来为 group 指定别名, 解决冲突。例如 <code>policy.authorization.k8s.io</code> 和 <code>policy.k8s.io</code>。 这两个 group 默认都映射到 <code>Policy()</code> 这个名字的 client 中，这个时候就需要执行 groupGoName 来帮助区分这两个 client group 名。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="c1">// +groupName=example2.example.com  
+</span></span></span><span class="line"><span class="cl"><span class="c1">// +groupGoName=SecondExample
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><p>第一个用来定义 RESTfully 接口的资源，第二个用来定义生成的 Golang 代码中的名字，例如在 clientset 中访问该 group verion：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="nx">clientset</span><span class="p">.</span><span class="nf">SecondExampleV1</span><span class="p">()</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>clent-gen 可配置性很强，如果你要为非 kubernets API 生成代码，可以看<a href="https://github.com/kubernetes/community/blob/master/contributors/devel/generating-clientset.md" target="_blank" rel="noopener noreffer">这篇文档</a>
+</p>
+<h3 id="generate-listers">Generate Listers</h3>
+<p><code>lister-gen</code> 为 client 生成 lister。 这个复用 <code>// +genclient</code> 和 <code>// +groupName=</code> 注释，所有你不用指定额外的注释。</p>
+<p>运行 <code>hack/update-codegen.sh</code> 脚本的时候会调用 <code>lister-gen</code>。</p>
+<h3 id="generate-informers">Generate Informers</h3>
+<p><code>informer-gen</code>  生成有用的 informers，用于监控 API 资源的变化. 这个复用 <code>// +genclient</code> 和 <code>// +groupName=</code> 注释，所有你不用指定额外的注释。</p>
+<p>运行 <code>hack/update-codegen.sh</code> 脚本的时候会调用 <code>informer-gen</code>。</p>
+<h3 id="edit-json-unmarshaling-code">Edit json (un)marshaling code</h3>
+<p>我们只用自动生成的代码来为 API object 进行 marshalling 和 unmarshalling 操作 —— 这比 reflect 提高了系统性能。</p>
+<p>自动生成的代码放在每个 versioned API 中：</p>
+<ul>
+<li><code>staging/src/k8s.io/api/&lt;group&gt;/&lt;version&gt;/generated.proto</code></li>
+<li><code>staging/src/k8s.io/api/&lt;group&gt;/&lt;version&gt;/generated.pb.go</code></li>
+</ul>
+<p>运行一下脚本重新生成：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-sh" data-lang="sh"><span class="line"><span class="cl">hack/update-generated-protobuf.sh
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="参考">参考</h2>
+<ul>
+<li><a href="https://github.com/kubernetes/community/blob/master/contributors/devel/api_changes.md#making-a-new-api-version" target="_blank" rel="noopener noreffer">https://github.com/kubernetes/community/blob/master/contributors/devel/api_changes.md#making-a-new-api-version</a>
+</li>
+</ul>]]></description></item><item><title>Kubernetes API 开发（三）</title><link>https://blog.firemiles.top/2018/kubernetes-api-%E5%BC%80%E5%8F%91%E4%B8%89/</link><pubDate>Fri, 14 Dec 2018 22:30:25 +0000</pubDate><author>firemiles</author><guid>https://blog.firemiles.top/2018/kubernetes-api-%E5%BC%80%E5%8F%91%E4%B8%89/</guid><description><![CDATA[<h2 id="修改-internal-structures-unversioned-api">修改 Internal structures (unversioned API)</h2>
+<p>现在是时候开始介绍如何修改内部结构体，这样你修改的 versioned API 才能正常使用。</p>
+<h3 id="edit-typesgo">Edit types.go</h3>
+<p>和 versioned APIs 修改类似，内部结构体定义在 <code>pkg/apis/&lt;group&gt;/types.go</code> 中。想要修改什么内容就在这里完成，主要内部结构体必须兼容所有的 versioned APIs。</p>
+<p>当然，你也必须添加 <code>+k8s:deepcopy-gen</code> tag 来告诉工具需要生成 DeepCopyObject 方法。</p>
+<h3 id="edit-validationgo">Edit validation.go</h3>
+<p>大部分情况下修改了内部结构体后，需要一些内部输入校验。校验代码放在 <code>pkg/apis/&lt;group&gt;/validation/validation.go</code> 。 这个校验对用户体验十分重要，提供良好的错误信息，保证用户的输入正确性。当错误发生的时候，告诉用户为什么以及如何修复。</p>
+<p>当然，测试代码也是必须的—— <code>pkg/apis/&lt;group&gt;/validation/validation_test.go</code></p>
+<h3 id="edit-version-conversions">Edit version conversions</h3>
+<p>看到这里的时候，你已经完成了 versioned APIs 和 内部结构的修改。如果某些字段名，类型在内部结构和 versioned APIs中存在变化，你必须添加一些从内部结构转换成 versioned APIs的逻辑。如果你在执行 <code>serialization_test</code> 是发现了错误，它可能是在告诉你需要显示指定转换方法。</p>
+<p>转换方法的性能会影响 apiserver 的流畅性。因此我们采用自动生成的代码而不是使用通用的转换代码（通用代码使用反射会有很高代价）</p>
+<p>转换代码在每个 versionded API 下都有一份，有两个文件：</p>
+<ul>
+<li><code>pkg/apis/&lt;group&gt;/&lt;version&gt;/conversion.go</code> 包含手写的转换函数</li>
+<li><code>pkg/apis/&lt;group&gt;/&lt;version&gt;/zz_generated.conversion.go </code> 包含自动生成的转换函数</li>
+</ul>
+<p>因为自动生成的转换代码会使用手写的转换代码，因此对手写的转换代码的命名有要求。例如，pkg <code>a</code> 中的类型 <code>X</code> 转换成 pkg <code>b</code> 中的类型 <code>Y</code>， 需要命名成: <code>convert_a_x_To_b_Y</code></p>
+<p>你可以手写转换代码的时候同样可以引用自动生产的转换代码（为了提高效率也应该这样）。</p>
+<p>手动添加的转换代码同样要求你添加 test <code>pkg/apis/&lt;group&gt;/&lt;version&gt;/conversion_test.go</code></p>
+<p>当手动添加完必须的转换方法后，你需要重新生成 auto-generated 的代码。执行：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-shell" data-lang="shell"><span class="line"><span class="cl">make clean <span class="o">&amp;&amp;</span> make generaged_files
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><code>make clean</code> 很重要，否则生成的文件会是旧的版本，因为构建系统会使用用户的缓存文件。</p>
+<p><code>make all</code> 也会调用 <code>make generated_files</code>。</p>
+<p><code>make generated_files</code> 也会重新生成 <code>zz_generated.deepcopy.go</code>, <code>zz_generated.defaults.go</code> 和 <code>api/openapi-spec/swagger.json</code>。</p>
+<p>如果生成中偶尔出现了编译错误，最简单的解决方法就是删除引起错误的文件重新生成（真暴力）</p>
+<h2 id="参考">参考</h2>
+<ul>
+<li><a href="https://github.com/kubernetes/community/blob/master/contributors/devel/api_changes.md#making-a-new-api-version" target="_blank" rel="noopener noreffer">https://github.com/kubernetes/community/blob/master/contributors/devel/api_changes.md#making-a-new-api-version</a>
+</li>
+</ul>]]></description></item><item><title>Kubernetes API 开发（二）</title><link>https://blog.firemiles.top/2018/kubernetes-api-%E5%BC%80%E5%8F%91%E4%BA%8C/</link><pubDate>Wed, 12 Dec 2018 21:52:51 +0000</pubDate><author>firemiles</author><guid>https://blog.firemiles.top/2018/kubernetes-api-%E5%BC%80%E5%8F%91%E4%BA%8C/</guid><description><![CDATA[<div class="featured-image">
                 <img src="https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/2018-12-12-140900.jpg" referrerpolicy="no-referrer">
             </div><h2 id="修改-external-api版本api">修改 External API（版本API）</h2>
-<p>修改版本API是所有修改中最简单的，只需要开发者保持修改后的API相互兼容，比从头写要一个新的 rest API 更容易。</p>]]></description></item><item><title>Kubernetes API 开发（一）</title><link>https://blog.firemiles.top/2018/kubernetes-api-%E5%BC%80%E5%8F%91%E4%B8%80/</link><pubDate>Sun, 09 Dec 2018 17:26:26 +0000</pubDate><author>firemiles</author><guid>https://blog.firemiles.top/2018/kubernetes-api-%E5%BC%80%E5%8F%91%E4%B8%80/</guid><description><![CDATA[<div class="featured-image">
+<p>修改版本API是所有修改中最简单的，只需要开发者保持修改后的API相互兼容，比从头写要一个新的 rest API 更容易。</p>
+<h3 id="edit-typesgo">Edit types.go</h3>
+<p>每个 API 结构体的定义放在 <code>staging/src/k8s.io/api/&lt;group&gt;/&lt;version&gt;/types.go</code> 中。修改这些文件可以实现 API 结构体的修改。</p>
+<p>版本 API 内的所有类型和非内嵌字段需要在之前加上描述性注释——用于生成文档。类型注释不要包含类型名。这些注释生成的文档供用户查看，不应该向用户包含类型名。</p>
+<p>如果类型需要生成 <a href="https://github.com/kubernetes/kubernetes/commit/8dd0989b395b29b872e1f5e06934721863e4a210#diff-6318847735efb6fae447e7dbf198c8b2R3767" target="_blank" rel="noopener noreffer">DeepCopyObject</a>
+ 方法，一般只在顶层类型上添加，例 <code>Pod</code> ，在类型前添加一行注释（<a href="https://github.com/kubernetes/kubernetes/commit/39d95b9b065fffebe5b6f233d978fe1723722085#diff-ab819c2e7a94a3521aecf6b477f9b2a7R30" target="_blank" rel="noopener noreffer">example</a>
+）</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl">  <span class="c1">// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><p>Optional 字段必须包含 <code>,omitempty</code> json tag;</p>
+<h3 id="edit-defaultsgo">Edit defaults.go</h3>
+<p>如果你在 type 中添加了新的字段，那么你可能需要修改默认值，需要在 <code>pkg/apis/&lt;group&gt;/&lt;version&gt;/defaults.go</code> 中添加 case。</p>
+<blockquote>
+<p><em>注意：</em> 当在给新字段添加默认值的时候，别忘记给所有版本都添加。<a href="https://github.com/kubernetes/kubernetes/issues/66135" target="_blank" rel="noopener noreffer">#66135</a>
+</p>
+</blockquote>
+<p>老版本的 core ve API 比较特殊， 它的 <code>default.go</code> 过去放在 <code>pkg/api/v1/defaults.go</code>。如果你看到有引用这个路径，那可以确定那个代码过时了。现在 core v1 API 放在了 <code>pkg/apis/core/v1/defaults.go</code></p>
+<p>当你添加完代码，最好再加上一个 test ：<code>pkg/apis/&lt;group&gt;/&lt;version&gt;/defaults_test.go</code></p>
+<p>当你要区分变量是 <code>unset</code> 还是 <code>automatic zero</code> 时，最好使用指针。例如 <code>PodSpec.TerminationGracePeriodSeconds</code> 定义成 <code>*int64</code>。0值表示0秒，nil表示unset。</p>
+<p>别忘了 <strong>run the tests</strong></p>
+<h3 id="edit-conversiongo">Edit conversion.go</h3>
+<p>当前还没有修改 internal 结构体，一般没有必要修改 conversion.go。我们会在后面的修改internal api 的章节说明。</p>
+<p>当你进行了非兼容的修改后，以下的文件可能需要进行修改：
+<code>pkg/apis/&lt;group&gt;/&lt;version&gt;/conversion.go</code>
+<code>pkg/apis/&lt;group&gt;/&lt;version&gt;/conversion_test.go</code></p>
+<p>注意 conversion machinery 并不能通用的处理各种类型的字段和API常量。<a href="https://github.com/kubernetes/client-go/blob/v4.0.0-beta.0/rest/request.go#L352" target="_blank" rel="noopener noreffer">The client library</a>
+ 自定义了字段引用的转换代码。你还需要为你的 scheme 的 <code>AddFieldLabelConversionFunc</code> 添加调用，帮助它支持字段转换，就像<a href="https://github.com/kubernetes/kubernetes/blob/v1.8.0-alpha.2/pkg/api/v1/conversion.go#L165" target="_blank" rel="noopener noreffer">这行代码</a>
+</p>
+<h2 id="参考">参考</h2>
+<ul>
+<li><a href="https://github.com/kubernetes/community/blob/master/contributors/devel/api_changes.md#making-a-new-api-version" target="_blank" rel="noopener noreffer">https://github.com/kubernetes/community/blob/master/contributors/devel/api_changes.md#making-a-new-api-version</a>
+</li>
+</ul>]]></description></item><item><title>Kubernetes API 开发（一）</title><link>https://blog.firemiles.top/2018/kubernetes-api-%E5%BC%80%E5%8F%91%E4%B8%80/</link><pubDate>Sun, 09 Dec 2018 17:26:26 +0000</pubDate><author>firemiles</author><guid>https://blog.firemiles.top/2018/kubernetes-api-%E5%BC%80%E5%8F%91%E4%B8%80/</guid><description><![CDATA[<div class="featured-image">
                 <img src="https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/2018-12-09-140421.jpg" referrerpolicy="no-referrer">
-            </div><p>本文宏观介绍 <strong>kubernetes</strong> 的 <strong>API</strong> 各版本之间的联系以及 <strong>API</strong> 开发的原则。</p>]]></description></item></channel></rss>
+            </div><p>本文宏观介绍 <strong>kubernetes</strong> 的 <strong>API</strong> 各版本之间的联系以及 <strong>API</strong> 开发的原则。</p>
+<h2 id="api-overview">API Overview</h2>
+<h3 id="api-版本转换">API 版本转换</h3>
+<p>Kubernetes 的 API 分为 <strong>Internal</strong> 和 <strong>External</strong> 版本。apiserver 同时支持多个API Version，在为开发提供了很高的自由度的同时也对API版本间的转换提出了更高的鲁棒性要求。</p>
+<p>多个 external 版本间的转换， internal 版本处于中心位置，所有版本的 API 都能够转换成 internal 版本，但是其他版本之间能相互转换。所有的 kubernetes 代码 internal 版本结构中进行操作，并在存入<em>etcd</em> 前转换成 external 版本。客户端必须使用 external 版本操作。</p>
+<p>以下是一个假设的操作例子：</p>
+<ol>
+<li>用户 <strong>POST</strong> <em>Pod</em> 到 <em>/api/v7beta1/&hellip;</em></li>
+<li><strong>JSON</strong> unmarshall 为 <em>v7beta1.Pod</em></li>
+<li>为 <em>v7beta1.Pod</em> 补充默认值</li>
+<li><em>v7beta1.Pod</em> 转换成 <em>api.Pod</em></li>
+<li>校验 <em>api.Pod</em> 并返回错误</li>
+<li><em>api.Pod</em> 转换成 <em>v6.Pod</em> (稳定版本)</li>
+<li><em>v6.Pod</em> marshall 成 <strong>JSON</strong> 并写入 <em>etcd</em></li>
+</ol>
+<h3 id="版本兼容">版本兼容</h3>
+<p>Kubernets 把 API 的版本前向和后向兼容作为最高优先级进行考虑。
+想要做到兼容很难，以下几点是实现 API 兼容需要考虑的：</p>
+<ul>
+<li>
+<p>如果添加一个新功能，一定要是非必须的，要让旧版本也能正常工作</p>
+</li>
+<li>
+<p>不要修改已有接口的定义，包括：</p>
+<ul>
+<li>默认值和默认行为，以及其包含的语义</li>
+<li>已有 API 类型的字段和值的解释</li>
+<li>字段是否是必须字段</li>
+<li>可修改字段不要变为非可修改字段</li>
+<li>非法字段不要变成合法字段</li>
+</ul>
+</li>
+</ul>
+<p>换个说法：</p>
+<ol>
+<li>所有修改前成功调用的 API， 修改后也要能成功调用。</li>
+<li>所有不涉及修改的 API 调用，行为和修改前一致。</li>
+<li>使用修改后的 API，在和未修改的 apiserver 通信时，不会导致问题。</li>
+<li>API 修改支持在不同版本间转换，并不丢失信息。</li>
+<li>旧版本的 client 不感知 server 端修改，仍然正常工作。</li>
+<li>支持回退到之前不包含修改的 API 版本， 并且不影响没有使用修改部分代码的 client。所有被修改影响到的 API 对象能够隐式回退。</li>
+</ol>
+<h2 id="参考">参考</h2>
+<ul>
+<li><a href="https://github.com/kubernetes/community/blob/master/contributors/devel/api_changes.md#making-a-new-api-version" target="_blank" rel="noopener noreffer">https://github.com/kubernetes/community/blob/master/contributors/devel/api_changes.md#making-a-new-api-version</a>
+</li>
+</ul>]]></description></item></channel></rss>

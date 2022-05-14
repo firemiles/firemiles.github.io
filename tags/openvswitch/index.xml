@@ -1,3 +1,375 @@
-<rss xmlns:atom="http://www.w3.org/2005/Atom" version="2.0"><channel><title>openvswitch - 标签 - Firemiles 的技术博客</title><link>https://blog.firemiles.top/tags/openvswitch/</link><description>openvswitch - 标签 - Firemiles 的技术博客</description><generator>Hugo -- gohugo.io</generator><language>zh-CN</language><managingEditor>miles.dev@outlook.comm (firemiles)</managingEditor><webMaster>miles.dev@outlook.comm (firemiles)</webMaster><lastBuildDate>Wed, 01 Jan 2020 15:47:09 +0000</lastBuildDate><atom:link href="https://blog.firemiles.top/tags/openvswitch/" rel="self" type="application/rss+xml"/><item><title>openvswitch 使用速查</title><link>https://blog.firemiles.top/2020/openvswitch%E4%BD%BF%E7%94%A8%E9%80%9F%E6%9F%A5/</link><pubDate>Wed, 01 Jan 2020 15:47:09 +0000</pubDate><author>firemiles</author><guid>https://blog.firemiles.top/2020/openvswitch%E4%BD%BF%E7%94%A8%E9%80%9F%E6%9F%A5/</guid><description>&lt;div class="featured-image">
-&lt;img src="https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/20200101155834.png" referrerpolicy="no-referrer">
-&lt;/div>OVS 架构 本文主要针对内核态 openvsiwth，用户态 openvswitch 的使用和调试不在本文的讨论范围内。 ovs 架构如上图所示，主要由内核 datapath 和用户空间的 vswit</description></item></channel></rss>
+<rss xmlns:atom="http://www.w3.org/2005/Atom" version="2.0"><channel><title>openvswitch - 标签 - Firemiles 的技术博客</title><link>https://blog.firemiles.top/tags/openvswitch/</link><description>openvswitch - 标签 - Firemiles 的技术博客</description><generator>Hugo -- gohugo.io</generator><language>zh-CN</language><managingEditor>miles.dev@outlook.comm (firemiles)</managingEditor><webMaster>miles.dev@outlook.comm (firemiles)</webMaster><lastBuildDate>Wed, 01 Jan 2020 15:47:09 +0000</lastBuildDate><atom:link href="https://blog.firemiles.top/tags/openvswitch/" rel="self" type="application/rss+xml"/><item><title>openvswitch 使用速查</title><link>https://blog.firemiles.top/2020/openvswitch%E4%BD%BF%E7%94%A8%E9%80%9F%E6%9F%A5/</link><pubDate>Wed, 01 Jan 2020 15:47:09 +0000</pubDate><author>firemiles</author><guid>https://blog.firemiles.top/2020/openvswitch%E4%BD%BF%E7%94%A8%E9%80%9F%E6%9F%A5/</guid><description><![CDATA[<div class="featured-image">
+                <img src="https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/20200101155834.png" referrerpolicy="no-referrer">
+            </div><h2 id="ovs-架构">OVS 架构</h2>
+<blockquote>
+<p>本文主要针对内核态 openvsiwth，用户态 openvswitch 的使用和调试不在本文的讨论范围内。</p>
+</blockquote>
+<p></p>
+<p><code>ovs</code> 架构如上图所示，主要由内核 <code>datapath</code> 和用户空间的 <code>vswitchd</code>、 <code>ovsdb</code> 组成。</p>
+<p></p>
+<h3 id="主要模块">主要模块</h3>
+<ul>
+<li><code>datapath</code> 是负责数据交换的内核模块，从网口读取数据，并快速匹配Flowtable中的流表项，成功的直接转发，失败的 upcall 到 <code>vswitchd</code> 处理。它在初始化<code>port binding</code> 的时候注册钩子函数，把端口的报文处理接收到 ovs 内核模块。</li>
+<li><code>vswitchd</code> 是一个守护进程，是ovs的管理和控制服务，通过unix socket将配置信息保存到 <code>ovsdb</code> ，并通过 <code>netlink</code> 和内核模块交互。</li>
+<li><code>ovsdb</code> 则是 ovs 的数据库，保存 ovs 的配置信息。</li>
+</ul>
+<h3 id="client与组件对应关系">client与组件对应关系</h3>
+<table>
+<thead>
+<tr>
+<th>组件</th>
+<th>功能</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ovs-dpctl</td>
+<td>datapath控制器,可以创建删除DP,控制DP中的FlowTables,最常使用show命令，其他很少手动操作</td>
+</tr>
+<tr>
+<td>ovs-ofctl</td>
+<td>流表控制器，控制bridge上的流表，查看端口统计信息等</td>
+</tr>
+<tr>
+<td>ovsdb-tool</td>
+<td>专门管理ovsdb的client</td>
+</tr>
+<tr>
+<td>ovs-vsctl</td>
+<td>最常用的命令,通过操作ovsdb去管理相关的bridge,ports什么的</td>
+</tr>
+<tr>
+<td>ovs-appctl</td>
+<td>这个可以直接与openvswitch daemon进行交互</td>
+</tr>
+</tbody>
+</table>
+<h3 id="常用子命令说明">常用子命令说明</h3>
+<ul>
+<li>ovs-dpctl <strong>show -s</strong></li>
+<li>ovs-ofctl <strong>show, dump-ports, dump-flows, add-flow, mod-flows, del-flows</strong></li>
+<li>ovsdb-tools <strong>show-log -m</strong></li>
+<li>ovs-vsctl
+<ul>
+<li>show 显示数据库内容</li>
+<li>关于桥的操作 <strong>add-br, list-br, del-br, br-exits</strong></li>
+<li>关于port的操作 <strong>list-ports, add-port, del-port, add-bond, port-to-br</strong></li>
+<li>关于interface 的操作 <strong>list-ifaces, iface-to-br</strong></li>
+<li><strong>ovs-vsctl list/set/get/add/remove/clear/destroy table record column [value]</strong> 常见的表有bridge,controller,interface,mirror,netflow,open_vswitch,port,qos,queue,ssl,sflow.</li>
+</ul>
+</li>
+<li>ovs-appctl <strong>list-commands, fdb/show, qos/show</strong></li>
+</ul>
+<h2 id="日常操作">日常操作</h2>
+<h3 id="查看有哪些桥桥中有哪些ports哪些interfaces">查看有哪些桥，桥中有哪些ports，哪些interfaces</h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-sh" data-lang="sh"><span class="line"><span class="cl">root@l-network-1:~# ovs-vsctl list-br
+</span></span><span class="line"><span class="cl">br-ex
+</span></span><span class="line"><span class="cl">br-int
+</span></span><span class="line"><span class="cl">br-tun
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">root@l-network-1:~# ovs-vsctl list-ports br-tun
+</span></span><span class="line"><span class="cl">patch-int
+</span></span><span class="line"><span class="cl">vxlan-ac1c0509
+</span></span><span class="line"><span class="cl">vxlan-ac1c050d
+</span></span><span class="line"><span class="cl">vxlan-ac1c051c
+</span></span><span class="line"><span class="cl">vxlan-ac1c053f
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">root@l-network-1:~# ovs-vsctl list-ifaces br-tun
+</span></span><span class="line"><span class="cl">patch-int
+</span></span><span class="line"><span class="cl">vxlan-ac1c0509
+</span></span><span class="line"><span class="cl">vxlan-ac1c050d
+</span></span><span class="line"><span class="cl">vxlan-ac1c051c
+</span></span><span class="line"><span class="cl">vxlan-ac1c053f
+</span></span><span class="line"><span class="cl"><span class="c1"># iface与ports同名.</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="查看-portinterface属于那个bridge-xxx-to-br">查看 port，interface属于那个bridge， xxx-to-br</h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-sh" data-lang="sh"><span class="line"><span class="cl">root@l-network-1:~# ovs-vsctl port-to-br vxlan-ac1c0509
+</span></span><span class="line"><span class="cl">br-tun
+</span></span><span class="line"><span class="cl">root@l-network-1:~# ovs-vsctl iface-to-br vxlan-ac1c0509
+</span></span><span class="line"><span class="cl">br-tun
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="查看隐藏的流表规则很少使用">查看隐藏的流表规则，很少使用</h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-sh" data-lang="sh"><span class="line"><span class="cl">root@l-network-1:# ovs-appctl bridge/dump-flows br-ex
+</span></span><span class="line"><span class="cl"><span class="nv">duration</span><span class="o">=</span>6067771s, <span class="nv">n_packets</span><span class="o">=</span>1313936898, <span class="nv">n_bytes</span><span class="o">=</span>881574100116, <span class="nv">priority</span><span class="o">=</span>0,actions<span class="o">=</span>NORMAL
+</span></span><span class="line"><span class="cl"><span class="nv">table_id</span><span class="o">=</span>254, <span class="nv">duration</span><span class="o">=</span>6067771s, <span class="nv">n_packets</span><span class="o">=</span>0, <span class="nv">n_bytes</span><span class="o">=</span>0, <span class="nv">priority</span><span class="o">=</span>2,recirc_id<span class="o">=</span>0,actions<span class="o">=</span>drop
+</span></span><span class="line"><span class="cl"><span class="nv">table_id</span><span class="o">=</span>254, <span class="nv">duration</span><span class="o">=</span>6067771s, <span class="nv">n_packets</span><span class="o">=</span>0, <span class="nv">n_bytes</span><span class="o">=</span>0, <span class="nv">priority</span><span class="o">=</span>0,reg0<span class="o">=</span>0x1,actions<span class="o">=</span>controller<span class="o">(</span><span class="nv">reason</span><span class="o">=</span>no_match<span class="o">)</span>
+</span></span><span class="line"><span class="cl"><span class="nv">table_id</span><span class="o">=</span>254, <span class="nv">duration</span><span class="o">=</span>6067771s, <span class="nv">n_packets</span><span class="o">=</span>0, <span class="nv">n_bytes</span><span class="o">=</span>0, <span class="nv">priority</span><span class="o">=</span>0,reg0<span class="o">=</span>0x2,actions<span class="o">=</span>drop
+</span></span><span class="line"><span class="cl"><span class="nv">table_id</span><span class="o">=</span>254, <span class="nv">duration</span><span class="o">=</span>6067771s, <span class="nv">n_packets</span><span class="o">=</span>0, <span class="nv">n_bytes</span><span class="o">=</span>0, <span class="nv">priority</span><span class="o">=</span>0,reg0<span class="o">=</span>0x3,actions<span class="o">=</span>drop
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="查看一些有用的统计信息">查看一些有用的统计信息</h3>
+<p>查看datapath统计信息.主要关注lost数值.hit表示datapath命中数,missed未命中，lost表示没有传递到用户空间就丢弃了. 主要关注lost值是否上升，如果上升说明存在问题了.该命令可以使用-s选项，会将每个port的统计信息也显示出来。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-sh" data-lang="sh"><span class="line"><span class="cl">root@l-network-1:# ovs-dpctl show
+</span></span><span class="line"><span class="cl">system@ovs-system:
+</span></span><span class="line"><span class="cl">        lookups: hit:2596765540 missed:6438005 lost:0
+</span></span><span class="line"><span class="cl">        flows: <span class="m">39</span>
+</span></span><span class="line"><span class="cl">        masks: hit:19416324706 total:10 hit/pkt:7.46
+</span></span><span class="line"><span class="cl">        port 0: ovs-system <span class="o">(</span>internal<span class="o">)</span>
+</span></span><span class="line"><span class="cl">        port 1: tapd9a71635-53 <span class="o">(</span>internal<span class="o">)</span>
+</span></span><span class="line"><span class="cl">        port 2: tap82059645-8e <span class="o">(</span>internal<span class="o">)</span>
+</span></span><span class="line"><span class="cl">        port 3: tap3f0507b3-70 <span class="o">(</span>internal<span class="o">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">root@l-network-1:# ovs-dpctl show -s
+</span></span><span class="line"><span class="cl">system@ovs-system:
+</span></span><span class="line"><span class="cl">        lookups: hit:2596836956 missed:6438236 lost:0
+</span></span><span class="line"><span class="cl">        flows: <span class="m">42</span>
+</span></span><span class="line"><span class="cl">        masks: hit:19416902233 total:10 hit/pkt:7.46
+</span></span><span class="line"><span class="cl">        port 0: ovs-system <span class="o">(</span>internal<span class="o">)</span>
+</span></span><span class="line"><span class="cl">                RX packets:0 errors:0 dropped:0 overruns:0 frame:0
+</span></span><span class="line"><span class="cl">                TX packets:0 errors:0 dropped:0 aborted:0 carrier:0
+</span></span><span class="line"><span class="cl">                collisions:0
+</span></span><span class="line"><span class="cl">                RX bytes:0  TX bytes:0
+</span></span><span class="line"><span class="cl">        port 1: tapd9a71635-53 <span class="o">(</span>internal<span class="o">)</span>
+</span></span><span class="line"><span class="cl">                RX packets:4170 errors:0 dropped:0 overruns:0 frame:0
+</span></span><span class="line"><span class="cl">                TX packets:1091973 errors:0 dropped:0 aborted:0 carrier:0
+</span></span><span class="line"><span class="cl">                collisions:0
+</span></span><span class="line"><span class="cl">                RX bytes:906944 <span class="o">(</span>885.7 KiB<span class="o">)</span>  TX bytes:48392325 <span class="o">(</span>46.2 MiB<span class="o">)</span>
+</span></span><span class="line"><span class="cl">        port 2: tap82059645-8e <span class="o">(</span>internal<span class="o">)</span>
+</span></span><span class="line"><span class="cl">                RX packets:7130 errors:0 dropped:0 overruns:0 frame:0
+</span></span><span class="line"><span class="cl">                TX packets:7379 errors:0 dropped:0 aborted:0 carrier:0
+</span></span><span class="line"><span class="cl">                collisions:0
+</span></span><span class="line"><span class="cl">                RX bytes:641578 <span class="o">(</span>626.5 KiB<span class="o">)</span>  TX bytes:650492 <span class="o">(</span>635.2 KiB<span class="o">)</span>
+</span></span><span class="line"><span class="cl">        port 3: tap3f0507b3-70 <span class="o">(</span>internal<span class="o">)</span>
+</span></span><span class="line"><span class="cl">                RX packets:5505 errors:0 dropped:0 overruns:0 frame:0
+</span></span><span class="line"><span class="cl">                TX packets:7549 errors:0 dropped:0 aborted:0 carrier:0
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>ovs-ofctl dump-ports br [port]也可以查看port的统计信息.这个命令优势是可以指定port.</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-sh" data-lang="sh"><span class="line"><span class="cl">root@l-network-1:# ovs-ofctl dump-ports br-ex
+</span></span><span class="line"><span class="cl">OFPST_PORT reply <span class="o">(</span><span class="nv">xid</span><span class="o">=</span>0x2<span class="o">)</span>: <span class="m">19</span> ports
+</span></span><span class="line"><span class="cl">  port LOCAL: rx <span class="nv">pkts</span><span class="o">=</span>78668524, <span class="nv">bytes</span><span class="o">=</span>34522064349, <span class="nv">drop</span><span class="o">=</span>0, <span class="nv">errs</span><span class="o">=</span>0, <span class="nv">frame</span><span class="o">=</span>0, <span class="nv">over</span><span class="o">=</span>0, <span class="nv">crc</span><span class="o">=</span><span class="m">0</span> tx <span class="nv">pkts</span><span class="o">=</span>78827893, <span class="nv">bytes</span><span class="o">=</span>5746347600, <span class="nv">drop</span><span class="o">=</span>0, <span class="nv">errs</span><span class="o">=</span>0, <span class="nv">coll</span><span class="o">=</span><span class="m">0</span> port 10: rx <span class="nv">pkts</span><span class="o">=</span>14386485, <span class="nv">bytes</span><span class="o">=</span>10843773932, <span class="nv">drop</span><span class="o">=</span>0, <span class="nv">errs</span><span class="o">=</span>0, <span class="nv">frame</span><span class="o">=</span>0, <span class="nv">over</span><span class="o">=</span>0, <span class="nv">crc</span><span class="o">=</span><span class="m">0</span> tx <span class="nv">pkts</span><span class="o">=</span>15666927, <span class="nv">bytes</span><span class="o">=</span>10659584526, <span class="nv">drop</span><span class="o">=</span>0, <span class="nv">errs</span><span class="o">=</span>0, <span class="nv">coll</span><span class="o">=</span><span class="m">0</span> port 26: rx <span class="nv">pkts</span><span class="o">=</span>3830, <span class="nv">bytes</span><span class="o">=</span>161388, <span class="nv">drop</span><span class="o">=</span>0, <span class="nv">errs</span><span class="o">=</span>0, <span class="nv">frame</span><span class="o">=</span>0, <span class="nv">over</span><span class="o">=</span>0, <span class="nv">crc</span><span class="o">=</span><span class="m">0</span> tx <span class="nv">pkts</span><span class="o">=</span>3025213, <span class="nv">bytes</span><span class="o">=</span>244511981, <span class="nv">drop</span><span class="o">=</span>0, <span class="nv">errs</span><span class="o">=</span>0, <span class="nv">coll</span><span class="o">=</span><span class="m">0</span> port 36: rx <span class="nv">pkts</span><span class="o">=</span>16, <span class="nv">bytes</span><span class="o">=</span>1200, <span class="nv">drop</span><span class="o">=</span>0, <span class="nv">errs</span><span class="o">=</span>0, <span class="nv">frame</span><span class="o">=</span>0, <span class="nv">over</span><span class="o">=</span>0, <span class="nv">crc</span><span class="o">=</span><span class="m">0</span> tx <span class="nv">pkts</span><span class="o">=</span>898463, <span class="nv">bytes</span><span class="o">=</span>68248745, <span class="nv">drop</span><span class="o">=</span>0, <span class="nv">errs</span><span class="o">=</span>0, <span class="nv">coll</span><span class="o">=</span><span class="m">0</span> port 25: rx <span class="nv">pkts</span><span class="o">=</span>4693, <span class="nv">bytes</span><span class="o">=</span>206958, <span class="nv">drop</span><span class="o">=</span>0, <span class="nv">errs</span><span class="o">=</span>0, <span class="nv">frame</span><span class="o">=</span>0, <span class="nv">over</span><span class="o">=</span>0, <span class="nv">crc</span><span class="o">=</span><span class="m">0</span> tx <span class="nv">pkts</span><span class="o">=</span>3256605, <span class="nv">bytes</span><span class="o">=</span>264430395, <span class="nv">drop</span><span class="o">=</span>0, <span class="nv">errs</span><span class="o">=</span>0, <span class="nv">coll</span><span class="o">=</span><span class="m">0</span> port 35: rx <span class="nv">pkts</span><span class="o">=</span>229447, <span class="nv">bytes</span><span class="o">=</span>21077911, <span class="nv">drop</span><span class="o">=</span>0, <span class="nv">errs</span><span class="o">=</span>0, <span class="nv">frame</span><span class="o">=</span>0, <span class="nv">over</span><span class="o">=</span>0, <span class="nv">crc</span><span class="o">=</span><span class="m">0</span> tx <span class="nv">pkts</span><span class="o">=</span>1905393, <span class="nv">bytes</span><span class="o">=</span>758729599, <span class="nv">drop</span><span class="o">=</span>0, <span class="nv">errs</span><span class="o">=</span>0, <span class="nv">coll</span><span class="o">=</span><span class="m">0</span> port 28: rx <span class="nv">pkts</span><span class="o">=</span>13, <span class="nv">bytes</span><span class="o">=</span>1074, <span class="nv">drop</span><span class="o">=</span>0, <span class="nv">errs</span><span class="o">=</span>0, <span class="nv">frame</span><span class="o">=</span>0, <span class="nv">over</span><span class="o">=</span>0, <span class="nv">crc</span><span class="o">=</span><span class="m">0</span> tx <span class="nv">pkts</span><span class="o">=</span>2266685, <span class="nv">bytes</span><span class="o">=</span>179166266, <span class="nv">drop</span><span class="o">=</span>0, <span class="nv">errs</span><span class="o">=</span>0, <span class="nv">coll</span><span class="o">=</span><span class="m">0</span> port 23: rx <span class="nv">pkts</span><span class="o">=</span>10345, <span class="nv">bytes</span><span class="o">=</span>636977, <span class="nv">drop</span><span class="o">=</span>0, <span class="nv">errs</span><span class="o">=</span>0, <span class="nv">frame</span><span class="o">=</span>0, <span class="nv">over</span><span class="o">=</span>0, <span class="nv">crc</span><span class="o">=</span><span class="m">0</span> tx <span class="nv">pkts</span><span class="o">=</span>3345437, <span class="nv">bytes</span><span class="o">=</span>272099392, <span class="nv">drop</span><span class="o">=</span>0, <span class="nv">errs</span><span class="o">=</span>0, <span class="nv">coll</span><span class="o">=</span><span class="m">0</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="查看bridge的转发表">查看bridge的转发表</h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-sh" data-lang="sh"><span class="line"><span class="cl">root@l-network-1:# ovs-appctl fdb/show br-ex
+</span></span><span class="line"><span class="cl"> port  VLAN  MAC                Age
+</span></span><span class="line"><span class="cl">   <span class="m">10</span>     <span class="m">0</span>  fa:16:3e:f8:28:9f    <span class="m">9</span>
+</span></span><span class="line"><span class="cl">   <span class="m">11</span>     <span class="m">0</span>  fa:16:3e:a7:d2:f5    <span class="m">8</span>
+</span></span><span class="line"><span class="cl">   <span class="m">34</span>     <span class="m">0</span>  fa:16:3e:2f:b2:71    <span class="m">8</span>
+</span></span><span class="line"><span class="cl">    <span class="m">4</span>     <span class="m">0</span>  2c:44:fd:89:cf:3a    <span class="m">6</span>
+</span></span><span class="line"><span class="cl">    <span class="m">6</span>     <span class="m">0</span>  fa:16:3e:45:c7:c5    <span class="m">5</span>
+</span></span><span class="line"><span class="cl">    <span class="m">4</span>     <span class="m">0</span>  fa:16:3e:44:15:eb    <span class="m">5</span>
+</span></span><span class="line"><span class="cl">    <span class="m">4</span>     <span class="m">0</span>  2c:44:fd:8a:78:06    <span class="m">4</span>
+</span></span><span class="line"><span class="cl">    <span class="m">1</span>     <span class="m">0</span>  fa:16:3e:be:08:35    <span class="m">2</span>
+</span></span><span class="line"><span class="cl">    <span class="m">3</span>     <span class="m">0</span>  fa:16:3e:2f:dd:71    <span class="m">1</span>
+</span></span><span class="line"><span class="cl">    <span class="m">2</span>     <span class="m">0</span>  fa:16:3e:d7:f0:c1    <span class="m">0</span>
+</span></span><span class="line"><span class="cl">LOCAL     <span class="m">0</span>  2c:44:fd:8a:32:ce    <span class="m">0</span>
+</span></span><span class="line"><span class="cl">    <span class="m">4</span>     <span class="m">0</span>  20:0b:c7:37:d0:05    <span class="m">0</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="设置qos">设置qos</h2>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-sh" data-lang="sh"><span class="line"><span class="cl">ovs-vsctl <span class="nb">set</span> Interface tap0 <span class="nv">ingress_policing_rate</span><span class="o">=</span><span class="m">100000</span> ovs-vsctl <span class="nb">set</span> Intervace tap <span class="nv">ingress_policing_burst</span><span class="o">=</span><span class="m">10000</span> ovs-appctl qos/show &lt;iface&gt;
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="调试技巧">调试技巧</h2>
+<h3 id="查看流表匹配规则">查看流表匹配规则</h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-sh" data-lang="sh"><span class="line"><span class="cl">watch -d -n <span class="m">1</span> <span class="s2">&#34;ovs-ofctl dump-flows &lt;bridge&gt;&#34;</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="查看统计信息">查看统计信息</h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-sh" data-lang="sh"><span class="line"><span class="cl">ovs-dpctl show -s
+</span></span><span class="line"><span class="cl">ovs-ofctl dump-ports &lt;br&gt; <span class="o">[</span>port<span class="o">]</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="使用tcpdump抓包需要设置端口镜像">使用tcpdump抓包,需要设置端口镜像</h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-sh" data-lang="sh"><span class="line"><span class="cl">ip link add name snooper0 <span class="nb">type</span> dummy
+</span></span><span class="line"><span class="cl">ip link <span class="nb">set</span> dev snooper0 up
+</span></span><span class="line"><span class="cl">ovs-vsctl add-port br-int snooper0
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">ovs-vsctl -- <span class="nb">set</span> Bridge br-int <span class="nv">mirrors</span><span class="o">=</span>@m -- --id<span class="o">=</span>@snooper0 <span class="se">\
+</span></span></span><span class="line"><span class="cl"><span class="se"></span>  get Port snooper0  -- --id<span class="o">=</span>@patch-tun get Port patch-tun <span class="se">\
+</span></span></span><span class="line"><span class="cl"><span class="se"></span>  -- --id<span class="o">=</span>@m create Mirror <span class="nv">name</span><span class="o">=</span>mymirror <span class="k">select</span>-dst-port<span class="o">=</span>@patch-tun <span class="se">\
+</span></span></span><span class="line"><span class="cl"><span class="se"></span>  <span class="k">select</span>-src-port<span class="o">=</span>@patch-tun output-port<span class="o">=</span>@snooper0 <span class="nv">select_all</span><span class="o">=</span><span class="m">1</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">tcpdump -i snooper0
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">ovs-vsctl clear Bridge br-int mirrors
+</span></span><span class="line"><span class="cl">ovs-vsctl del-port br-int snooper0
+</span></span><span class="line"><span class="cl">ip link delete dev snooper0
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="查看日志">查看日志</h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-sh" data-lang="sh"><span class="line"><span class="cl">cat /var/log/openvswitch/*.log
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="使用ovs-appctl-ofprototrace-bridge-k1v1k2v2测试流匹配">使用ovs-appctl ofproto/trace {bridge} k1=v1,k2=v2测试流匹配</h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-sh" data-lang="sh"><span class="line"><span class="cl">root@l-network-1:~# ovs-appctl ofproto/trace br-ex <span class="nv">in_port</span><span class="o">=</span>10,dl_src<span class="o">=</span>66:4e:cc:ae:4d:20,dl_dst<span class="o">=</span>46:54:8a:95:dd:f8 -generate
+</span></span><span class="line"><span class="cl">Bridge: br-ex
+</span></span><span class="line"><span class="cl">Flow: <span class="nv">in_port</span><span class="o">=</span>10,vlan_tci<span class="o">=</span>0x0000,dl_src<span class="o">=</span>66:4e:cc:ae:4d:20,dl_dst<span class="o">=</span>46:54:8a:95:dd:f8,dl_type<span class="o">=</span>0x0000
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">Rule: <span class="nv">table</span><span class="o">=</span><span class="m">0</span> <span class="nv">cookie</span><span class="o">=</span><span class="m">0</span> <span class="nv">priority</span><span class="o">=</span><span class="m">0</span>
+</span></span><span class="line"><span class="cl">OpenFlow <span class="nv">actions</span><span class="o">=</span>NORMAL
+</span></span><span class="line"><span class="cl">no learned MAC <span class="k">for</span> destination, flooding
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">Final flow: <span class="nv">in_port</span><span class="o">=</span>10,vlan_tci<span class="o">=</span>0x0000,dl_src<span class="o">=</span>66:4e:cc:ae:4d:20,dl_dst<span class="o">=</span>46:54:8a:95:dd:f8,dl_type<span class="o">=</span>0x0000
+</span></span><span class="line"><span class="cl">Megaflow: <span class="nv">in_port</span><span class="o">=</span>10,vlan_tci<span class="o">=</span>0x0000/0x1fff,dl_src<span class="o">=</span>66:4e:cc:ae:4d:20,dl_dst<span class="o">=</span>46:54:8a:95:dd:f8,dl_type<span class="o">=</span>0x0000
+</span></span><span class="line"><span class="cl">Datapath actions: 27,30,12,14,15,17,20,37,9,28,47,48,54,57,29,25,61,21
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="参考">参考</h2>
+<ul>
+<li><a href="https://docs.openvswitch.org/en/latest/" target="_blank" rel="noopener noreffer">https://docs.openvswitch.org/en/latest/</a>
+</li>
+<li><a href="http://fishcried.com/2016-02-09/openvswitch-ops-guide/" target="_blank" rel="noopener noreffer">http://fishcried.com/2016-02-09/openvswitch-ops-guide/</a>
+</li>
+</ul>
+]]></description></item></channel></rss>

@@ -1,1 +1,271 @@
-<rss xmlns:atom="http://www.w3.org/2005/Atom" version="2.0"><channel><title>IPv6 - 标签 - Firemiles 的技术博客</title><link>https://blog.firemiles.top/tags/ipv6/</link><description>IPv6 - 标签 - Firemiles 的技术博客</description><generator>Hugo -- gohugo.io</generator><language>zh-CN</language><managingEditor>miles.dev@outlook.comm (firemiles)</managingEditor><webMaster>miles.dev@outlook.comm (firemiles)</webMaster><lastBuildDate>Wed, 27 Nov 2019 09:47:43 +0000</lastBuildDate><atom:link href="https://blog.firemiles.top/tags/ipv6/" rel="self" type="application/rss+xml"/><item><title>IPv6特性介绍</title><link>https://blog.firemiles.top/2019/ipv6%E7%89%B9%E6%80%A7%E4%BB%8B%E7%BB%8D/</link><pubDate>Wed, 27 Nov 2019 09:47:43 +0000</pubDate><author>firemiles</author><guid>https://blog.firemiles.top/2019/ipv6%E7%89%B9%E6%80%A7%E4%BB%8B%E7%BB%8D/</guid><description>IPv6 概述 IPv6（互联网协议版本6）是一种新的寻址协议，旨在包含未来互联网的所有可能需求。 为什么是新的IP版本 到目前为止，IPv4已经证明自己</description></item></channel></rss>
+<rss xmlns:atom="http://www.w3.org/2005/Atom" version="2.0"><channel><title>IPv6 - 标签 - Firemiles 的技术博客</title><link>https://blog.firemiles.top/tags/ipv6/</link><description>IPv6 - 标签 - Firemiles 的技术博客</description><generator>Hugo -- gohugo.io</generator><language>zh-CN</language><managingEditor>miles.dev@outlook.comm (firemiles)</managingEditor><webMaster>miles.dev@outlook.comm (firemiles)</webMaster><lastBuildDate>Wed, 27 Nov 2019 09:47:43 +0000</lastBuildDate><atom:link href="https://blog.firemiles.top/tags/ipv6/" rel="self" type="application/rss+xml"/><item><title>IPv6特性介绍</title><link>https://blog.firemiles.top/2019/ipv6%E7%89%B9%E6%80%A7%E4%BB%8B%E7%BB%8D/</link><pubDate>Wed, 27 Nov 2019 09:47:43 +0000</pubDate><author>firemiles</author><guid>https://blog.firemiles.top/2019/ipv6%E7%89%B9%E6%80%A7%E4%BB%8B%E7%BB%8D/</guid><description><![CDATA[<h2 id="ipv6-概述">IPv6 概述</h2>
+<p>IPv6（互联网协议版本6）是一种新的寻址协议，旨在包含未来互联网的所有可能需求。</p>
+<h3 id="为什么是新的ip版本">为什么是新的IP版本</h3>
+<p>到目前为止，IPv4已经证明自己是一个可靠的的可路由寻址协议，并且已经为我们服务了几十年。它是80年代初设计的，可以提供大约2^32个地址，在当时被认为是完全足够的，没想到的是互联网的爆发式增长，把地址已经耗尽。</p>
+<h3 id="为什么不是ipv5">为什么不是IPv5</h3>
+<p>目前为止，Internet协议已经被是被具有IPv4。版本0到3被使用，而协议本身已经正在开发和和实验过程。因此，新协议投入生产前，有许多使用实验协议的后台仍然活跃。协议版本5，我们称为互联网流协议，它使用因特网协议号5来封装其数据报，它从来没有被带入公众使用，但它已经使用。</p>
+<p>这里是一个IP版本表及其使用方法:</p>
+<p></p>
+<h2 id="ipv6-特性">IPv6 特性</h2>
+<p>IPv6 的设计并不是向后兼容的。IPv6被重新设计。它提供以下功能：</p>
+<ul>
+<li><strong>较大的地址空间</strong></li>
+<li><strong>简化报头</strong>。IPv6将不必要的选项放在报头末尾，使用链表形式，简化了报头。IPv6报头只有IPv4的两倍大。</li>
+<li><strong>端到端连接</strong>。每个系统都有唯一地址，并且可以通过Internate而不使用NAT。</li>
+<li><strong>自动配置</strong>。IPv6支持其主机设备的有状态和无状态自动配置模式。这样，没有DHCP服务器不会停止段间通信。</li>
+<li><strong>更快转发/路由</strong>。 简化头将不必要的的信息放在末尾。包含在报头的第一部分中的信息对于路由器进行路由决定是足够的，从而使得路由决定与查看强制报头一样快。</li>
+<li><strong>IPSec</strong>。</li>
+<li><strong>无广播</strong>。IPv6不再支持广播，使用多播和多个主机通信。</li>
+<li><strong>任播（anycast）支持</strong>。Internet上的多个网口分配相同的任播IP地址。当路由器路由时，发送数据包到最近的目的地。</li>
+<li><strong>移动性</strong>。IPv6被设计成保持移动性。此功能使主机(如移动电话)在不同的地理区域漫游，并保持与同一IP地址连接。</li>
+<li><strong>增强优先级支持</strong>。IPv4使用6位DSCP(差分服务代码点)和2位ECN(显式拥塞通知)来提供服务质量，但它只能在端到端设备支持它时使用，即源设备和目的设备 并且底层网络必须支持它。在IPv6中，流量类和流标签用于告诉底层路由器如何有效地处理数据包和路由它。</li>
+<li><strong>平稳过渡</strong>。IPv6 的大IP地址方案使得设备能够分配具有全球唯一IP地址。此机制保留源IP，不需要NAT。</li>
+<li><strong>可扩展性</strong>。IPv4 仅提供40字节选项；IPv6的选项可以和IPv6数据包本身大小一样多</li>
+</ul>
+<h2 id="ipv6-寻址模式">IPv6 寻址模式</h2>
+<p>IPv6 支持三种寻址模式：</p>
+<ul>
+<li><strong>单播</strong></li>
+<li><strong>多播</strong></li>
+<li><strong>任播</strong></li>
+</ul>
+<p>单播和多播与IPv4差别不大，任播比较少见，这里做下介绍。</p>
+<p>IPv6引入了一种新型的寻址，称为Anycast寻址。 在此寻址模式下，多个接口(host)被分配相同的任播IP地址。 当主机希望与配备有任播IP地址的主机通信时，它发送单播消息。 在复杂的路由机制的帮助下，在路由成本方面，该单播消息被递送到最接近发送方的主机。</p>
+<p></p>
+<h2 id="ipv6-地址类型和格式">IPv6 地址类型和格式</h2>
+<p>IPv6 使用 128 bit 地址，被划分成8个16位块，每个块转换成由冒号符号分隔的4位十六进制数字。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-txt" data-lang="txt"><span class="line"><span class="cl">2001:0000:3238:DFE1:0063:0000:0000:FEFB
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>IPv6 提供了一些规则来缩短地址。规则如下：</p>
+<p><strong>规则1</strong> ：丢弃前导0
+例如（第5块）</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-txt" data-lang="txt"><span class="line"><span class="cl">2001:0000:3238:DFE1:63:0000:0000:FEFB
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><strong>规则2</strong>：如果两个或多个块包含连续零，则省略它们并用双冒号::替换。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-txt" data-lang="txt"><span class="line"><span class="cl">2001:0000:3238:DFE1:63::FEFB
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>连续的零块只能被::替换一次。如果地址中仍有零块，它们可以缩小到一个零</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-txt" data-lang="txt"><span class="line"><span class="cl">2001:0:3238:DFE1:63::FEFB
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="接口id">接口ID</h3>
+<p>IPv6 有三种不同类型的单播地址方案。</p>
+<ul>
+<li>全局单播地址</li>
+<li>链路本地地址</li>
+<li>唯一本地地址</li>
+</ul>
+<p>地址的后半部分（最后64位）始终用于接口ID。系统的MAC地址由48位组成并以十六进制表示。 MAC地址被认为是在世界范围内唯一分配的。 接口ID利用MAC地址的这种唯一性。 主机可以使用IEEE的扩展唯一标识符(EUI-64)格式自动配置其接口ID。 首先，主机将其自己的MAC地址划分为两个24位的半部分。 然后16位十六进制值0xFFFE被夹在这两个MAC地址的两半之间，产生EUI-64接口ID。</p>
+<p></p>
+<p>为了将EUI-64 ID转换为IPv6接口标识符，EUI-64 ID的最高有效的第7位(U/L)需要取反。(EUI-64和IPv6该字段含义相反)</p>
+<p></p>
+<h3 id="全局单播地址">全局单播地址</h3>
+<p>此地址类型等同于IPv4的公共地址。IPv6中的全球单播地址是全局可识别和唯一可寻址的。</p>
+<p></p>
+<p>全局路由前缀:最高有效48位指定为全局路由前缀，分配给特定的自治系统。 全局路由前缀的三个最高有效位始终设置为001。</p>
+<h3 id="链路本地地址">链路本地地址</h3>
+<p>自动配置的IPv6地址称为链路本地地址。 此地址始终以FE80开头。 链路本地地址的前16位总是设置为1111 1110 1000 0000(FE80)。 接下来的48位设置为0，因此:</p>
+<p></p>
+<p>链路本地地址仅用于链路(广播段)上的IPv6主机之间的通信。 这些地址不可路由，因此路由器不会将这些地址转发到链路之外。</p>
+<h3 id="唯一本地地址">唯一本地地址</h3>
+<p>这种类型的IPv6地址是全局唯一的，但它应该用于本地通信。 该地址的后半部分包含接口ID，前半部分被分为前缀，本地位，全局ID和子网ID。</p>
+<p></p>
+<p>前缀始终设置为1111 110。L位，如果地址是本地分配，则设置为1。 到目前为止，L位到0的含义没有定义。因此，唯一本地IPv6地址始终以“FD&quot;开头。</p>
+<p>IPv6单播地址范围：</p>
+<p></p>
+<p>链路本地地址的范围仅限于段。 唯一本地地址是本地全局的，但不通过Internet路由，将其范围限制为组织的边界。 全球单播地址是全球唯一和可识别的。 他们应该是互联网v2寻址的本质。</p>
+<p></p>
+<h2 id="ipv6-特殊地址">IPv6 特殊地址</h2>
+<p></p>
+<p>路由协议的保留组播地址</p>
+<p></p>
+<p>保留路由器/节点的多播地址</p>
+<p></p>
+<p>这些地址帮助路由器和主机与段上的可用路由器和主机通信，而无需配置IPv6地址。 主机使用基于EUI-64的自动配置来自配置IPv6地址，然后通过这些地址与段上的可用主机/路由器通信。</p>
+<h2 id="ipv6-通信">IPv6 通信</h2>
+<p>在 IPv6 中，没有广播机制。启用IPv6的主机不是必须从DHCP获取IP地址，它可以自动配置自己的IP。ARP协议被ICMPv6邻居发现协议替代。</p>
+<h3 id="地址管理和分配">地址管理和分配</h3>
+<p>在IPv6中，主机地址可使用四种方法进行配置：</p>
+<ul>
+<li>静态配置—类似于IPv4，主机地址、掩码和网关地址通过人工方式定义。</li>
+<li>无状态自动地址配置（SLAAC）—在这种情况下，主机自动配置其地址。启动节点
+发送路由器请求消息，申请路由器广播（RA），以配置接口（RFC2462）。</li>
+<li>基于状态的DHCPv6—主机使用DHCP获取其IPv6地址。此地址管理类似于IPv4的
+DHCP行为（RFC3315）。</li>
+<li>无状态DHCP—主机使用SLAAC以及DHCP，来获取其它参数，如TFTP服务器、
+WINS等。</li>
+</ul>
+<p></p>
+<h3 id="邻居发现协议">邻居发现协议</h3>
+<p>邻居发现协议NDP（Neighbor Discovery Protocol）是IPv6协议体系中一个重要的基础协议。邻居发现协议替代了IPv4的ARP（Address Resolution Protocol）和ICMP路由器发现（Router Discovery），它定义了使用ICMPv6报文实现地址解析，跟踪邻居状态，重复地址检测，路由器发现以及重定向等功能。</p>
+<h4 id="地址解析">地址解析</h4>
+<p></p>
+<h4 id="跟踪邻居状态">跟踪邻居状态</h4>
+<p>通过邻居或到达邻居的通信，会因各种原因而中断，包括硬件故障、接口卡的热插入等。如果目的地失效，则恢复是不可能的，通信失败；如果路径失效，则恢复是可能的。因此节点需要维护一张邻居表，每个邻居都有相应的状态，状态之间可以迁移。</p>
+<p>RFC2461中定义了5种邻居状态，分别是：</p>
+<ul>
+<li>未完成（Incomplete）</li>
+<li>可达（Reachable）</li>
+<li>陈旧（Stale）</li>
+<li>延迟（Delay）</li>
+<li>探查（Probe）</li>
+</ul>
+<p></p>
+<h4 id="重复地址检测">重复地址检测</h4>
+<p>重复地址检测DAD（Duplicate Address Detect）是在接口使用某个IPv6单播地址之前进行的，主要是为了探测是否有其它的节点使用了该地址。尤其是在地址自动配置的时候，进行DAD检测是很必要的。一个IPv6单播地址在分配给一个接口之后且通过重复地址检测之前称为试验地址（Tentative Address）。此时该接口不能使用这个试验地址进行单播通信，但是仍然会加入两个组播组：ALL-NODES组播组和试验地址所对应的Solicited-Node组播组。</p>
+<p>IPv6重复地址检测技术和IPv4中的免费ARP类似：节点向试验地址所对应的Solicited-Node组播组发送NS报文。NS报文中目标地址即为该试验地址。如果收到某个其他站点回应的NA报文，就证明该地址已被网络上使用，节点将不能使用该试验地址通讯。</p>
+<p></p>
+<p>当两端同时检测时情况如下：</p>
+<p></p>
+<ul>
+<li>若2个节点配置相同地址，同时作重复地址检测时，该地址处于Tentative状态，当一方收到对方发出的DAD NS，则接收方将不启用该地址</li>
+<li>一种极端的情况，如果同时收到NS报文，则两端都放弃改地址</li>
+</ul>
+<h4 id="路由器发现">路由器发现</h4>
+<p>路由器发现功能用来发现与本地链路相连的设备，并获取与地址自动配置相关的前缀和其他配置参数。</p>
+<p>在IPv6中，IPv6地址可以支持无状态的自动配置，即主机通过某种机制获取网络前缀信息，然后主机自己生成地址的接口标识部分。路由器发现功能是IPv6地址自动配置功能的基础，主要通过以下两种报文实现：</p>
+<ul>
+<li>路由器通告RA（Router Advertisement）报文：每台设备为了让二层网络上的主机和设备知道自己的存在，定时都会组播发送RA报文，RA报文中会带有网络前缀信息，及其他一些标志位信息。</li>
+<li>路由器请求RS（Router Solicitation）报文：很多情况下主机接入网络后希望尽快获取网络前缀进行通信，此时主机可以立刻发送RS报文，网络上的设备将回应RA报文。</li>
+</ul>
+<h5 id="地址自动配置">地址自动配置</h5>
+<p>IPv6地址增长为128位，且终端节点多，对于自动配置的要求更为迫切，除保留了DHCP作为有状态自动配置外，还增加了无状态自动配置。无状态自动配置即自动生成链路本地地址，主机根据RA报文的前缀信息，自动配置全球单播地址等，并获得其他相关信息。</p>
+<p>IPv6主机无状态自动配置过程：</p>
+<ol>
+<li>根据接口标识产生链路本地地址。</li>
+<li>发出邻居请求，进行重复地址检测。</li>
+<li>如地址冲突，则停止自动配置，需要手工配置。</li>
+<li>如不冲突，链路本地地址生效，节点具备本地链路通信能力。</li>
+<li>主机会发送RS报文（或接收到设备定期发送的RA报文）。</li>
+<li>根据RA报文中的前缀信息和接口标识得到IPv6地址。</li>
+</ol>
+<h4 id="重定向">重定向</h4>
+<p>当网关设备发现报文从其它网关设备转发更好，它就会发送重定向报文告知报文的发送者，让报文发送者选择另一个网关设备。重定向报文也承载在ICMPv6报文中，其Type字段值为137，报文中会携带更好的路径下一跳地址和需要重定向转发的报文的目的地址等信息。</p>
+<h2 id="ipv6-子网划分">IPv6 子网划分</h2>
+<p>在IPv4中，使用网络掩码允许使用借用主机位作为子网位。这导致多个子网，但每个子网的主机较少。</p>
+<p>IPv6 地址使用128位来表示，其中16位表示子网划分。地址的后半段（最低有效64位）始终仅用于主机。</p>
+<p></p>
+<p>在IPv6中，前缀大致相当于IPv4中的子网划分。IPv6前缀由最左边的位构成，起网络标识符的作用。</p>
+<p>IPv6规范中为普通IPv6单播地址定义了/64前缀长度。由于IPv6有非常大的地址空间，用户有可能希望使用非/64前缀长度。</p>
+<p>在IPv6中，非/64前缀长度将使以下技术失效：</p>
+<ul>
+<li>
+<p>邻居发现（ND）</p>
+</li>
+<li>
+<p>安全邻居发现（SEND）［RFC3971］</p>
+</li>
+<li>
+<p>私密性扩展［RFC4941］</p>
+</li>
+<li>
+<p>部分移动IPv6［RFC4866］</p>
+</li>
+<li>
+<p>稀疏模式独立组播协议（PIM-SM），带内嵌RP［RFC3956］</p>
+</li>
+<li>
+<p>通过IPv6协调支持的站点多重寻址（SHIM6）［SHIM6］</p>
+</li>
+<li>
+<p><strong>/64前缀</strong></p>
+</li>
+</ul>
+<p>64位前缀适用于网络设备的传统局域网/广域网接口。</p>
+<ul>
+<li><strong>/126前缀</strong></li>
+</ul>
+<p>126位前缀一般用于点对点链路，类似于IPv4中为点对点链路分配的/30保留地址。但
+IPv6的地址空间要远大于IPv4地址空间。一般建议在点对点链路上使用/64。</p>
+<ul>
+<li><strong>/127前缀</strong></li>
+</ul>
+<p>RFC3627认为，在点对点链路上使用相当于IPv4 /31的/127前缀（RFC 3021），是有害
+的。这种分配就像为点对点链路分配/126前缀，使用127前缀是出于考虑地址保留的原
+因。为简化运营，应考虑为点对点链路使用/64前缀。</p>
+<ul>
+<li><strong>/128前缀</strong></li>
+</ul>
+<p>128位前缀可用于需要一个地址的情况。网络设备的回环地址即是这类地址的一个</p>
+<h2 id="从-ipv4-转变到-ipv6">从 IPv4 转变到 IPv6</h2>
+<p>从 IPv4 到 IPv6 完全转换不太可能，因为 IPv6 不向后兼容。这导致单纯和IPv6站点或IPv4站点无法被跨IP版本访问。</p>
+<p>为了克服这种短缺，我们有几种技术可以用来确保从IPv4到IPv6的缓慢而平滑的过渡。</p>
+<h3 id="双栈路由器">双栈路由器</h3>
+<p>路由器可以同时配置IPv4和IPv6地址。</p>
+<p></p>
+<h3 id="隧道">隧道</h3>
+<p>在中间路径或中转网络上存在不同IP版本的情况下，隧道提供了更好的解决方案，其中用户的数据可以通过不支持的IP版本。</p>
+<p></p>
+<h3 id="nat协议翻译">NAT协议翻译</h3>
+<p>这是通过启用NAT-PT（网络地址转换-协议转换）的设备转换到IPv6的另一个重要方法。在NAT-PT的设备的帮助下，实际可以发生在IPv4和IPv6分组之间，反之亦然。见下图：</p>
+<p></p>
+<p>几乎所有大型企业部署IPv6时都在内部使用双堆栈。双堆栈是学习和获取IPv6地址部署经验的一种简单方法，这对成功迁移非常重要。</p>
+<h2 id="ipv6-路由">IPv6 路由</h2>
+<p>路由概念在IPv6的情况下保持相同，但是几乎所有路由协议都被相应的重新定义。</p>
+<p>存在两种形式的路由协议：</p>
+<ul>
+<li><strong>距离向量路由协议</strong>：运行距离向量协议的路由器通告其连接的路由，并从其邻居学习新的路由。RIP和BGP是距离矢量协议。</li>
+<li><strong>链路状态路由协议</strong>：此协议确认链路的状态，并通告邻居。从对等路由器学习新的路由。在所有路由信息已经收敛之后，链路状态路由协议使用其自己的算法来计算到所有可用链路的最佳路径。OSPF和IS-IS是链路状态路由协议，它们都使用dijkstra的最短路径优先算法。</li>
+</ul>
+<p>路由协议可分为两类：</p>
+<ul>
+<li><strong>内部路由协议</strong>：自治系统或组织内用于在其边界内分发路由。RIP、OSPF</li>
+<li><strong>外部路由协议</strong>：不同自治系统或组织间发布路由信息。如BGP</li>
+</ul>
+<h3 id="路由协议">路由协议</h3>
+<ul>
+<li>
+<p><strong>RIPng</strong> RIPng 代表下一代路由信息协议。这是一个内部路由协议，是一个距离矢量协议。RIPng已升级支持IPv6</p>
+</li>
+<li>
+<p><strong>OSPFv3</strong> 开放最短路径优先版本3是经过修改以支持IPv6的内部路由协议。</p>
+</li>
+<li>
+<p><strong>BGPv4</strong> BGPv4是BGP的升级以支持IPv6路由</p>
+</li>
+</ul>
+<h3 id="协议更改为支持ipv6">协议更改为支持IPv6</h3>
+<ul>
+<li><strong>ICMPv6</strong>：Internet控制消息协议版本6是ICMP的升级实现，以适应IPv6要求。ICMPv6邻居发现协议替换ARP，并帮助发现链路上的邻居和路由器。</li>
+<li><strong>DHCPv6</strong>：启用IPv6的主机不需要任何DHCPv6服务器获取IP地址，因为它们可以自动配置。 他们也不需要DHCPv6定位DNS服务器，因为可以通过ICMPv6邻居发现协议发现和配置DNS。 然而DHCPv6服务器可以用于提供这些信息。</li>
+<li><strong>DNS</strong>：没有新版本的DNS，但它现在配备了扩展，以支持查询IPv6地址。 添加了新的AAAA(quad-A)记录以回复IPv6查询消息。 现在DNS可以用两个IP版本(4和6)回复，而查询格式没有任何改变。</li>
+</ul>
+<h2 id="参考资料">参考资料</h2>
+<ul>
+<li><a href="https://www.wikiwand.com/en/IPv6_address" target="_blank" rel="noopener noreffer">https://www.wikiwand.com/en/IPv6_address</a>
+</li>
+<li><a href="https://www.cisco.com/c/dam/global/zh_cn/solutions/industry/segment_sol/enterprise/programs_for_large_enterprise/iba/pdf/bn_enterprise_ipv6_addressing_guide_h2cy10.pdf" target="_blank" rel="noopener noreffer">https://www.cisco.com/c/dam/global/zh_cn/solutions/industry/segment_sol/enterprise/programs_for_large_enterprise/iba/pdf/bn_enterprise_ipv6_addressing_guide_h2cy10.pdf</a>
+</li>
+<li><a href="https://www.w3cschool.cn/ipv6/ipv6_overview.html" target="_blank" rel="noopener noreffer">https://www.w3cschool.cn/ipv6/ipv6_overview.html</a>
+</li>
+<li><a href="https://www.hi-linux.com/posts/26571.html" target="_blank" rel="noopener noreffer">https://www.hi-linux.com/posts/26571.html</a>
+</li>
+<li><a href="http://www.what21.com/sys/view/net_ipv6_1536653956137.html" target="_blank" rel="noopener noreffer">http://www.what21.com/sys/view/net_ipv6_1536653956137.html</a>
+</li>
+<li><a href="https://cshihong.github.io/2018/01/29/IPv6%E9%82%BB%E5%B1%85%E5%8F%91%E7%8E%B0%E5%8D%8F%E8%AE%AE/" target="_blank" rel="noopener noreffer">https://cshihong.github.io/2018/01/29/IPv6%E9%82%BB%E5%B1%85%E5%8F%91%E7%8E%B0%E5%8D%8F%E8%AE%AE/</a>
+</li>
+</ul>
+]]></description></item></channel></rss>

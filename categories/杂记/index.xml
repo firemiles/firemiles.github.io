@@ -1,3 +1,104 @@
-<rss xmlns:atom="http://www.w3.org/2005/Atom" version="2.0"><channel><title>杂记 - 分类 - Firemiles 的技术博客</title><link>https://blog.firemiles.top/categories/%E6%9D%82%E8%AE%B0/</link><description>杂记 - 分类 - Firemiles 的技术博客</description><generator>Hugo -- gohugo.io</generator><language>zh-CN</language><managingEditor>miles.dev@outlook.comm (firemiles)</managingEditor><webMaster>miles.dev@outlook.comm (firemiles)</webMaster><lastBuildDate>Wed, 30 May 2018 23:05:28 +0000</lastBuildDate><atom:link href="https://blog.firemiles.top/categories/%E6%9D%82%E8%AE%B0/" rel="self" type="application/rss+xml"/><item><title>用docker快速完成翻墙服务搭建</title><link>https://blog.firemiles.top/2018/%E7%94%A8docker%E5%BF%AB%E9%80%9F%E7%BF%BB%E5%A2%99/</link><pubDate>Wed, 30 May 2018 23:05:28 +0000</pubDate><author>firemiles</author><guid>https://blog.firemiles.top/2018/%E7%94%A8docker%E5%BF%AB%E9%80%9F%E7%BF%BB%E5%A2%99/</guid><description>&lt;div class="featured-image">
-&lt;img src="https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/2018-09-02-082740.jpg" referrerpolicy="no-referrer">
-&lt;/div>开始 起因是banwogon的ip又被墙了，由于bandwagon是包年的，换ip并不容易，因此决定使用别家的服务。 Vultr 相比 linode 等老牌厂商，界面简</description></item><item><title>迁移到hexo3</title><link>https://blog.firemiles.top/2016/%E8%BF%81%E7%A7%BB%E5%88%B0hexo3/</link><pubDate>Tue, 13 Sep 2016 13:47:18 +0000</pubDate><author>firemiles</author><guid>https://blog.firemiles.top/2016/%E8%BF%81%E7%A7%BB%E5%88%B0hexo3/</guid><description>&lt;p>好久没有更新 hexo，今天手贱把 hexo 和 node 都更新到了最新版本 hexo3 和 node6，然后就悲剧了，hexo 运行各种报错，各种百度后发现是 hexo3 改动比较大，很多功能都作为插件移出了 hexo，需要单独安装。在 hexo2 的基础上进行修改失败，最后决定重新构建一个 hexo3 工程进行迁移。&lt;/p></description></item></channel></rss>
+<rss xmlns:atom="http://www.w3.org/2005/Atom" version="2.0"><channel><title>杂记 - 分类 - Firemiles 的技术博客</title><link>https://blog.firemiles.top/categories/%E6%9D%82%E8%AE%B0/</link><description>杂记 - 分类 - Firemiles 的技术博客</description><generator>Hugo -- gohugo.io</generator><language>zh-CN</language><managingEditor>miles.dev@outlook.comm (firemiles)</managingEditor><webMaster>miles.dev@outlook.comm (firemiles)</webMaster><lastBuildDate>Wed, 30 May 2018 23:05:28 +0000</lastBuildDate><atom:link href="https://blog.firemiles.top/categories/%E6%9D%82%E8%AE%B0/" rel="self" type="application/rss+xml"/><item><title>用docker快速完成翻墙服务搭建</title><link>https://blog.firemiles.top/2018/%E7%94%A8docker%E5%BF%AB%E9%80%9F%E7%BF%BB%E5%A2%99/</link><pubDate>Wed, 30 May 2018 23:05:28 +0000</pubDate><author>firemiles</author><guid>https://blog.firemiles.top/2018/%E7%94%A8docker%E5%BF%AB%E9%80%9F%E7%BF%BB%E5%A2%99/</guid><description><![CDATA[<div class="featured-image">
+                <img src="https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/2018-09-02-082740.jpg" referrerpolicy="no-referrer">
+            </div><h2 id="开始">开始</h2>
+<p>起因是banwogon的ip又被墙了，由于bandwagon是包年的，换ip并不容易，因此决定使用别家的服务。</p>
+<p><a href="https://www.vultr.com/?ref=6905056" target="_blank" rel="noopener noreffer">Vultr</a>
+ 相比 linode 等老牌厂商，界面简单清爽，提供了月付2.5刀，随时可以删除换ip的VPS，非常适合作为扶墙主机。</p>
+<p></p>
+<p></p>
+<h2 id="搭建">搭建</h2>
+<p>使用paypal完成付款，创建完一台 <strong>1U/512M</strong> 的VPC后，ssh登录机器，开始 <strong>ssr</strong> 的搭建。这里我推荐使用 <strong>CentOS7</strong> 镜像，稳定够用。</p>
+<h2 id="安装-docker">安装 docker</h2>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">yum install docker
+</span></span><span class="line"><span class="cl">systemctl start docker
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="安装docker-ssr">安装docker-ssr</h2>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">docker run --restart always --privileged -d -p 4567:4567/tcp -p 4567:4567/udp --name ssr-bbr-docker letssudormrf/ssr-bbr-docker -p 4567 -k YOU-PASSWORD -m aes-128-ctr -O auth_aes128_sha1 -o http_post
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>自从docker出现后，很多事情变得简单。</p>
+<p>一条命令就完成了ssr服务端的下载和启动，并且是支持TCP BBR的。启动命令中的具体参数的定义可以查看附录中的ssr-bbr-docker，这里就不多做解释了。命令中的aes-128-ctr、auth_aes128_sha1和http_post作为ssr客户端中的协议类型和混淆协议类型进行配置，端口推荐使用自定义端口，不要用常用的443，容易被封。</p>
+<p>想了解大名鼎鼎的BBR的请点<a href="https://medium.com/google-cloud/tcp-bbr-magic-dust-for-network-performance-57a5f1ccf437" target="_blank" rel="noopener noreffer">这里</a>
+</p>
+<h2 id="配置-ssr-客户端">配置 ssr 客户端</h2>
+<p>ssr各平台客户端的下载地址，具体配置可以参考客户端帮助文档，这里就不赘述了。</p>
+<ul>
+<li><a href="https://github.com/shadowsocks/shadowsocks-windows" target="_blank" rel="noopener noreffer">Windows</a>
+</li>
+<li><a href="https://github.com/shadowsocks/shadowsocks-iOS/releases" target="_blank" rel="noopener noreffer">Mac</a>
+</li>
+<li><a href="https://github.com/shadowsocks/shadowsocks-android" target="_blank" rel="noopener noreffer">Android</a>
+</li>
+<li><a href="https://github.com/shadowsocks/shadowsocks-iOS/wiki/Help" target="_blank" rel="noopener noreffer">IOS</a>
+</li>
+<li><a href="https://github.com/shadowsocks/openwrt-shadowsocks" target="_blank" rel="noopener noreffer">OpenWRT</a>
+</li>
+</ul>
+<h2 id="附录">附录</h2>
+<ul>
+<li><a href="https://www.vultr.com/?ref=6905056" target="_blank" rel="noopener noreffer">Vultr</a>
+</li>
+<li><a href="https://github.com/work-on-docker/ssr-bbr-docker" target="_blank" rel="noopener noreffer">ssr-bbr-docker</a>
+</li>
+</ul>
+]]></description></item><item><title>迁移到hexo3</title><link>https://blog.firemiles.top/2016/%E8%BF%81%E7%A7%BB%E5%88%B0hexo3/</link><pubDate>Tue, 13 Sep 2016 13:47:18 +0000</pubDate><author>firemiles</author><guid>https://blog.firemiles.top/2016/%E8%BF%81%E7%A7%BB%E5%88%B0hexo3/</guid><description><![CDATA[<p>好久没有更新 hexo，今天手贱把 hexo 和 node 都更新到了最新版本 hexo3 和 node6，然后就悲剧了，hexo 运行各种报错，各种百度后发现是 hexo3 改动比较大，很多功能都作为插件移出了 hexo，需要单独安装。在 hexo2 的基础上进行修改失败，最后决定重新构建一个 hexo3 工程进行迁移。</p>
+<h2 id="安装">安装</h2>
+<p>为了避免 <a href="mailto:node@6.x" rel="">node@6.x</a>
+ 的兼容问题，使用 nvm 安装并使用 <a href="mailto:node@5.8" rel="">node@5.8</a>
+。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-shell" data-lang="shell"><span class="line"><span class="cl">$ nvm install 5.8 <span class="o">&amp;&amp;</span> nvm use 5.8
+</span></span><span class="line"><span class="cl">$ npm install -g hexo-cli
+</span></span><span class="line"><span class="cl">$ hexo init blog <span class="o">&amp;&amp;</span> <span class="nb">cd</span> blog <span class="o">&amp;&amp;</span> npm i <span class="o">&amp;&amp;</span> hexo s
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>直接安装初始化默认版本的 hexo 并测试，hexo 默认会安装几个重要插件，包括 <em>hexo-server</em>。如果发现 <code>hexo server</code> 命令不能用，那么就有可能是 <em>_config.yml</em> 文件中的 <em>plugins</em> 配置有问题，尝试删除 <em>plugins</em> 配置再测试，我遇到的问题就是这个原因引起的。</p>
+<blockquote>
+<p>一定要先测试默认配置，我直接用了 hexo2 的配置，然后打开服务器访问就是 404 错误.</p>
+</blockquote>
+<h2 id="迁移">迁移</h2>
+<p>安装并测试通过后，接下来就是迁移旧blog了。</p>
+<p>更新 <em>_config.yml</em>，把 next 主题 copy 到 theme 目录下，顺便可以把 next 主题也一起更新了。迁移 <em>source</em> 下的文件夹到新的 <em>source</em> 目录下。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-shell" data-lang="shell"><span class="line"><span class="cl">$ hexo g
+</span></span><span class="line"><span class="cl">$ hexo s
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>测试下迁移后的内容，没有问题迁移就成功了。</p>
+<h2 id="添加域名">添加域名</h2>
+<p>阿里云搞活动买了个域名 firemiles.top ， 为了不浪费，给博客分配了个子域名 blog.firemiles.top。</p>
+<p>在 <em>source</em> 下添加 CNAME 文件，内容就是 blog.firemiles.top。</p>
+<h2 id="参考链接">参考链接</h2>
+<ul>
+<li><a href="hexo.io" rel="">hexo</a>
+</li>
+<li><a href="https://github.com/hexojs/hexo/issues" target="_blank" rel="noopener noreffer">hexo-issues</a>
+</li>
+<li><a href="http://www.jianshu.com/p/35e197cb1273" target="_blank" rel="noopener noreffer">Hexo搭建Github-Pages博客填坑教程</a>
+</li>
+<li><a href="http://www.jianshu.com/p/1d427e888dda" target="_blank" rel="noopener noreffer">Hexo+Github域名和github绑定的问题</a>
+</li>
+</ul>]]></description></item></channel></rss>

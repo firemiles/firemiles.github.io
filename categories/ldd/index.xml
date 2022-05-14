@@ -10,4 +10,918 @@
 <li>获取字符设备号</li>
 <li>注册字符设备</li>
 </ul>
-<p>当卸载模块时，需要释放申请的设备号。</p>]]></description></item></channel></rss>
+<p>当卸载模块时，需要释放申请的设备号。</p>
+<h1 id="主设备号和次设备号">主设备号和次设备号</h1>
+<p>对字符设备的访问是通过文件系统内的设备名称进行的。那些名称被称为特殊 文件、设备文件，或者简单称为文件系统树的节点，他们通常位于/dev目录。</p>
+<p>通常而言，主设备号表示设备对应的驱动程序。例如，/dev/null和/dev/zero 由驱动程序1管理，而虚拟控制台和串口终端由驱动程序4管理。</p>
+<blockquote>
+<p>现代的Linux内核允许多个驱动程序共享主设备号，但我们看到的仍然按照”一个主设备号对应一个驱动程序“的原则组织。次设备号的作用被加强了，一个主设备号加一个次设备号可以对应一个驱动程序。</p>
+</blockquote>
+<blockquote>
+<p>/proc/devices 可以查看注册的主设备号；/proc/modules 可以查看正在使用模块的进程数两个文件中的module名字不同，devices中的是用户设置的name，modules中的是名字module.ko中的module。</p>
+</blockquote>
+<h1 id="设备编号的内部表达">设备编号的内部表达</h1>
+<p>在内核中dev_t类型（在linux/types.h中定义）用来保存设备编号——包括主设备号和次设备号。我们的代码不应该对设备编号的组织做任何假定，而应该始终使用linux/kdev_t.h中定义的宏。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl"><span class="n">MAJOR</span><span class="p">(</span><span class="n">dev_t</span> <span class="n">dev</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="n">MINOR</span><span class="p">(</span><span class="n">dev_t</span> <span class="n">dev</span><span class="p">);</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>相反，如果要将主设备号和次设备号转换成dev_t类型，则使用：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl"><span class="n">MKDEV</span><span class="p">(</span><span class="kt">int</span> <span class="n">major</span><span class="p">,</span> <span class="kt">int</span> <span class="n">minor</span><span class="p">);</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h1 id="分配和释放设备编号">分配和释放设备编号</h1>
+<p>在建立一个字符设备之前，我们的驱动程序首先要做的事情就是获得一个或者多个设备编号。完成该工作的必要函数是 <em>register_chrdev_region</em>，该函数在linux/fd.h中声明：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl"><span class="kt">int</span> <span class="nf">register_chrdev_region</span><span class="p">(</span><span class="n">dev_t</span> <span class="n">first</span><span class="p">,</span> <span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">count</span><span class="p">,</span> <span class="kt">char</span> <span class="o">*</span><span class="n">name</span><span class="p">);</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>其中 <em>first</em> 是要分配的设备编号范围的起始值。first的次设备号经常被置为0，但对该函数不是必须的。<em>count</em> 是所请求的连续设备编号的个数。 <em>name</em> 是和该编号范围关联的设备名称，它将出现在/proc/devices和sysfs中。</p>
+<p>如果我们知道可用的设备编号，则 <em>register_chrdev_region</em> 会工作很好。但是 我们进程不知道将要用哪些主设备号；应此提供了以下函数</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl"><span class="kt">int</span> <span class="nf">alloc_chrdev_region</span><span class="p">(</span><span class="n">dev_t</span> <span class="o">*</span><span class="n">dev</span><span class="p">,</span> <span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">firstminor</span><span class="p">,</span> 
+</span></span><span class="line"><span class="cl">                            <span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">count</span><span class="p">,</span> <span class="kt">char</span> <span class="o">*</span><span class="n">name</span><span class="p">);</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><em>dev</em> 用于输出参数，成功调用后保存已分配范围的第一个编号。 <em>firstminor</em> 应该是 要使用的被请求的第一个次设备号，通常是0。 <em>count</em> 和 <em>name</em> 参数和 <em>register_chrdev_region</em> 相同。</p>
+<p>无论使用哪种方法分配设备号，都应该在不再使用它们时释放这些设备编号。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl"><span class="kt">void</span> <span class="nf">unregister_chrdev_region</span><span class="p">(</span><span class="n">dev_t</span> <span class="n">first</span><span class="p">,</span> <span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">count</span><span class="p">);</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>通常我们在清除模块中调用 <em>unregister_chrdev_region</em> 函数。</p>
+<h1 id="一些重要的数据结构">一些重要的数据结构</h1>
+<h2 id="文件操作">文件操作</h2>
+<p>迄今为止，我们已经为自己保留了一些设备编号，但尚未将任何驱动程序的操作连接到这些 编号。file_operations结构就是用来建立这种连接的。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span><span class="lnt">36
+</span><span class="lnt">37
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl"><span class="k">struct</span> <span class="n">file_operations</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="k">struct</span> <span class="n">module</span> <span class="o">*</span><span class="n">owner</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">     <span class="n">loff_t</span><span class="p">(</span><span class="o">*</span><span class="n">llseek</span><span class="p">)</span> <span class="p">(</span><span class="k">struct</span> <span class="n">file</span> <span class="o">*</span><span class="p">,</span> <span class="n">loff_t</span><span class="p">,</span> <span class="kt">int</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">     <span class="n">ssize_t</span><span class="p">(</span><span class="o">*</span><span class="n">read</span><span class="p">)</span> <span class="p">(</span><span class="k">struct</span> <span class="n">file</span> <span class="o">*</span><span class="p">,</span> <span class="kt">char</span> <span class="n">__user</span> <span class="o">*</span><span class="p">,</span> <span class="n">size_t</span><span class="p">,</span> <span class="n">loff_t</span> <span class="o">*</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">     <span class="n">ssize_t</span><span class="p">(</span><span class="o">*</span><span class="n">aio_read</span><span class="p">)</span> <span class="p">(</span><span class="k">struct</span> <span class="n">kiocb</span> <span class="o">*</span><span class="p">,</span> <span class="kt">char</span> <span class="n">__user</span> <span class="o">*</span><span class="p">,</span> <span class="n">size_t</span><span class="p">,</span> <span class="n">loff_t</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">     <span class="n">ssize_t</span><span class="p">(</span><span class="o">*</span><span class="n">write</span><span class="p">)</span> <span class="p">(</span><span class="k">struct</span> <span class="n">file</span> <span class="o">*</span><span class="p">,</span> <span class="k">const</span> <span class="kt">char</span> <span class="n">__user</span> <span class="o">*</span><span class="p">,</span> <span class="n">size_t</span><span class="p">,</span> <span class="n">loff_t</span> <span class="o">*</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">     <span class="n">ssize_t</span><span class="p">(</span><span class="o">*</span><span class="n">aio_write</span><span class="p">)</span> <span class="p">(</span><span class="k">struct</span> <span class="n">kiocb</span> <span class="o">*</span><span class="p">,</span> <span class="k">const</span> <span class="kt">char</span> <span class="n">__user</span> <span class="o">*</span><span class="p">,</span> <span class="n">size_t</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">                  <span class="n">loff_t</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="kt">int</span> <span class="p">(</span><span class="o">*</span><span class="n">readdir</span><span class="p">)</span> <span class="p">(</span><span class="k">struct</span> <span class="n">file</span> <span class="o">*</span><span class="p">,</span> <span class="kt">void</span> <span class="o">*</span><span class="p">,</span> <span class="n">filldir_t</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="kt">unsigned</span> <span class="nf">int</span> <span class="p">(</span><span class="o">*</span><span class="n">poll</span><span class="p">)</span> <span class="p">(</span><span class="k">struct</span> <span class="n">file</span> <span class="o">*</span><span class="p">,</span> <span class="k">struct</span> <span class="n">poll_table_struct</span> <span class="o">*</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="kt">int</span> <span class="p">(</span><span class="o">*</span><span class="n">ioctl</span><span class="p">)</span> <span class="p">(</span><span class="k">struct</span> <span class="n">inode</span> <span class="o">*</span><span class="p">,</span> <span class="k">struct</span> <span class="n">file</span> <span class="o">*</span><span class="p">,</span> <span class="kt">unsigned</span> <span class="kt">int</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">              <span class="kt">unsigned</span> <span class="kt">long</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="kt">int</span> <span class="p">(</span><span class="o">*</span><span class="n">mmap</span><span class="p">)</span> <span class="p">(</span><span class="k">struct</span> <span class="n">file</span> <span class="o">*</span><span class="p">,</span> <span class="k">struct</span> <span class="n">vm_area_struct</span> <span class="o">*</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="kt">int</span> <span class="p">(</span><span class="o">*</span><span class="n">open</span><span class="p">)</span> <span class="p">(</span><span class="k">struct</span> <span class="n">inode</span> <span class="o">*</span><span class="p">,</span> <span class="k">struct</span> <span class="n">file</span> <span class="o">*</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="kt">int</span> <span class="p">(</span><span class="o">*</span><span class="n">flush</span><span class="p">)</span> <span class="p">(</span><span class="k">struct</span> <span class="n">file</span> <span class="o">*</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="kt">int</span> <span class="p">(</span><span class="o">*</span><span class="n">release</span><span class="p">)</span> <span class="p">(</span><span class="k">struct</span> <span class="n">inode</span> <span class="o">*</span><span class="p">,</span> <span class="k">struct</span> <span class="n">file</span> <span class="o">*</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="kt">int</span> <span class="p">(</span><span class="o">*</span><span class="n">fsync</span><span class="p">)</span> <span class="p">(</span><span class="k">struct</span> <span class="n">file</span> <span class="o">*</span><span class="p">,</span> <span class="k">struct</span> <span class="n">dentry</span> <span class="o">*</span><span class="p">,</span> <span class="kt">int</span> <span class="n">datasync</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="kt">int</span> <span class="p">(</span><span class="o">*</span><span class="n">aio_fsync</span><span class="p">)</span> <span class="p">(</span><span class="k">struct</span> <span class="n">kiocb</span> <span class="o">*</span><span class="p">,</span> <span class="kt">int</span> <span class="n">datasync</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="kt">int</span> <span class="p">(</span><span class="o">*</span><span class="n">fasync</span><span class="p">)</span> <span class="p">(</span><span class="kt">int</span><span class="p">,</span> <span class="k">struct</span> <span class="n">file</span> <span class="o">*</span><span class="p">,</span> <span class="kt">int</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="kt">int</span> <span class="p">(</span><span class="o">*</span><span class="n">lock</span><span class="p">)</span> <span class="p">(</span><span class="k">struct</span> <span class="n">file</span> <span class="o">*</span><span class="p">,</span> <span class="kt">int</span><span class="p">,</span> <span class="k">struct</span> <span class="n">file_lock</span> <span class="o">*</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">     <span class="n">ssize_t</span><span class="p">(</span><span class="o">*</span><span class="n">readv</span><span class="p">)</span> <span class="p">(</span><span class="k">struct</span> <span class="n">file</span> <span class="o">*</span><span class="p">,</span> <span class="k">const</span> <span class="k">struct</span> <span class="n">iovec</span> <span class="o">*</span><span class="p">,</span> <span class="kt">unsigned</span> <span class="kt">long</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">              <span class="n">loff_t</span> <span class="o">*</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">     <span class="n">ssize_t</span><span class="p">(</span><span class="o">*</span><span class="n">writev</span><span class="p">)</span> <span class="p">(</span><span class="k">struct</span> <span class="n">file</span> <span class="o">*</span><span class="p">,</span> <span class="k">const</span> <span class="k">struct</span> <span class="n">iovec</span> <span class="o">*</span><span class="p">,</span> <span class="kt">unsigned</span> <span class="kt">long</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">               <span class="n">loff_t</span> <span class="o">*</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">     <span class="n">ssize_t</span><span class="p">(</span><span class="o">*</span><span class="n">sendfile</span><span class="p">)</span> <span class="p">(</span><span class="k">struct</span> <span class="n">file</span> <span class="o">*</span><span class="p">,</span> <span class="n">loff_t</span> <span class="o">*</span><span class="p">,</span> <span class="n">size_t</span><span class="p">,</span> <span class="n">read_actor_t</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">                 <span class="kt">void</span> <span class="n">__user</span> <span class="o">*</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">     <span class="n">ssize_t</span><span class="p">(</span><span class="o">*</span><span class="n">sendpage</span><span class="p">)</span> <span class="p">(</span><span class="k">struct</span> <span class="n">file</span> <span class="o">*</span><span class="p">,</span> <span class="k">struct</span> <span class="n">page</span> <span class="o">*</span><span class="p">,</span> <span class="kt">int</span><span class="p">,</span> <span class="n">size_t</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">                 <span class="n">loff_t</span> <span class="o">*</span><span class="p">,</span> <span class="kt">int</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="kt">unsigned</span> <span class="nf">long</span> <span class="p">(</span><span class="o">*</span><span class="n">get_unmapped_area</span><span class="p">)</span> <span class="p">(</span><span class="k">struct</span> <span class="n">file</span> <span class="o">*</span><span class="p">,</span> <span class="kt">unsigned</span> <span class="kt">long</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">                        <span class="kt">unsigned</span> <span class="kt">long</span><span class="p">,</span> <span class="kt">unsigned</span> <span class="kt">long</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">                        <span class="kt">unsigned</span> <span class="kt">long</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="p">};</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="k">struct</span> <span class="n">file_operations</span> <span class="n">scull_fops</span> <span class="o">=</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="p">.</span><span class="n">owner</span> <span class="o">=</span> <span class="n">THIS_MODULE</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">    <span class="p">.</span><span class="n">llseek</span> <span class="o">=</span> <span class="n">scull_llseek</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl"><span class="p">};</span> <span class="c1">//C99 syntax
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="file结构">file结构</h2>
+<p>在linux/fs.h中定义的struct file是设备驱动程序所使用的第二个最重要的数据结构。</p>
+<blockquote>
+<p>注意：file结构和用户空间程序中的FILE没有任何关联。FILE是C库中的定义的结构， 而struct file是一个内核结构，不会出现在用户程序中（文件描述符应该是指向该结构体）。</p>
+</blockquote>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl"><span class="k">struct</span> <span class="n">file</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="n">mode_t</span> <span class="n">f_mode</span><span class="p">;</span>      <span class="c1">//文件模式
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="n">loff_t</span> <span class="n">f_pos</span><span class="p">;</span>       <span class="c1">//当前读写位置
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">f_flags</span><span class="p">;</span> <span class="c1">//文件标志，如O_RDONLY、O_NONBLOCK和O_SYNC。
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="k">struct</span> <span class="n">file_operations</span> <span class="o">*</span><span class="n">f_op</span><span class="p">;</span>   <span class="c1">//与文件相关的操作。
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="kt">void</span> <span class="o">*</span><span class="n">private_data</span><span class="p">;</span>     <span class="c1">//open系统调用在调用驱动程序的open方法前将这个
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>                            <span class="c1">//指针置为NULL。
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="k">struct</span> <span class="n">dentry</span> <span class="o">*</span><span class="n">f_dentry</span><span class="p">;</span><span class="c1">//文件对应的目录项(dentry)结构。
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>                            <span class="c1">//filp-&gt;f_dentry-&gt;d_inode
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="err">……</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="inode结构">inode结构</h2>
+<p>内核用inode结构在内部表示文件，因此它和file结构不同，后者表示打开的文件描述符。对 单个文件，可能会有多个表示打开的文件描述符的file结构，但它们都指向单个inode结构。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl"><span class="k">struct</span> <span class="n">inode</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="n">dev_t</span> <span class="n">i_rdev</span><span class="p">;</span>       <span class="c1">//对表示设备文件的inode结构，
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>                        <span class="c1">//该字段包含了真正的设备编号
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="k">struct</span> <span class="n">cdev</span> <span class="o">*</span><span class="n">i_cdev</span><span class="p">;</span><span class="c1">//表示字符设备的内核内部结构。
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="err">……</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><em>i_rdev</em> 的类型在2.5开发系列版本中发生了变化，为了鼓励编写可移植性更强的代码， 内核开发者增加了两个新的宏。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl"><span class="kt">unsigned</span> <span class="kt">int</span> <span class="nf">iminor</span><span class="p">(</span><span class="k">struct</span> <span class="n">inode</span> <span class="o">*</span><span class="n">inode</span><span class="p">);</span>       <span class="c1">//获取次设备号
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kt">unsigned</span> <span class="kt">int</span> <span class="nf">imajor</span><span class="p">(</span><span class="k">struct</span> <span class="n">inode</span> <span class="o">*</span><span class="n">inode</span><span class="p">);</span>       <span class="c1">//获取主设备号
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><h1 id="字符设备的注册">字符设备的注册</h1>
+<p>内核内部使用struct cdev结构来表示字符设备。在内核调用设备的操作之前，必须分配 并注册一个或者多个上述结构。为此，我们的代码需要包含linux/cdev.h，其中定义 了这个结构以及与其相关的一些辅助函数。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span><span class="lnt">8
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl"><span class="k">struct</span> <span class="n">cdev</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="k">struct</span> <span class="n">kobject</span> <span class="n">kobj</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="k">struct</span> <span class="n">module</span> <span class="o">*</span><span class="n">owner</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="k">const</span> <span class="k">struct</span> <span class="n">file_operations</span> <span class="o">*</span><span class="n">ops</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="k">struct</span> <span class="n">list_head</span> <span class="n">list</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="n">dev_t</span> <span class="n">dev</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">count</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="p">};</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><blockquote>
+<p>有一个老的机制可以避免使用cdev结构，但是新代码应该使用新技术。</p>
+</blockquote>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl"><span class="k">struct</span> <span class="n">cdev</span> <span class="o">*</span><span class="n">my_cdev</span> <span class="o">=</span> <span class="n">cdev_alloc</span><span class="p">();</span>
+</span></span><span class="line"><span class="cl"><span class="n">my_cdev</span><span class="o">-&gt;</span><span class="n">ops</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">my_fops</span><span class="p">;</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>我们可以将cdev结构嵌入到自己的设备特定结构中（有点类似派生的C版本）。 如果没有通过 <em>cdev_alloc</em> 申请，则我们需要用下面的代码来初始化已分配的结构：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl"><span class="kt">void</span>  <span class="nf">cdev_init</span><span class="p">(</span><span class="k">struct</span> <span class="n">cdev</span> <span class="o">*</span><span class="n">cdev</span><span class="p">,</span> 
+</span></span><span class="line"><span class="cl">                    <span class="k">struct</span> <span class="n">file_operations</span> <span class="o">*</span><span class="n">fops</span><span class="p">);</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>还有一个字段需要初始化，和file_operations一样，struct cdev也有一个所有者字段， 应设置为THIS_MODULE。</p>
+<p>在设置完cdev结构后，最后的步骤是告诉内核该结构的信息：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl"><span class="kt">int</span> <span class="nf">cdev_add</span><span class="p">(</span><span class="k">struct</span> <span class="n">cdev</span> <span class="o">*</span><span class="n">dev</span><span class="p">,</span> <span class="n">dev_t</span> <span class="n">num</span><span class="p">,</span> 
+</span></span><span class="line"><span class="cl">            <span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">count</span><span class="p">);</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><em>num</em> 是该设备对应的第一个设备编号，count是应该和该设备关联的设备编号数量。 只要 <em>cdev_add</em> 成功返回，我们的设备就要开始工作了，它的操作会被内核调用。 要从系统移除一个字符设备，做如下调用：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl"><span class="kt">void</span> <span class="nf">cdev_del</span><span class="p">(</span><span class="k">struct</span> <span class="n">cdev</span> <span class="o">*</span><span class="n">dev</span><span class="p">);</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>在将cdev通过 <em>cdev_del</em> 移除后，就不应该再访问cdev结构了。</p>
+<h2 id="scull中的设备注册">Scull中的设备注册</h2>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl"><span class="k">static</span> <span class="kt">void</span> <span class="nf">scull_setup_cdev</span><span class="p">(</span><span class="k">struct</span> <span class="n">scull_dev</span> <span class="o">*</span><span class="n">dev</span><span class="p">,</span> <span class="kt">int</span> <span class="n">index</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="kt">int</span> <span class="n">err</span><span class="p">,</span> <span class="n">devno</span> <span class="o">=</span> <span class="n">MKDEV</span><span class="p">(</span><span class="n">scull_major</span><span class="p">,</span> <span class="n">scull_minor</span><span class="o">+</span><span class="n">index</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="n">cdev_init</span><span class="p">(</span><span class="o">&amp;</span><span class="n">dev</span><span class="o">-&gt;</span><span class="n">cdev</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">scull_fops</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="n">dev</span><span class="o">-&gt;</span><span class="n">cdev</span><span class="p">.</span><span class="n">owner</span> <span class="o">=</span> <span class="n">THIS_MODULE</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="n">dev</span><span class="o">-&gt;</span><span class="n">cdev</span><span class="p">.</span><span class="n">ops</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">scull_fops</span><span class="p">;</span>  <span class="c1">// this expression is redundancy ?
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="n">err</span> <span class="o">=</span> <span class="n">cdev_add</span><span class="p">(</span><span class="o">&amp;</span><span class="n">dev</span><span class="o">-&gt;</span><span class="n">cdev</span><span class="p">,</span> <span class="n">devno</span><span class="p">,</span> <span class="mi">1</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">        <span class="k">if</span><span class="p">(</span><span class="n">err</span><span class="p">){</span>
+</span></span><span class="line"><span class="cl">            <span class="n">printk</span><span class="p">(</span><span class="n">KERN_NOTICE</span> <span class="s">&#34;Error %d adding scull%d&#34;</span><span class="p">,</span> <span class="n">err</span><span class="p">,</span> <span class="n">index</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">        <span class="p">}</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>因为cdev结构被内嵌到了strcut scull_dev中，因此必须调用cdev_init来执行该结构的初始化。</p>
+<h2 id="早期办法">早期办法</h2>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl"><span class="kt">int</span> <span class="nf">register_chrdev</span><span class="p">(</span><span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">major</span><span class="p">,</span> <span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">name</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">                        <span class="k">struct</span> <span class="n">file_operations</span> <span class="o">*</span><span class="n">fops</span><span class="p">);</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>对 <em>register_chrdev</em> 的调用将为 <strong>给定的主设备号注册0～255作为次设备号</strong>，并为 每个设备建立一个对应的默认cdev结构。使用这一接口的驱动程序必须能够处理所有 256个次设备号上的 <em>open</em> 调用。对应的移除函数：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl"><span class="kt">int</span> <span class="nf">unregister_chrdev</span><span class="p">(</span><span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">major</span><span class="p">,</span> <span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">name</span><span class="p">);</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h1 id="open和release">open和release</h1>
+<h2 id="open方法">open方法</h2>
+<p><em>open</em> 方法提供给驱动程序以初始化的能力（和module_init的不同），open应完成如下 工作：</p>
+<ul>
+<li>检查设备特定的错误（如设备未就绪或类似硬件问题）</li>
+<li>如果设备首次打开，对其进行初始化。</li>
+<li>如有必要，更新f_op指针。</li>
+<li>分配并填写置于filp-&gt;private_data里的数据结构。</li>
+</ul>
+<p><em>open</em> 方法的原型如下：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl"><span class="kt">int</span> <span class="p">(</span><span class="o">*</span><span class="n">open</span><span class="p">)</span> <span class="p">(</span><span class="k">struct</span> <span class="n">inode</span> <span class="o">*</span><span class="n">inode</span><span class="p">,</span> <span class="k">struct</span> <span class="n">file</span> <span class="o">*</span><span class="n">filp</span><span class="p">);</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>inode参数在i_cdev字段中包含了我们需要的信息，即我们先前设定的cdev结构。我们通常需要 包含它的scull_dev结构，内核黑客为我们提供了此类技巧，它通过定义在linux/kernel.h 中的container_of宏实现：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl"><span class="n">container_of</span><span class="p">(</span><span class="n">pointer</span><span class="p">,</span> <span class="n">container_type</span><span class="p">,</span> <span class="n">container_field</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="k">struct</span> <span class="n">scull_dev</span> <span class="o">*</span><span class="n">dev</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="n">dev</span> <span class="o">=</span> <span class="n">container_of</span><span class="p">(</span><span class="n">inode</span><span class="o">-&gt;</span><span class="n">i_cdev</span><span class="p">,</span> <span class="k">struct</span> <span class="n">scull_dev</span><span class="p">,</span> <span class="n">cdev</span><span class="p">);</span> <span class="c1">//cdev是成员名
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="n">flip</span><span class="o">-&gt;</span><span class="n">private_data</span> <span class="o">=</span> <span class="n">dev</span><span class="p">;</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>另一个确定要打开的设备的方法是：检查保存在inode中的次设备号。如果使用了 <em>register_chrdev</em> 注册设备，则必须使用该技术。 经过简化的 <em>scull_open</em> 代码：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl"><span class="kt">int</span> <span class="nf">scull_open</span><span class="p">(</span><span class="k">struct</span> <span class="n">inode</span> <span class="o">*</span><span class="n">inode</span><span class="p">,</span> <span class="k">struct</span> <span class="n">file</span> <span class="o">*</span><span class="n">filp</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="k">struct</span> <span class="n">scutll_dev</span> <span class="o">*</span><span class="n">dev</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="n">dev</span> <span class="o">=</span> <span class="n">container_of</span><span class="p">(</span><span class="n">inode</span><span class="o">-&gt;</span><span class="n">i_cdev</span><span class="p">,</span> <span class="k">struct</span> <span class="n">scull_dev</span><span class="p">,</span> <span class="n">cdev</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="n">filp</span><span class="o">-&gt;</span><span class="n">private_data</span> <span class="o">=</span> <span class="n">dev</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="k">if</span><span class="p">((</span><span class="n">filp</span><span class="o">-&gt;</span><span class="n">f_flags</span><span class="o">&amp;</span><span class="n">O_ACCMODE</span><span class="p">)</span><span class="o">==</span><span class="n">O_WRONLY</span><span class="p">){</span>
+</span></span><span class="line"><span class="cl">        <span class="n">scull_trim</span><span class="p">(</span><span class="n">dev</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl">    <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>由于我们没有维护scull的打开计数，只维护模块的使用计数，因此也就没有类似&quot;首次打开时初始化设备&quot;这类动作。</p>
+<h2 id="release方法">release方法</h2>
+<p><em>release</em> 方法和 <em>open</em> 相反，有时这个方法被称为 <em>device_close</em>。</p>
+<ul>
+<li>释放由 <em>open</em> 分配的、保存在filp-&gt;private_data中的所有内容。</li>
+<li>在最后一次关闭操作时关闭设备。</li>
+</ul>
+<blockquote>
+<p>注： 后面scull_open为每种设备都替换了不同的filp-&gt;f_op，所以不同的设备由 不同的函数关闭</p>
+</blockquote>
+<p>当关闭一个设备文件的次数比打开它的次数多时，系统中会发生什么？ 答案很简单：并不是每个close系统调用都会引起对release方法的调用。只有 真正释放设备数据结构的 <em>close</em> 调用才会调用这个方法。内核对每个file 结构维护其被使用多少次的计数器。无论 <em>fork</em> 还是 <em>dup</em> 都不会创建新 的数据结构（仅由open创建），他们只是增加已有结构中的计数。只有file结 构的计数归零是，close系统调用才会执行release方法，这只在删除这个结 构时才会发生。<strong>保证了一次open只会看到一次release调用</strong>。</p>
+<blockquote>
+<p>注意：flush方法在应用程序每次调用close时都会调用。</p>
+</blockquote>
+<h1 id="read和write">read和write</h1>
+<p><em>read</em> 和 <em>write</em> 方法完成的任务是相似的，亦即，拷贝数据到应用程序空间， 或者反过来。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-C" data-lang="C"><span class="line"><span class="cl"><span class="n">ssize_t</span> <span class="nf">read</span><span class="p">(</span><span class="k">struct</span> <span class="n">file</span> <span class="o">*</span><span class="n">filp</span><span class="p">,</span> <span class="kt">char</span> <span class="n">__user</span> <span class="o">*</span><span class="n">buff</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">            <span class="n">size_t</span> <span class="n">count</span><span class="p">,</span> <span class="n">loff_t</span> <span class="o">*</span><span class="n">offp</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="n">ssize_t</span> <span class="nf">write</span><span class="p">(</span><span class="k">struct</span> <span class="n">file</span> <span class="o">*</span><span class="n">filp</span><span class="p">,</span> <span class="k">const</span> <span class="kt">char</span> <span class="n">__user</span> <span class="o">*</span><span class="n">buff</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">            <span class="n">size_t</span> <span class="n">count</span><span class="p">,</span> <span class="n">loff_t</span> <span class="o">*</span><span class="n">offp</span><span class="p">);</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>需要说明的是read和write方法的buff参数是用户空间的指针。因此，代码不能直接 引用其中内容。原因如下：</p>
+<ul>
+<li>随着驱动程序所运行的架构不同或者内核配置不同，在内核模式运行时，用户
+空间的指针可能是无效的。</li>
+<li>即使该指针在内核空间中代表相同的东西，但用户空间的内存是分页的，而在系统
+调用被调用时，涉及到的内存可能根本不在RAM中。对用户空间的内存的直接引用
+将导致页错误，而这对内核代码来说是不允许发生的事情。其结果可能是“oops”。</li>
+<li>我们讨论的指针可能由用户程序提供，而该程序可能存在缺陷或者是个恶意程序。</li>
+</ul>
+<p>为确保安全，需要使用下面几个函数（由linux/uaccess.h中定义）</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl"><span class="kt">unsigned</span> <span class="kt">long</span> <span class="nf">copy_to_user</span><span class="p">(</span><span class="kt">void</span> <span class="n">__user</span> <span class="o">*</span><span class="n">to</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">                            <span class="k">const</span> <span class="kt">void</span> <span class="o">*</span><span class="n">from</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">                            <span class="kt">unsigned</span> <span class="kt">long</span> <span class="n">count</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="kt">unsigned</span> <span class="kt">long</span> <span class="nf">copy_from_user</span><span class="p">(</span><span class="kt">void</span> <span class="o">*</span><span class="n">to</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">                             <span class="k">const</span> <span class="kt">void</span> <span class="n">__user</span> <span class="o">*</span><span class="n">from</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">                             <span class="kt">unsigned</span> <span class="kt">long</span> <span class="n">count</span><span class="p">);</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>当内核空间运行的代码访问用户空间的时候必须多加小心，因为被寻址的用户页面 可能不存在当前内存中，于是虚拟内存子系统经该进程转入休眠，知道该页面被加载 到期望位置。对驱动开发人员来说，这带来的结果就是任何访问用户空间的函数都是 必须可重入的（异步信号安全），必须能和其他驱动程序函数并发执行，更特别的是 必须处于能够合法休眠的状态。</p>
+<p></p>
+<h1 id="readv和writev">readv和writev</h1>
+<p>Unix系统很早就已支持两个可选的系统调用：readv和writev。 如果驱动程序没有提供用于处理向量操作的方法，readv和writev会通过对read和 write方法的多次调用来实现。但在很多情况下，直接在驱动程序中实现readv和writev 可以获得更高的效率。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl"><span class="n">ssize_t</span> <span class="p">(</span><span class="o">*</span><span class="n">readv</span><span class="p">)</span> <span class="p">(</span><span class="k">struct</span> <span class="n">file</span> <span class="o">*</span><span class="n">filp</span><span class="p">,</span> <span class="k">const</span> <span class="k">struct</span> <span class="n">iovec</span> <span class="o">*</span><span class="n">iov</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">                    <span class="kt">unsigned</span> <span class="kt">long</span> <span class="n">count</span><span class="p">,</span> <span class="n">loff_t</span> <span class="o">*</span><span class="n">ppos</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="n">ssize_t</span> <span class="p">(</span><span class="o">*</span><span class="n">writev</span><span class="p">)</span> <span class="p">(</span><span class="k">struct</span> <span class="n">file</span> <span class="o">*</span><span class="n">filp</span><span class="p">,</span> <span class="k">const</span> <span class="k">struct</span> <span class="n">iovec</span> <span class="o">*</span><span class="n">iov</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">                    <span class="kt">unsigned</span> <span class="kt">long</span> <span class="n">count</span><span class="p">,</span> <span class="n">loff_t</span> <span class="o">*</span><span class="n">ppos</span><span class="p">);</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>iovec结构定义在linux/uio.h中：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl"><span class="k">struct</span> <span class="n">iovec</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="kt">void</span> <span class="n">__user</span> <span class="o">*</span><span class="n">iov_base</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="n">__kernel_size_t</span> <span class="n">iov_len</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>每个iovec结构都描述了一个用于传输的数据块。函数中的count参数指明要操作多少 个iovec结构。 正确而有效率的操作经常需要驱动程序做一些更为巧妙的事情。 例如，磁带驱动程序的writev就应将所有iovec结构的内容作为磁带上的单个记录写入。 如果忽略他们，内核会通过read和write模拟它们。</p>
+<h1 id="实例">实例</h1>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">  1
+</span><span class="lnt">  2
+</span><span class="lnt">  3
+</span><span class="lnt">  4
+</span><span class="lnt">  5
+</span><span class="lnt">  6
+</span><span class="lnt">  7
+</span><span class="lnt">  8
+</span><span class="lnt">  9
+</span><span class="lnt"> 10
+</span><span class="lnt"> 11
+</span><span class="lnt"> 12
+</span><span class="lnt"> 13
+</span><span class="lnt"> 14
+</span><span class="lnt"> 15
+</span><span class="lnt"> 16
+</span><span class="lnt"> 17
+</span><span class="lnt"> 18
+</span><span class="lnt"> 19
+</span><span class="lnt"> 20
+</span><span class="lnt"> 21
+</span><span class="lnt"> 22
+</span><span class="lnt"> 23
+</span><span class="lnt"> 24
+</span><span class="lnt"> 25
+</span><span class="lnt"> 26
+</span><span class="lnt"> 27
+</span><span class="lnt"> 28
+</span><span class="lnt"> 29
+</span><span class="lnt"> 30
+</span><span class="lnt"> 31
+</span><span class="lnt"> 32
+</span><span class="lnt"> 33
+</span><span class="lnt"> 34
+</span><span class="lnt"> 35
+</span><span class="lnt"> 36
+</span><span class="lnt"> 37
+</span><span class="lnt"> 38
+</span><span class="lnt"> 39
+</span><span class="lnt"> 40
+</span><span class="lnt"> 41
+</span><span class="lnt"> 42
+</span><span class="lnt"> 43
+</span><span class="lnt"> 44
+</span><span class="lnt"> 45
+</span><span class="lnt"> 46
+</span><span class="lnt"> 47
+</span><span class="lnt"> 48
+</span><span class="lnt"> 49
+</span><span class="lnt"> 50
+</span><span class="lnt"> 51
+</span><span class="lnt"> 52
+</span><span class="lnt"> 53
+</span><span class="lnt"> 54
+</span><span class="lnt"> 55
+</span><span class="lnt"> 56
+</span><span class="lnt"> 57
+</span><span class="lnt"> 58
+</span><span class="lnt"> 59
+</span><span class="lnt"> 60
+</span><span class="lnt"> 61
+</span><span class="lnt"> 62
+</span><span class="lnt"> 63
+</span><span class="lnt"> 64
+</span><span class="lnt"> 65
+</span><span class="lnt"> 66
+</span><span class="lnt"> 67
+</span><span class="lnt"> 68
+</span><span class="lnt"> 69
+</span><span class="lnt"> 70
+</span><span class="lnt"> 71
+</span><span class="lnt"> 72
+</span><span class="lnt"> 73
+</span><span class="lnt"> 74
+</span><span class="lnt"> 75
+</span><span class="lnt"> 76
+</span><span class="lnt"> 77
+</span><span class="lnt"> 78
+</span><span class="lnt"> 79
+</span><span class="lnt"> 80
+</span><span class="lnt"> 81
+</span><span class="lnt"> 82
+</span><span class="lnt"> 83
+</span><span class="lnt"> 84
+</span><span class="lnt"> 85
+</span><span class="lnt"> 86
+</span><span class="lnt"> 87
+</span><span class="lnt"> 88
+</span><span class="lnt"> 89
+</span><span class="lnt"> 90
+</span><span class="lnt"> 91
+</span><span class="lnt"> 92
+</span><span class="lnt"> 93
+</span><span class="lnt"> 94
+</span><span class="lnt"> 95
+</span><span class="lnt"> 96
+</span><span class="lnt"> 97
+</span><span class="lnt"> 98
+</span><span class="lnt"> 99
+</span><span class="lnt">100
+</span><span class="lnt">101
+</span><span class="lnt">102
+</span><span class="lnt">103
+</span><span class="lnt">104
+</span><span class="lnt">105
+</span><span class="lnt">106
+</span><span class="lnt">107
+</span><span class="lnt">108
+</span><span class="lnt">109
+</span><span class="lnt">110
+</span><span class="lnt">111
+</span><span class="lnt">112
+</span><span class="lnt">113
+</span><span class="lnt">114
+</span><span class="lnt">115
+</span><span class="lnt">116
+</span><span class="lnt">117
+</span><span class="lnt">118
+</span><span class="lnt">119
+</span><span class="lnt">120
+</span><span class="lnt">121
+</span><span class="lnt">122
+</span><span class="lnt">123
+</span><span class="lnt">124
+</span><span class="lnt">125
+</span><span class="lnt">126
+</span><span class="lnt">127
+</span><span class="lnt">128
+</span><span class="lnt">129
+</span><span class="lnt">130
+</span><span class="lnt">131
+</span><span class="lnt">132
+</span><span class="lnt">133
+</span><span class="lnt">134
+</span><span class="lnt">135
+</span><span class="lnt">136
+</span><span class="lnt">137
+</span><span class="lnt">138
+</span><span class="lnt">139
+</span><span class="lnt">140
+</span><span class="lnt">141
+</span><span class="lnt">142
+</span><span class="lnt">143
+</span><span class="lnt">144
+</span><span class="lnt">145
+</span><span class="lnt">146
+</span><span class="lnt">147
+</span><span class="lnt">148
+</span><span class="lnt">149
+</span><span class="lnt">150
+</span><span class="lnt">151
+</span><span class="lnt">152
+</span><span class="lnt">153
+</span><span class="lnt">154
+</span><span class="lnt">155
+</span><span class="lnt">156
+</span><span class="lnt">157
+</span><span class="lnt">158
+</span><span class="lnt">159
+</span><span class="lnt">160
+</span><span class="lnt">161
+</span><span class="lnt">162
+</span><span class="lnt">163
+</span><span class="lnt">164
+</span><span class="lnt">165
+</span><span class="lnt">166
+</span><span class="lnt">167
+</span><span class="lnt">168
+</span><span class="lnt">169
+</span><span class="lnt">170
+</span><span class="lnt">171
+</span><span class="lnt">172
+</span><span class="lnt">173
+</span><span class="lnt">174
+</span><span class="lnt">175
+</span><span class="lnt">176
+</span><span class="lnt">177
+</span><span class="lnt">178
+</span><span class="lnt">179
+</span><span class="lnt">180
+</span><span class="lnt">181
+</span><span class="lnt">182
+</span><span class="lnt">183
+</span><span class="lnt">184
+</span><span class="lnt">185
+</span><span class="lnt">186
+</span><span class="lnt">187
+</span><span class="lnt">188
+</span><span class="lnt">189
+</span><span class="lnt">190
+</span><span class="lnt">191
+</span><span class="lnt">192
+</span><span class="lnt">193
+</span><span class="lnt">194
+</span><span class="lnt">195
+</span><span class="lnt">196
+</span><span class="lnt">197
+</span><span class="lnt">198
+</span><span class="lnt">199
+</span><span class="lnt">200
+</span><span class="lnt">201
+</span><span class="lnt">202
+</span><span class="lnt">203
+</span><span class="lnt">204
+</span><span class="lnt">205
+</span><span class="lnt">206
+</span><span class="lnt">207
+</span><span class="lnt">208
+</span><span class="lnt">209
+</span><span class="lnt">210
+</span><span class="lnt">211
+</span><span class="lnt">212
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl">    <span class="cm">/*
+</span></span></span><span class="line"><span class="cl"><span class="cm">     * =====================================================================================
+</span></span></span><span class="line"><span class="cl"><span class="cm">     *
+</span></span></span><span class="line"><span class="cl"><span class="cm">     *       Filename:  scull.c
+</span></span></span><span class="line"><span class="cl"><span class="cm">     *
+</span></span></span><span class="line"><span class="cl"><span class="cm">     *    Description:  this is a first driver from ldd3
+</span></span></span><span class="line"><span class="cl"><span class="cm">     *                  ignore mutithread race, data overflow,
+</span></span></span><span class="line"><span class="cl"><span class="cm">     *                  just a simple example.
+</span></span></span><span class="line"><span class="cl"><span class="cm">     *
+</span></span></span><span class="line"><span class="cl"><span class="cm">     *        Version:  1.0
+</span></span></span><span class="line"><span class="cl"><span class="cm">     *        Created:  11/29/2014 09:00:04 PM
+</span></span></span><span class="line"><span class="cl"><span class="cm">     *       Revision:  none
+</span></span></span><span class="line"><span class="cl"><span class="cm">     *       Compiler:  gcc
+</span></span></span><span class="line"><span class="cl"><span class="cm">     *
+</span></span></span><span class="line"><span class="cl"><span class="cm">     *         Author:  Xu Jianjun(firemiles), 
+</span></span></span><span class="line"><span class="cl"><span class="cm">     *   Organization:  
+</span></span></span><span class="line"><span class="cl"><span class="cm">     *
+</span></span></span><span class="line"><span class="cl"><span class="cm">     * =====================================================================================
+</span></span></span><span class="line"><span class="cl"><span class="cm">     */</span>
+</span></span><span class="line"><span class="cl">    <span class="cp">#include</span> <span class="cpf">&lt;linux/module.h&gt;</span><span class="cp">
+</span></span></span><span class="line"><span class="cl"><span class="cp"></span>    <span class="cp">#include</span> <span class="cpf">&lt;linux/init.h&gt;</span><span class="cp">
+</span></span></span><span class="line"><span class="cl"><span class="cp"></span>    <span class="cp">#include</span> <span class="cpf">&lt;linux/fs.h&gt;</span><span class="cp">
+</span></span></span><span class="line"><span class="cl"><span class="cp"></span>    <span class="cp">#include</span> <span class="cpf">&lt;linux/cdev.h&gt;</span><span class="cp">
+</span></span></span><span class="line"><span class="cl"><span class="cp"></span>    <span class="cp">#include</span> <span class="cpf">&lt;linux/uaccess.h&gt;</span><span class="cp">
+</span></span></span><span class="line"><span class="cl"><span class="cp"></span>    <span class="cp">#include</span> <span class="cpf">&lt;linux/slab.h&gt;</span><span class="cp">
+</span></span></span><span class="line"><span class="cl"><span class="cp"></span>
+</span></span><span class="line"><span class="cl">    <span class="n">MODULE_LICENSE</span><span class="p">(</span><span class="s">&#34;GPL&#34;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="k">static</span> <span class="kt">long</span> <span class="nf">scull_ioctl</span> <span class="p">(</span><span class="k">struct</span> <span class="n">file</span> <span class="o">*</span><span class="n">file</span><span class="p">,</span> <span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">cmd</span><span class="p">,</span> <span class="kt">unsigned</span> <span class="kt">long</span> <span class="n">n</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="k">static</span> <span class="n">ssize_t</span> <span class="nf">scull_write</span> <span class="p">(</span><span class="k">struct</span> <span class="n">file</span> <span class="o">*</span><span class="n">file</span><span class="p">,</span> <span class="k">const</span> <span class="kt">char</span> <span class="n">__user</span> <span class="o">*</span><span class="n">buff</span><span class="p">,</span> 
+</span></span><span class="line"><span class="cl">                            <span class="n">size_t</span> <span class="n">count</span><span class="p">,</span> <span class="n">loff_t</span> <span class="o">*</span><span class="n">f_ops</span> <span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="k">static</span> <span class="n">ssize_t</span> <span class="nf">scull_read</span> <span class="p">(</span><span class="k">struct</span> <span class="n">file</span> <span class="o">*</span><span class="n">file</span><span class="p">,</span> <span class="kt">char</span> <span class="n">__user</span> <span class="o">*</span><span class="n">buff</span><span class="p">,</span> 
+</span></span><span class="line"><span class="cl">                            <span class="n">size_t</span> <span class="n">count</span><span class="p">,</span> <span class="n">loff_t</span> <span class="o">*</span><span class="n">f_ops</span> <span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="k">static</span> <span class="n">loff_t</span> <span class="nf">scull_llseek</span> <span class="p">(</span><span class="k">struct</span> <span class="n">file</span> <span class="o">*</span><span class="n">file</span><span class="p">,</span> <span class="n">loff_t</span> <span class="n">f_ops</span><span class="p">,</span> <span class="kt">int</span> <span class="n">count</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="k">static</span> <span class="kt">int</span> <span class="nf">scull_release</span> <span class="p">(</span><span class="k">struct</span> <span class="n">inode</span> <span class="o">*</span><span class="n">inode</span><span class="p">,</span> <span class="k">struct</span> <span class="n">file</span> <span class="o">*</span><span class="n">file</span> <span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="k">static</span> <span class="kt">int</span> <span class="nf">scull_open</span> <span class="p">(</span><span class="k">struct</span> <span class="n">inode</span> <span class="o">*</span><span class="n">inode</span><span class="p">,</span> <span class="k">struct</span> <span class="n">file</span> <span class="o">*</span><span class="n">file</span> <span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="k">static</span> <span class="kt">int</span> <span class="n">scull_major</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="k">static</span> <span class="kt">int</span> <span class="n">scull_minor</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="k">struct</span> <span class="n">scull_dev</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="kt">char</span> <span class="o">*</span><span class="n">data</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">        <span class="n">size_t</span> <span class="n">maxlen</span><span class="p">;</span> <span class="c1">//buffer length
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>        <span class="n">size_t</span> <span class="n">len</span><span class="p">;</span>    <span class="c1">//data length
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>        <span class="k">struct</span>  <span class="n">cdev</span> <span class="n">cdev</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span><span class="n">scull_dev1</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="k">struct</span> <span class="n">file_operations</span> <span class="n">scull_fops</span> <span class="o">=</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="p">.</span><span class="n">owner</span>  <span class="o">=</span>   <span class="n">THIS_MODULE</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="p">.</span><span class="n">llseek</span> <span class="o">=</span>   <span class="n">scull_llseek</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="p">.</span><span class="n">read</span>   <span class="o">=</span>   <span class="n">scull_read</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="p">.</span><span class="n">write</span>  <span class="o">=</span>   <span class="n">scull_write</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="p">.</span><span class="n">unlocked_ioctl</span>  <span class="o">=</span>   <span class="n">scull_ioctl</span><span class="p">,</span> <span class="c1">//new api
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>        <span class="p">.</span><span class="n">open</span>   <span class="o">=</span>   <span class="n">scull_open</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="p">.</span><span class="n">release</span><span class="o">=</span>   <span class="n">scull_release</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">    <span class="p">};</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="cm">/* 
+</span></span></span><span class="line"><span class="cl"><span class="cm">     * ===  FUNCTION  ======================================================================
+</span></span></span><span class="line"><span class="cl"><span class="cm">     *         Name:  scull open
+</span></span></span><span class="line"><span class="cl"><span class="cm">     *  Description:  
+</span></span></span><span class="line"><span class="cl"><span class="cm">     * =====================================================================================
+</span></span></span><span class="line"><span class="cl"><span class="cm">     */</span>
+</span></span><span class="line"><span class="cl">    <span class="k">static</span> <span class="kt">int</span> <span class="nf">scull_open</span> <span class="p">(</span><span class="k">struct</span> <span class="n">inode</span> <span class="o">*</span><span class="n">inode</span><span class="p">,</span> <span class="k">struct</span> <span class="n">file</span> <span class="o">*</span><span class="n">filp</span> <span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="k">struct</span> <span class="n">scull_dev</span> <span class="o">*</span><span class="n">dev</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">        <span class="n">dev</span> <span class="o">=</span> <span class="n">container_of</span><span class="p">(</span><span class="n">inode</span><span class="o">-&gt;</span><span class="n">i_cdev</span><span class="p">,</span> <span class="k">struct</span> <span class="n">scull_dev</span><span class="p">,</span> <span class="n">cdev</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">        <span class="n">filp</span><span class="o">-&gt;</span><span class="n">private_data</span> <span class="o">=</span> <span class="n">dev</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">        <span class="k">if</span><span class="p">(</span><span class="n">dev</span><span class="o">-&gt;</span><span class="n">data</span> <span class="o">==</span> <span class="nb">NULL</span><span class="p">){</span>
+</span></span><span class="line"><span class="cl">            <span class="n">dev</span><span class="o">-&gt;</span><span class="n">data</span> <span class="o">=</span> <span class="p">(</span><span class="kt">char</span> <span class="o">*</span><span class="p">)</span><span class="n">kmalloc</span><span class="p">(</span><span class="mi">1024</span><span class="p">,</span> <span class="n">GFP_KERNEL</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">            <span class="n">dev</span><span class="o">-&gt;</span><span class="n">maxlen</span> <span class="o">=</span> <span class="mi">1024</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">            <span class="n">dev</span><span class="o">-&gt;</span><span class="n">len</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">        <span class="p">}</span>
+</span></span><span class="line"><span class="cl">        <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>       <span class="cm">/* -----  end of function scull open  ----- */</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="cm">/* 
+</span></span></span><span class="line"><span class="cl"><span class="cm">     * ===  FUNCTION  ======================================================================
+</span></span></span><span class="line"><span class="cl"><span class="cm">     *         Name:  scull_close
+</span></span></span><span class="line"><span class="cl"><span class="cm">     *  Description:  
+</span></span></span><span class="line"><span class="cl"><span class="cm">     * =====================================================================================
+</span></span></span><span class="line"><span class="cl"><span class="cm">     */</span>
+</span></span><span class="line"><span class="cl">    <span class="k">static</span> <span class="kt">int</span> <span class="nf">scull_release</span> <span class="p">(</span><span class="k">struct</span> <span class="n">inode</span> <span class="o">*</span><span class="n">inode</span><span class="p">,</span> <span class="k">struct</span> <span class="n">file</span> <span class="o">*</span><span class="n">filp</span> <span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>       <span class="cm">/* -----  end of function scull_close  ----- */</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="cm">/* 
+</span></span></span><span class="line"><span class="cl"><span class="cm">     * ===  FUNCTION  ======================================================================
+</span></span></span><span class="line"><span class="cl"><span class="cm">     *         Name:  scull_llseek
+</span></span></span><span class="line"><span class="cl"><span class="cm">     *  Description:  
+</span></span></span><span class="line"><span class="cl"><span class="cm">     * =====================================================================================
+</span></span></span><span class="line"><span class="cl"><span class="cm">     */</span>
+</span></span><span class="line"><span class="cl">    <span class="k">static</span> <span class="n">loff_t</span> <span class="nf">scull_llseek</span> <span class="p">(</span><span class="k">struct</span> <span class="n">file</span> <span class="o">*</span><span class="n">file</span><span class="p">,</span> <span class="n">loff_t</span> <span class="n">f_ops</span><span class="p">,</span> <span class="kt">int</span> <span class="n">count</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>       <span class="cm">/* -----  end of function scull_llseek  ----- */</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="cm">/* 
+</span></span></span><span class="line"><span class="cl"><span class="cm">     * ===  FUNCTION  ======================================================================
+</span></span></span><span class="line"><span class="cl"><span class="cm">     *         Name:  scull_read
+</span></span></span><span class="line"><span class="cl"><span class="cm">     *  Description:  
+</span></span></span><span class="line"><span class="cl"><span class="cm">     * =====================================================================================
+</span></span></span><span class="line"><span class="cl"><span class="cm">     */</span>
+</span></span><span class="line"><span class="cl">    <span class="k">static</span> <span class="n">ssize_t</span> <span class="nf">scull_read</span> <span class="p">(</span><span class="k">struct</span> <span class="n">file</span> <span class="o">*</span><span class="n">filp</span><span class="p">,</span> <span class="kt">char</span> <span class="n">__user</span> <span class="o">*</span><span class="n">buff</span><span class="p">,</span> <span class="n">size_t</span> <span class="n">count</span><span class="p">,</span> <span class="n">loff_t</span> <span class="o">*</span><span class="n">f_ops</span> <span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="kt">int</span> <span class="n">num</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">        <span class="k">struct</span> <span class="n">scull_dev</span> <span class="o">*</span><span class="n">dev</span> <span class="o">=</span> <span class="n">filp</span><span class="o">-&gt;</span><span class="n">private_data</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">        <span class="n">copy_to_user</span><span class="p">(</span><span class="n">buff</span><span class="p">,</span> <span class="n">dev</span><span class="o">-&gt;</span><span class="n">data</span><span class="p">,</span> <span class="n">dev</span><span class="o">-&gt;</span><span class="n">len</span><span class="p">);</span> <span class="c1">// ignore buff overflow;
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>        <span class="n">num</span> <span class="o">=</span> <span class="n">dev</span><span class="o">-&gt;</span><span class="n">len</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">        <span class="n">dev</span><span class="o">-&gt;</span><span class="n">len</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">        <span class="k">return</span> <span class="n">num</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>       <span class="cm">/* -----  end of function scull_read  ----- */</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="cm">/* 
+</span></span></span><span class="line"><span class="cl"><span class="cm">     * ===  FUNCTION  ======================================================================
+</span></span></span><span class="line"><span class="cl"><span class="cm">     *         Name:  scull_write
+</span></span></span><span class="line"><span class="cl"><span class="cm">     *  Description:  
+</span></span></span><span class="line"><span class="cl"><span class="cm">     * =====================================================================================
+</span></span></span><span class="line"><span class="cl"><span class="cm">     */</span>
+</span></span><span class="line"><span class="cl">    <span class="k">static</span> <span class="n">ssize_t</span> <span class="nf">scull_write</span> <span class="p">(</span><span class="k">struct</span> <span class="n">file</span> <span class="o">*</span><span class="n">filp</span><span class="p">,</span> <span class="k">const</span> <span class="kt">char</span> <span class="n">__user</span> <span class="o">*</span><span class="n">buff</span><span class="p">,</span> <span class="n">size_t</span> <span class="n">count</span><span class="p">,</span> <span class="n">loff_t</span> <span class="o">*</span><span class="n">f_ops</span> <span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="k">struct</span> <span class="n">scull_dev</span> <span class="o">*</span><span class="n">dev</span> <span class="o">=</span> <span class="n">filp</span><span class="o">-&gt;</span><span class="n">private_data</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">        <span class="n">copy_from_user</span><span class="p">(</span><span class="n">dev</span><span class="o">-&gt;</span><span class="n">data</span><span class="p">,</span> <span class="n">buff</span><span class="p">,</span> <span class="n">count</span><span class="p">);</span> <span class="c1">// ignore data overflow; 
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>        <span class="n">dev</span><span class="o">-&gt;</span><span class="n">len</span> <span class="o">=</span> <span class="n">count</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">        <span class="k">return</span> <span class="n">count</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>       <span class="cm">/* -----  end of function scull_write  ----- */</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="cm">/* 
+</span></span></span><span class="line"><span class="cl"><span class="cm">     * ===  FUNCTION  ======================================================================
+</span></span></span><span class="line"><span class="cl"><span class="cm">     *         Name:  scull_ioctl
+</span></span></span><span class="line"><span class="cl"><span class="cm">     *  Description:  
+</span></span></span><span class="line"><span class="cl"><span class="cm">     * =====================================================================================
+</span></span></span><span class="line"><span class="cl"><span class="cm">     */</span>
+</span></span><span class="line"><span class="cl">    <span class="k">static</span> <span class="kt">long</span> <span class="nf">scull_ioctl</span> <span class="p">(</span><span class="k">struct</span> <span class="n">file</span> <span class="o">*</span><span class="n">file</span><span class="p">,</span> <span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">cmd</span><span class="p">,</span> <span class="kt">unsigned</span> <span class="kt">long</span> <span class="n">n</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>       <span class="cm">/* -----  end of function scull_ioctl  ----- */</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="cm">/* 
+</span></span></span><span class="line"><span class="cl"><span class="cm">     * ===  FUNCTION  ======================================================================
+</span></span></span><span class="line"><span class="cl"><span class="cm">     *         Name:  scull_setup_cdev
+</span></span></span><span class="line"><span class="cl"><span class="cm">     *  Description:  
+</span></span></span><span class="line"><span class="cl"><span class="cm">     * =====================================================================================
+</span></span></span><span class="line"><span class="cl"><span class="cm">     */</span>
+</span></span><span class="line"><span class="cl">    <span class="k">static</span> <span class="kt">void</span> <span class="nf">scull_setup_cdev</span> <span class="p">(</span><span class="k">struct</span> <span class="n">scull_dev</span> <span class="o">*</span><span class="n">dev</span><span class="p">,</span> <span class="kt">int</span> <span class="n">index</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="kt">int</span> <span class="n">err</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">        <span class="n">dev_t</span> <span class="n">devnum</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">        <span class="kt">char</span> <span class="n">name</span><span class="p">[</span><span class="mi">16</span><span class="p">];</span>
+</span></span><span class="line"><span class="cl">        <span class="n">sprintf</span><span class="p">(</span><span class="n">name</span><span class="p">,</span><span class="s">&#34;scull1&#34;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">        <span class="k">if</span><span class="p">(</span><span class="n">scull_major</span><span class="p">){</span>
+</span></span><span class="line"><span class="cl">            <span class="n">devnum</span> <span class="o">=</span> <span class="n">MKDEV</span><span class="p">(</span><span class="n">scull_major</span><span class="p">,</span> <span class="n">scull_minor</span><span class="o">+</span><span class="n">index</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">            <span class="n">err</span> <span class="o">=</span> <span class="n">register_chrdev_region</span><span class="p">(</span><span class="n">devnum</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">name</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">        <span class="p">}</span><span class="k">else</span><span class="p">{</span>
+</span></span><span class="line"><span class="cl">            <span class="n">err</span> <span class="o">=</span> <span class="n">alloc_chrdev_region</span><span class="p">(</span><span class="o">&amp;</span><span class="n">devnum</span><span class="p">,</span> <span class="n">scull_minor</span><span class="o">+</span><span class="n">index</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">name</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">            <span class="n">scull_major</span> <span class="o">=</span> <span class="n">MAJOR</span><span class="p">(</span><span class="n">devnum</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">        <span class="p">}</span>
+</span></span><span class="line"><span class="cl">        <span class="k">if</span><span class="p">(</span><span class="n">err</span><span class="o">&lt;</span><span class="mi">0</span><span class="p">){</span>
+</span></span><span class="line"><span class="cl">            <span class="n">printk</span><span class="p">(</span><span class="n">KERN_WARNING</span> <span class="s">&#34;scull1: can&#39;t get major %d</span><span class="se">\n</span><span class="s">&#34;</span><span class="p">,</span> <span class="n">scull_major</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">            <span class="k">return</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">        <span class="p">}</span>
+</span></span><span class="line"><span class="cl">        <span class="n">cdev_init</span><span class="p">(</span><span class="o">&amp;</span><span class="n">dev</span><span class="o">-&gt;</span><span class="n">cdev</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">scull_fops</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">        <span class="n">dev</span><span class="o">-&gt;</span><span class="n">cdev</span><span class="p">.</span><span class="n">owner</span> <span class="o">=</span> <span class="n">THIS_MODULE</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">        <span class="n">dev</span><span class="o">-&gt;</span><span class="n">cdev</span><span class="p">.</span><span class="n">ops</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">scull_fops</span><span class="p">;</span> <span class="c1">//nessary?
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>        <span class="n">err</span> <span class="o">=</span> <span class="n">cdev_add</span><span class="p">(</span><span class="o">&amp;</span><span class="n">dev</span><span class="o">-&gt;</span><span class="n">cdev</span><span class="p">,</span> <span class="n">devnum</span><span class="p">,</span> <span class="mi">1</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">        <span class="k">if</span><span class="p">(</span><span class="n">err</span><span class="p">){</span>
+</span></span><span class="line"><span class="cl">            <span class="n">printk</span><span class="p">(</span><span class="n">KERN_NOTICE</span> <span class="s">&#34;Error %d adding scull%d&#34;</span><span class="p">,</span> <span class="n">err</span><span class="p">,</span> <span class="n">index</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">        <span class="p">}</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>       <span class="cm">/* -----  end of function scull_setup_cdev  ----- */</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="cm">/*  
+</span></span></span><span class="line"><span class="cl"><span class="cm">     * ===  FUNCTION  ======================================================================
+</span></span></span><span class="line"><span class="cl"><span class="cm">     *         Name:  scull_init
+</span></span></span><span class="line"><span class="cl"><span class="cm">     *  Description:  
+</span></span></span><span class="line"><span class="cl"><span class="cm">     * =====================================================================================
+</span></span></span><span class="line"><span class="cl"><span class="cm">     */</span>
+</span></span><span class="line"><span class="cl">    <span class="k">static</span> <span class="kt">int</span> <span class="n">__init</span> <span class="nf">scull_init</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="n">scull_setup_cdev</span><span class="p">(</span><span class="o">&amp;</span><span class="n">scull_dev1</span><span class="p">,</span> <span class="mi">1</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">        <span class="n">printk</span><span class="p">(</span><span class="n">KERN_ALERT</span> <span class="s">&#34;scull init</span><span class="se">\n</span><span class="s">&#34;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">        <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>       <span class="cm">/* -----  end of function scull_init  ----- */</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="cm">/* 
+</span></span></span><span class="line"><span class="cl"><span class="cm">     * ===  FUNCTION  ======================================================================
+</span></span></span><span class="line"><span class="cl"><span class="cm">     *         Name:  scull_exit
+</span></span></span><span class="line"><span class="cl"><span class="cm">     *  Description:  
+</span></span></span><span class="line"><span class="cl"><span class="cm">     * =====================================================================================
+</span></span></span><span class="line"><span class="cl"><span class="cm">     */</span>
+</span></span><span class="line"><span class="cl">    <span class="k">static</span> <span class="kt">void</span> <span class="n">__exit</span> <span class="nf">scull_exit</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="n">kfree</span><span class="p">(</span><span class="n">scull_dev1</span><span class="p">.</span><span class="n">data</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">        <span class="n">unregister_chrdev_region</span><span class="p">(</span><span class="n">scull_dev1</span><span class="p">.</span><span class="n">cdev</span><span class="p">.</span><span class="n">dev</span><span class="p">,</span> <span class="mi">1</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">        <span class="n">cdev_del</span><span class="p">(</span><span class="o">&amp;</span><span class="n">scull_dev1</span><span class="p">.</span><span class="n">cdev</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">        <span class="n">printk</span><span class="p">(</span><span class="n">KERN_ALERT</span> <span class="s">&#34;scull exit</span><span class="se">\n</span><span class="s">&#34;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>       <span class="cm">/* -----  end of function scull_exit  ----- */</span>
+</span></span><span class="line"><span class="cl">    <span class="cm">/* this macro told to compiler.
+</span></span></span><span class="line"><span class="cl"><span class="cm">     * that the two function are init function and exit function
+</span></span></span><span class="line"><span class="cl"><span class="cm">     * 
+</span></span></span><span class="line"><span class="cl"><span class="cm">     */</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="n">module_init</span><span class="p">(</span><span class="n">scull_init</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="n">module_exit</span><span class="p">(</span><span class="n">scull_exit</span><span class="p">);</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div>]]></description></item></channel></rss>

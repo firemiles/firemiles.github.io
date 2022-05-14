@@ -1,1 +1,52 @@
-<rss xmlns:atom="http://www.w3.org/2005/Atom" version="2.0"><channel><title>linux - 分类 - Firemiles 的技术博客</title><link>https://blog.firemiles.top/categories/linux/</link><description>linux - 分类 - Firemiles 的技术博客</description><generator>Hugo -- gohugo.io</generator><language>zh-CN</language><managingEditor>miles.dev@outlook.comm (firemiles)</managingEditor><webMaster>miles.dev@outlook.comm (firemiles)</webMaster><lastBuildDate>Sat, 23 Apr 2022 20:36:23 +0000</lastBuildDate><atom:link href="https://blog.firemiles.top/categories/linux/" rel="self" type="application/rss+xml"/><item><title>WSL2安装内核头文件</title><link>https://blog.firemiles.top/2022/wsl2%E5%AE%89%E8%A3%85%E5%86%85%E6%A0%B8%E5%A4%B4%E6%96%87%E4%BB%B6/</link><pubDate>Sat, 23 Apr 2022 20:36:23 +0000</pubDate><author>firemiles</author><guid>https://blog.firemiles.top/2022/wsl2%E5%AE%89%E8%A3%85%E5%86%85%E6%A0%B8%E5%A4%B4%E6%96%87%E4%BB%B6/</guid><description>前言 一般 Linux 的发行版直接使用软件源就可以安装内核模块和内核头文件，但是WSL2作为一个特殊的版本， 大部分内核模块无法安装，也无法直接安装内核头</description></item></channel></rss>
+<rss xmlns:atom="http://www.w3.org/2005/Atom" version="2.0"><channel><title>linux - 分类 - Firemiles 的技术博客</title><link>https://blog.firemiles.top/categories/linux/</link><description>linux - 分类 - Firemiles 的技术博客</description><generator>Hugo -- gohugo.io</generator><language>zh-CN</language><managingEditor>miles.dev@outlook.comm (firemiles)</managingEditor><webMaster>miles.dev@outlook.comm (firemiles)</webMaster><lastBuildDate>Sat, 23 Apr 2022 20:36:23 +0000</lastBuildDate><atom:link href="https://blog.firemiles.top/categories/linux/" rel="self" type="application/rss+xml"/><item><title>WSL2安装内核头文件</title><link>https://blog.firemiles.top/2022/wsl2%E5%AE%89%E8%A3%85%E5%86%85%E6%A0%B8%E5%A4%B4%E6%96%87%E4%BB%B6/</link><pubDate>Sat, 23 Apr 2022 20:36:23 +0000</pubDate><author>firemiles</author><guid>https://blog.firemiles.top/2022/wsl2%E5%AE%89%E8%A3%85%E5%86%85%E6%A0%B8%E5%A4%B4%E6%96%87%E4%BB%B6/</guid><description><![CDATA[<h2 id="前言">前言</h2>
+<p>一般 Linux 的发行版直接使用软件源就可以安装内核模块和内核头文件，但是WSL2作为一个特殊的版本，
+大部分内核模块无法安装，也无法直接安装内核头文件，还有部分依赖内核头文件的工具也无法运行，本文主要介绍内核头文件的安装。</p>
+<h2 id="安装">安装</h2>
+<ul>
+<li>
+<p>第一步先去github上下载WSL2内核源码，仓库在 <a href="https://github.com/microsoft/WSL2-Linux-Kernel" target="_blank" rel="noopener noreffer">https://github.com/microsoft/WSL2-Linux-Kernel</a>
+ 。下载当前运行的内核版本。这里以<code>4.19.121</code>为例</p>
+</li>
+<li>
+<p>开始安装依赖</p>
+</li>
+</ul>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-sh" data-lang="sh"><span class="line"><span class="cl">apt install libelf-dev build-essential pkg-config
+</span></span><span class="line"><span class="cl">apt install bison build-essential flex libssl-dev libelf-dev bc
+</span></span></code></pre></td></tr></table>
+</div>
+</div><ul>
+<li>编译</li>
+</ul>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-sh" data-lang="sh"><span class="line"><span class="cl">tar -zvxf 4.19.121-microsoft-standard.tar.gz
+</span></span><span class="line"><span class="cl"><span class="nb">cd</span> WSL2-Linux-Kernel-4.19.121-microsoft-standard.tar.gz
+</span></span><span class="line"><span class="cl">zcat /proc/config.gz &gt; .config
+</span></span><span class="line"><span class="cl">make -j <span class="k">$(</span>nproc<span class="k">)</span>
+</span></span><span class="line"><span class="cl">make -j <span class="k">$(</span>nproc<span class="k">)</span> modules_install
+</span></span></code></pre></td></tr></table>
+</div>
+</div><blockquote>
+<p>编译过程中可能会出现一些报错，一般是还缺少部分依赖，通过Google可以找到解决办法。</p>
+</blockquote>
+<p>编译完成后，在 /lib/modules/ 会出现 4.19.121-microsoft-standard 目录，头文件就可以使用了，借助头文件，其他的内核模块也可以自行编译安装。</p>
+<h2 id="参考资料">参考资料</h2>
+<ul>
+<li><a href="https://mashiro01.github.io/2020/08/24/wsl2%E4%B8%8B%E5%86%85%E6%A0%B8%E5%A4%B4%E6%96%87%E4%BB%B6/" target="_blank" rel="noopener noreffer">WSL2 下的 kernel header 的安装</a>
+</li>
+</ul>
+]]></description></item></channel></rss>

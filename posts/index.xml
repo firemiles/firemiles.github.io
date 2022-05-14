@@ -1,10 +1,477 @@
-<rss xmlns:atom="http://www.w3.org/2005/Atom" version="2.0"><channel><title>所有文章 - Firemiles 的技术博客</title><link>https://blog.firemiles.top/posts/</link><description>所有文章 | Firemiles 的技术博客</description><generator>Hugo -- gohugo.io</generator><language>zh-CN</language><managingEditor>miles.dev@outlook.comm (firemiles)</managingEditor><webMaster>miles.dev@outlook.comm (firemiles)</webMaster><lastBuildDate>Sat, 23 Apr 2022 20:36:23 +0000</lastBuildDate><atom:link href="https://blog.firemiles.top/posts/" rel="self" type="application/rss+xml"/><item><title>WSL2安装内核头文件</title><link>https://blog.firemiles.top/2022/wsl2%E5%AE%89%E8%A3%85%E5%86%85%E6%A0%B8%E5%A4%B4%E6%96%87%E4%BB%B6/</link><pubDate>Sat, 23 Apr 2022 20:36:23 +0000</pubDate><author>firemiles</author><guid>https://blog.firemiles.top/2022/wsl2%E5%AE%89%E8%A3%85%E5%86%85%E6%A0%B8%E5%A4%B4%E6%96%87%E4%BB%B6/</guid><description>前言 一般 Linux 的发行版直接使用软件源就可以安装内核模块和内核头文件，但是WSL2作为一个特殊的版本， 大部分内核模块无法安装，也无法直接安装内核头</description></item><item><title>容器网络的怪问题</title><link>https://blog.firemiles.top/2020/%E5%AE%B9%E5%99%A8%E7%BD%91%E7%BB%9C%E7%9A%84%E6%80%AA%E9%97%AE%E9%A2%98/</link><pubDate>Sun, 19 Jul 2020 22:17:49 +0800</pubDate><author>firemiles</author><guid>https://blog.firemiles.top/2020/%E5%AE%B9%E5%99%A8%E7%BD%91%E7%BB%9C%E7%9A%84%E6%80%AA%E9%97%AE%E9%A2%98/</guid><description>案例太多，一次写完有点太难为我，我就想到哪写到哪，保持更新。 长连接报文重传失败 有个客户来找，说他们的应用Server端日志里经常有长连接中断</description></item><item><title>golang的reflect使用</title><link>https://blog.firemiles.top/2020/golang%E7%9A%84reflect%E4%BD%BF%E7%94%A8/</link><pubDate>Sun, 29 Mar 2020 09:30:51 +0000</pubDate><author>firemiles</author><guid>https://blog.firemiles.top/2020/golang%E7%9A%84reflect%E4%BD%BF%E7%94%A8/</guid><description><![CDATA[<div class="featured-image">
+<rss xmlns:atom="http://www.w3.org/2005/Atom" version="2.0"><channel><title>所有文章 - Firemiles 的技术博客</title><link>https://blog.firemiles.top/posts/</link><description>所有文章 | Firemiles 的技术博客</description><generator>Hugo -- gohugo.io</generator><language>zh-CN</language><managingEditor>miles.dev@outlook.comm (firemiles)</managingEditor><webMaster>miles.dev@outlook.comm (firemiles)</webMaster><lastBuildDate>Sat, 23 Apr 2022 20:36:23 +0000</lastBuildDate><atom:link href="https://blog.firemiles.top/posts/" rel="self" type="application/rss+xml"/><item><title>WSL2安装内核头文件</title><link>https://blog.firemiles.top/2022/wsl2%E5%AE%89%E8%A3%85%E5%86%85%E6%A0%B8%E5%A4%B4%E6%96%87%E4%BB%B6/</link><pubDate>Sat, 23 Apr 2022 20:36:23 +0000</pubDate><author>firemiles</author><guid>https://blog.firemiles.top/2022/wsl2%E5%AE%89%E8%A3%85%E5%86%85%E6%A0%B8%E5%A4%B4%E6%96%87%E4%BB%B6/</guid><description><![CDATA[<h2 id="前言">前言</h2>
+<p>一般 Linux 的发行版直接使用软件源就可以安装内核模块和内核头文件，但是WSL2作为一个特殊的版本，
+大部分内核模块无法安装，也无法直接安装内核头文件，还有部分依赖内核头文件的工具也无法运行，本文主要介绍内核头文件的安装。</p>
+<h2 id="安装">安装</h2>
+<ul>
+<li>
+<p>第一步先去github上下载WSL2内核源码，仓库在 <a href="https://github.com/microsoft/WSL2-Linux-Kernel" target="_blank" rel="noopener noreffer">https://github.com/microsoft/WSL2-Linux-Kernel</a>
+ 。下载当前运行的内核版本。这里以<code>4.19.121</code>为例</p>
+</li>
+<li>
+<p>开始安装依赖</p>
+</li>
+</ul>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-sh" data-lang="sh"><span class="line"><span class="cl">apt install libelf-dev build-essential pkg-config
+</span></span><span class="line"><span class="cl">apt install bison build-essential flex libssl-dev libelf-dev bc
+</span></span></code></pre></td></tr></table>
+</div>
+</div><ul>
+<li>编译</li>
+</ul>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-sh" data-lang="sh"><span class="line"><span class="cl">tar -zvxf 4.19.121-microsoft-standard.tar.gz
+</span></span><span class="line"><span class="cl"><span class="nb">cd</span> WSL2-Linux-Kernel-4.19.121-microsoft-standard.tar.gz
+</span></span><span class="line"><span class="cl">zcat /proc/config.gz &gt; .config
+</span></span><span class="line"><span class="cl">make -j <span class="k">$(</span>nproc<span class="k">)</span>
+</span></span><span class="line"><span class="cl">make -j <span class="k">$(</span>nproc<span class="k">)</span> modules_install
+</span></span></code></pre></td></tr></table>
+</div>
+</div><blockquote>
+<p>编译过程中可能会出现一些报错，一般是还缺少部分依赖，通过Google可以找到解决办法。</p>
+</blockquote>
+<p>编译完成后，在 /lib/modules/ 会出现 4.19.121-microsoft-standard 目录，头文件就可以使用了，借助头文件，其他的内核模块也可以自行编译安装。</p>
+<h2 id="参考资料">参考资料</h2>
+<ul>
+<li><a href="https://mashiro01.github.io/2020/08/24/wsl2%E4%B8%8B%E5%86%85%E6%A0%B8%E5%A4%B4%E6%96%87%E4%BB%B6/" target="_blank" rel="noopener noreffer">WSL2 下的 kernel header 的安装</a>
+</li>
+</ul>
+]]></description></item><item><title>容器网络的怪问题</title><link>https://blog.firemiles.top/2020/%E5%AE%B9%E5%99%A8%E7%BD%91%E7%BB%9C%E7%9A%84%E6%80%AA%E9%97%AE%E9%A2%98/</link><pubDate>Sun, 19 Jul 2020 22:17:49 +0800</pubDate><author>firemiles</author><guid>https://blog.firemiles.top/2020/%E5%AE%B9%E5%99%A8%E7%BD%91%E7%BB%9C%E7%9A%84%E6%80%AA%E9%97%AE%E9%A2%98/</guid><description><![CDATA[<p>案例太多，一次写完有点太难为我，我就想到哪写到哪，保持更新。</p>
+<h2 id="长连接报文重传失败">长连接报文重传失败</h2>
+<p>有个客户来找，说他们的应用Server端日志里经常有长连接中断的消息，需要我们定位中断的原因。</p>
+<p>接到这个问题时属实挠头，看了客户的错误日志，一般中断发生的频率极低，一天只出现个位数，我们尝试复现问题未果。但是客户就是上帝，接了问题单就要定位，我们的SRE比较有毅力，一连抓了3天的报文，根据报错日志，把有问题的报文挑了出来，我们进行分析。</p>
+<p>通过wireshark工具分析TCP流，我们发现有问题的报文都是连接时间超过2小时没有报文，然后Server端突然发送了一个报文，但是客户端并没有收到这个报文，重发几次后连接就中断了。定位到这儿问题已经很明显了，客户没有使用TCP keepalive，导致连接长时间没报文，最后报文在发出去后在 VPC 中被丢了。</p>
+<p>VPC 一般只会在安全组位置进行丢包，这很可能是安全组导致的丢包。查看了安全组规则，确实没有放通Server到Client端的规则，只放通了Client到Server的规则，也就是说只能由Client主动连接Server端，反之不行。</p>
+<p>安全组的实现一般会使用连接跟踪表，当Client端发起连接，和Server端建立TCP连接时，连接跟踪表会记录这条连接，允许Client和Server在这条连接上传输数据。但是连接跟踪表是有超时时间的，一般就2小时，当两小时没有报文命中时，就老化掉该规则，这时Server端再发送报文时，就被安全组拒绝了。客户的问题应该就是这个原因。</p>
+<p>这种情况一般建议客户开启TCP keepalive，这个问题并不是容器网络特有的问题，普通网络都会遇到。</p>
+<h2 id="长连接出现连接拒绝">长连接出现连接拒绝</h2>
+<p>容器网络还遇到一个客户来找我们，说他们POC测试的时候发现测试多轮大量长连接访问容器中的Server时会有一定几率出现Connect Refused错误。</p>
+<p>接到问题后祭出tcpdump神器进行抓包，先简单描述下网络路径：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">        访问NodePort                         DNAT成Pod IP        SNAT成GW IP
+</span></span><span class="line"><span class="cl">Client --------------&gt; VM1 -----------&gt; DNAT ------------&gt; SNAT -------------&gt; Server Pod
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>我们抓两个位置的包 VM1 和 Server Pod，当出现Connect Refused时，Server Pod确实收到了报文，但是却回了一个RST报文。面对这种情况，头脑风暴分析了下可能的原因：</p>
+<ol>
+<li>nginx 有问题</li>
+<li>连接数满了</li>
+<li>连接被占用了</li>
+</ol>
+<ul>
+<li>原因1不太可能</li>
+<li>原因2我们查看了系统参数，连接数并没有达到上限，也排除</li>
+<li>原因3我们在抓包的同时继续用netstat查看当前连接状态，发现当出现Connect Refusted报文时，果然连接仍然被占用着。</li>
+</ul>
+<p>为什么会连接冲突呢，问题肯定出在SNAT的过程中，SNAT挑选的源端口有问题。通过分析报文，突然发现这些长连接也有一个特点，连接建立后并没有数据的传输，只是一直占用的通道，看到这里心中已经对问题的根因有了大致的猜想，肯定和连接跟踪超时有关。查看了主机和容器的 <code>tcp_keepalive_time</code> 的值，果然主机配置了1800，容器是7200，不同的timeout值，使得主机在1800后释放了tcp连接，重新分配的源端口给新的连接，而容器并未释放，最终导致访问Server返回Connect Refused错误。</p>
+<p>这种情况我们自然建议可以将主机的 <code>tcp_keepalive_time</code> 改回成 7200，和容器保持一致，基本避免了该错误的发生。</p>
+]]></description></item><item><title>golang的reflect使用</title><link>https://blog.firemiles.top/2020/golang%E7%9A%84reflect%E4%BD%BF%E7%94%A8/</link><pubDate>Sun, 29 Mar 2020 09:30:51 +0000</pubDate><author>firemiles</author><guid>https://blog.firemiles.top/2020/golang%E7%9A%84reflect%E4%BD%BF%E7%94%A8/</guid><description><![CDATA[<div class="featured-image">
                 <img src="https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/20200329093558.png" referrerpolicy="no-referrer">
             </div><h2 id="reflect-介绍">reflect 介绍</h2>
 <p>计算机科学中，反射(reflect) 指计算机程序在运行时（runtime）可以访问、检测和修改它本身状态或行为的一种能力。用比喻来说，反射就是程序在运行时能够“观察”并且修改自己的行为。</p>
 <p>反射和内省（type introspection）不同，内省机制仅指程序在运行时对自身信息（称为元数据）的检测；反射机制不仅包括要能运行在对程序自身信息进行，还要能进一步根据这些信息改变程序状态或结构。</p>
 <p>早期语言汇编包含反射能力，动态修改指令或对它们进行分析等等反射功能时很平常的。编程发展到如C语言等高抽象层次语言时，这种实践消失了，带有反射特性的高级编程语言要更晚出现。</p>
-<p>golang 作为一个诞生较晚的现代语言，自然也支持反射能力。通过标准库 <code>reflect</code> 包我们可以使用 golang 提供的这个能力。</p>]]></description></item><item><title>DHCP协议</title><link>https://blog.firemiles.top/2020/dhcp%E5%8D%8F%E8%AE%AE/</link><pubDate>Mon, 24 Feb 2020 23:41:33 +0000</pubDate><author>firemiles</author><guid>https://blog.firemiles.top/2020/dhcp%E5%8D%8F%E8%AE%AE/</guid><description><![CDATA[<div class="featured-image">
+<p>golang 作为一个诞生较晚的现代语言，自然也支持反射能力。通过标准库 <code>reflect</code> 包我们可以使用 golang 提供的这个能力。</p>
+<h2 id="golang-reflect-原则">Golang reflect 原则</h2>
+<h3 id="interface-类型">interface 类型</h3>
+<p>reflect 建立在类型系统上，我们先从 Go 的类型系统开始讲起。Go 是静态类型语言，所有的变量都有对应的静态类型，因此所有变量的类型在编译时就已经确定：<code>int</code>,<code>float32</code>,<code>*MyType</code>,<code>[]byte</code>等等。</p>
+<p>如果我们定义</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="kd">type</span> <span class="nx">MyInt</span> <span class="kt">int</span>
+</span></span><span class="line"><span class="cl"><span class="kd">var</span> <span class="nx">i</span> <span class="kt">int</span>
+</span></span><span class="line"><span class="cl"><span class="kd">var</span> <span class="nx">j</span> <span class="nx">MyInt</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>那么 <code>i</code> 是 <code>int</code> 类型，而 <code>j</code> 是 <code>MyInt</code> 类型。两个变量拥有不同的静态类型，尽管它们的底层类型是一样的，但是它们之间的赋值必须通过显式的类型转换完成。</p>
+<p>interface type 是一类非常重要的类型，它代表一些方法的集合。interface 变量能够存储所有实现了 interface 中的方法的变量。一个广为人知的例子是 <code>io.Reader</code> 和 <code>io.Writer</code>。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span><span class="lnt">8
+</span><span class="lnt">9
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="c1">// Reader is the interface that wraps the basic Read method.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kd">type</span> <span class="nx">Reader</span> <span class="kd">interface</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="nf">Read</span><span class="p">(</span><span class="nx">p</span> <span class="p">[]</span><span class="kt">byte</span><span class="p">)</span> <span class="p">(</span><span class="nx">n</span> <span class="kt">int</span><span class="p">,</span> <span class="nx">err</span> <span class="kt">error</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">// Writer is the interface that wraps the basic Write method.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kd">type</span> <span class="nx">Writer</span> <span class="kd">interface</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="nf">Write</span><span class="p">(</span><span class="nx">p</span> <span class="p">[]</span><span class="kt">byte</span><span class="p">)</span> <span class="p">(</span><span class="nx">n</span> <span class="kt">int</span><span class="p">,</span> <span class="nx">err</span> <span class="kt">error</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>任何类型实现上述定义的 Read 或 Write 方法，我们认为该类型实现了 Reader 或 Writer 接口。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="kd">var</span> <span class="nx">r</span> <span class="nx">io</span><span class="p">.</span><span class="nx">Reader</span>
+</span></span><span class="line"><span class="cl"><span class="nx">r</span> <span class="p">=</span> <span class="nx">os</span><span class="p">.</span><span class="nx">Stdin</span>
+</span></span><span class="line"><span class="cl"><span class="nx">r</span> <span class="p">=</span> <span class="nx">bufio</span><span class="p">.</span><span class="nf">NewReader</span><span class="p">(</span><span class="nx">r</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="nx">r</span> <span class="p">=</span> <span class="nb">new</span><span class="p">(</span><span class="nx">bytes</span><span class="p">.</span><span class="nx">Buffer</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="c1">// and so on
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><p>很重要的一点是，无论 <code>r</code> 的值是什么，<code>r</code> 的类型永远是 <code>io.Reader</code>，go 是静态类型，而 <code>r</code> 的静态类型是 <code>io.Reader</code> 。</p>
+<p>空接口类型是一个十分重要的类型。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="kd">interface</span><span class="p">{}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>它代表空方法的集合，它可以接收任意值，包括零值或有方法的值。</p>
+<p>有些人可能认为Go的interface是动态类型，其实这是误解，它们是静态类型：interface 类型的变量永远是相同的静态类型，但是存储在interface中的值在运行时可以修改类型，该值要求实现interface定义的方法集合。</p>
+<h3 id="interface-的细节">interface 的细节</h3>
+<p>interface 类型的变量存储了一个对值：赋值给该interface的值；以及该值的类型。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="kd">var</span> <span class="nx">r</span> <span class="nx">io</span><span class="p">.</span><span class="nx">Reader</span>
+</span></span><span class="line"><span class="cl"><span class="nx">tty</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">os</span><span class="p">.</span><span class="nf">OpenFile</span><span class="p">(</span><span class="s">&#34;/dev/tty&#34;</span><span class="p">,</span> <span class="nx">os</span><span class="p">.</span><span class="nx">O_RDWR</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="k">if</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="k">return</span> <span class="kc">nil</span><span class="p">,</span> <span class="nx">err</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="nx">r</span> <span class="p">=</span> <span class="nx">tty</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><code>r</code> 存储了(value, type)对：(tty, *os.File)。需要注意 <code>*os.File</code> 实现了比 <code>Read</code> 更多的方法，但是使用 <code>Read</code> interface只能访问<code>Read</code> 中的方法。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="kd">var</span> <span class="nx">w</span> <span class="nx">io</span><span class="p">.</span><span class="nx">Writer</span>
+</span></span><span class="line"><span class="cl"><span class="nx">w</span> <span class="p">=</span> <span class="nx">r</span><span class="p">.(</span><span class="nx">io</span><span class="p">.</span><span class="nx">Writer</span><span class="p">)</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>通过赋值给 <code>Write</code> 接口，我们可以访问 tty 中实现的 <code>Write</code> 中的方法。</p>
+<p>我们还可以这样</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="kd">var</span> <span class="nx">empty</span> <span class="kd">interface</span><span class="p">{}</span>
+</span></span><span class="line"><span class="cl"><span class="nx">empty</span> <span class="p">=</span> <span class="nx">w</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>空的interface仍然包含了相同的pair, (tty, *os.File)。它的用处是：空的interface可以接收任意值并保留该值的所有信息。</p>
+<p>这里不需要进行类型断言，因为 <code>Write</code> 接口满足空interface类型要求，而 <code>Read</code> 接口和 <code>Wirte</code> 接口的方法集并不匹配，我们需要显式进行类型断言，告诉编译器我们知道它们存储的值是满足接口的。</p>
+<p>还有很重要的一点要记住：interface中存储的pair是（value， concrete type），并不是 (value, interface type)。所以interface不能保存interface 值。</p>
+<h3 id="第一个法则-可以从-interface-值获取反射对象">第一个法则： 可以从 interface 值获取反射对象</h3>
+<p>先说基本功能，反射是测试interface中存储的值和类型的机制。我们需要了解 <a href="https://golang.org/pkg/reflect/" target="_blank" rel="noopener noreffer">package reflect</a>
+ 中的 <code>Type</code> 和 <code>Value</code>。这两个类型可以访问interface中的内容。<code>reflect.TypeOf</code> 和 <code>reflect.ValueOf</code> 用来从interface中获取 <code>reflect.Type</code> 和 <code>reflect.Value</code> 。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="kn">package</span> <span class="nx">main</span>
+</span></span><span class="line"><span class="cl"><span class="kn">import</span> <span class="p">(</span>
+</span></span><span class="line"><span class="cl">    <span class="s">&#34;fmt&#34;</span>
+</span></span><span class="line"><span class="cl">    <span class="s">&#34;reflect&#34;</span>
+</span></span><span class="line"><span class="cl"><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="kd">func</span> <span class="nf">main</span><span class="p">()</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="kd">var</span> <span class="nx">x</span> <span class="kt">float64</span> <span class="p">=</span> <span class="mf">3.4</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">fmt</span><span class="p">.</span><span class="nf">Println</span><span class="p">(</span><span class="s">&#34;type:&#34;</span><span class="p">,</span> <span class="nx">reflect</span><span class="p">.</span><span class="nf">TypeOf</span><span class="p">(</span><span class="nx">x</span><span class="p">))</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="c1">// type: flot64
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><p>反射对象的第二个属性是 <code>Kind</code>， 它是底层类型，非静态类型，例如反射对象包含用户自定义类型的值：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="kd">type</span> <span class="nx">MyInt</span> <span class="kt">int</span>
+</span></span><span class="line"><span class="cl"><span class="kd">var</span> <span class="nx">x</span> <span class="nx">MyInt</span> <span class="p">=</span> <span class="mi">7</span>
+</span></span><span class="line"><span class="cl"><span class="nx">v</span> <span class="o">:=</span> <span class="nx">reflect</span><span class="p">.</span><span class="nf">ValueOf</span><span class="p">(</span><span class="nx">x</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="c1">// v.Kind() == reflect.Int
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><p><code>v</code> 的 <code>Kind</code> 是 <code>reflect.Int</code>，但是 x 的静态类型是 MyInt，不是int。</p>
+<h3 id="第二个法则-可以从反射对象获取-interface-值">第二个法则： 可以从反射对象获取 interface 值</h3>
+<p>获得一个<code>reflect.Value</code> 后，我们可以使用 <code>Interface()</code> 方法恢复 interface 值。该方法将type和value打包放入interface表达式中，并将它返回。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="c1">// Interface returns v&#39;s value as an interface{}.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kd">func</span> <span class="p">(</span><span class="nx">v</span> <span class="nx">Value</span><span class="p">)</span> <span class="nf">Interface</span><span class="p">()</span> <span class="kd">interface</span><span class="p">{}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>之后你可以这么处理</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="nx">y</span> <span class="o">:=</span> <span class="nx">v</span><span class="p">.</span><span class="nf">Interface</span><span class="p">().(</span><span class="kt">float64</span><span class="p">)</span> <span class="c1">// y will have type float64.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="nx">fmt</span><span class="p">.</span><span class="nf">Println</span><span class="p">(</span><span class="nx">y</span><span class="p">)</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>我们还可以简化，<code>fmt.Println</code> 的参数是空 interface，他们在方法内部会做解包操作，因此我们只需要直接将interface传入。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="nx">fmt</span><span class="p">.</span><span class="nf">Println</span><span class="p">(</span><span class="nx">v</span><span class="p">.</span><span class="nf">Interface</span><span class="p">())</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="第三个法则想要修改反射对象对象的指必须是settable的">第三个法则：想要修改反射对象，对象的指必须是settable的</h3>
+<p>第三法则比较难懂，要结合法则一进行理解。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="kd">var</span> <span class="nx">x</span> <span class="kt">float64</span> <span class="p">=</span> <span class="mf">3.4</span>
+</span></span><span class="line"><span class="cl"><span class="nx">v</span> <span class="o">:=</span> <span class="nx">reflect</span><span class="p">.</span><span class="nf">ValueOf</span><span class="p">(</span><span class="nx">x</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="nx">v</span><span class="p">.</span><span class="nf">SetFloat</span><span class="p">(</span><span class="mf">7.1</span><span class="p">)</span> <span class="c1">// Error: will panic.
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><p>结果会 panic 并输出信息。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-txt" data-lang="txt"><span class="line"><span class="cl">panic: reflect.Value.SetFloat using unaddressable value
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>错误的原因是 v 不是 addressable 的，Settable 是 reflect.Value 的一个属性，不是所有的 reflect.Value 都有该属性。</p>
+<p><code>CanSet</code> 方法输出 settable 属性</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="kd">var</span> <span class="nx">x</span> <span class="kt">float64</span> <span class="p">=</span> <span class="mf">3.4</span>
+</span></span><span class="line"><span class="cl"><span class="nx">v</span> <span class="o">:=</span> <span class="nx">reflect</span><span class="p">.</span><span class="nf">ValueOf</span><span class="p">(</span><span class="nx">x</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="nx">fmt</span><span class="p">.</span><span class="nf">Println</span><span class="p">(</span><span class="s">&#34;settability of v:&#34;</span><span class="p">,</span> <span class="nx">v</span><span class="p">.</span><span class="nf">CanSet</span><span class="p">())</span>
+</span></span><span class="line"><span class="cl"><span class="c1">// settability of v: false
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><p>Settablity 是一个 bit 类似 addressability，但是更严格。这个属性表述反射对象可以修改创建该反射对象的原始变量的值。Settability 由反射对象是否持有原始对象决定。</p>
+<p>当我们使用</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="kd">var</span> <span class="nx">x</span> <span class="kt">float64</span> <span class="p">=</span> <span class="mf">3.4</span>
+</span></span><span class="line"><span class="cl"><span class="nx">v</span> <span class="o">:=</span> <span class="nx">reflect</span><span class="p">.</span><span class="nf">ValueOf</span><span class="p">(</span><span class="nx">x</span><span class="p">)</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>反射对象只持有了 x 的 copy，并不是原始对象，因此</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="nx">v</span><span class="p">.</span><span class="nf">SetFloat</span><span class="p">(</span><span class="mf">7.1</span><span class="p">)</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>如果允许运行成功，那么它修改的也不是x，而是反射对象内部的一个值，这会让开发者产生疑惑。所以这并不被允许，settability 属性就是用来避免该问题。</p>
+<p>如果我们想要修改原始对象，那么我们可以使用指针：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="kd">var</span> <span class="nx">x</span> <span class="kt">float64</span> <span class="p">=</span> <span class="mf">3.4</span>
+</span></span><span class="line"><span class="cl"><span class="nx">p</span> <span class="o">:=</span> <span class="nx">reflect</span><span class="p">.</span><span class="nf">ValueOf</span><span class="p">(</span><span class="o">&amp;</span><span class="nx">x</span><span class="p">)</span> <span class="c1">// Note: take the address of x.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="nx">fmt</span><span class="p">.</span><span class="nf">Println</span><span class="p">(</span><span class="s">&#34;type of p:&#34;</span><span class="p">,</span> <span class="nx">p</span><span class="p">.</span><span class="nf">Type</span><span class="p">())</span>
+</span></span><span class="line"><span class="cl"><span class="nx">fmt</span><span class="p">.</span><span class="nf">Println</span><span class="p">(</span><span class="s">&#34;settability of p:&#34;</span><span class="p">,</span> <span class="nx">p</span><span class="p">.</span><span class="nf">CanSet</span><span class="p">())</span>
+</span></span><span class="line"><span class="cl"><span class="c1">// type of p: *float64
+</span></span></span><span class="line"><span class="cl"><span class="c1">// settability of p: false
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><p>这里 p 也是不可设置的，但是我们并不想修改 p，我们想要修改 p 指向的对象。我们可以使用 <code>Elem</code> 方法获取 p 指向的对象，该方法获取指针指向的元素，并保存成 <code>reflect.Value</code> 类型返回。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="nx">v</span> <span class="o">:=</span> <span class="nx">p</span><span class="p">.</span><span class="nf">Elem</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl"><span class="nx">fmt</span><span class="p">.</span><span class="nf">Println</span><span class="p">(</span><span class="s">&#34;settability of v:&#34;</span><span class="p">,</span> <span class="nx">v</span><span class="p">.</span><span class="nf">CanSet</span><span class="p">())</span>
+</span></span><span class="line"><span class="cl"><span class="c1">// settability of v: true
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><p>在这里我们可以修改 x 了。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="nx">v</span><span class="p">.</span><span class="nf">SetFloat</span><span class="p">(</span><span class="mf">7.1</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="nx">fmt</span><span class="p">.</span><span class="nf">Println</span><span class="p">(</span><span class="nx">v</span><span class="p">.</span><span class="nf">Interface</span><span class="p">())</span>
+</span></span><span class="line"><span class="cl"><span class="nx">fmt</span><span class="p">.</span><span class="nf">Println</span><span class="p">(</span><span class="nx">x</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="c1">// 7.1
+</span></span></span><span class="line"><span class="cl"><span class="c1">// 7.1
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="结构体">结构体</h3>
+<p>在我们前面的例子中，<code>v</code> 并不是指针本身，而是它派生出来的对象。这种方法的一个使用场景是修改结构体的字段。只有我们拥有结构体的地址，我们才可以修改它的字段。</p>
+<p>下面是一个分析结构体值的例子。我们使用结构体变量的地址构建一个反射对象，这样我们可以通过该对象对它进行修改。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="kd">type</span> <span class="nx">T</span> <span class="kd">struct</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">A</span> <span class="kt">int</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">B</span> <span class="kt">string</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="nx">t</span> <span class="o">:=</span> <span class="nx">T</span><span class="p">{</span><span class="mi">23</span><span class="p">,</span> <span class="s">&#34;skidoo&#34;</span><span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="nx">s</span> <span class="o">:=</span> <span class="nx">reflect</span><span class="p">.</span><span class="nf">ValueOf</span><span class="p">(</span><span class="o">&amp;</span><span class="nx">t</span><span class="p">).</span><span class="nf">Elem</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl"><span class="nx">typeOfT</span> <span class="o">:=</span> <span class="nx">s</span><span class="p">.</span><span class="nf">Type</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl"><span class="k">for</span> <span class="nx">i</span> <span class="o">:=</span> <span class="mi">0</span><span class="p">;</span> <span class="nx">i</span> <span class="p">&lt;</span> <span class="nx">s</span><span class="p">.</span><span class="nf">NumField</span><span class="p">();</span> <span class="nx">i</span><span class="o">++</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">f</span> <span class="o">:=</span> <span class="nx">s</span><span class="p">.</span><span class="nf">Field</span><span class="p">(</span><span class="nx">i</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">fmt</span><span class="p">.</span><span class="nf">Printf</span><span class="p">(</span><span class="s">&#34;%d: %s %s = %v\n&#34;</span><span class="p">,</span> <span class="nx">i</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="nx">typeOfT</span><span class="p">.</span><span class="nf">Field</span><span class="p">(</span><span class="nx">i</span><span class="p">).</span><span class="nx">Name</span><span class="p">,</span> <span class="nx">f</span><span class="p">.</span><span class="nf">Type</span><span class="p">(),</span> <span class="nx">f</span><span class="p">.</span><span class="nf">Interface</span><span class="p">())</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="c1">// 0: A int = 23
+</span></span></span><span class="line"><span class="cl"><span class="c1">// 1: B string = skidoo
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><p>因为 <code>s</code> 是 settable 的，所以我们可以用它修改结构体字段。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="nx">s</span><span class="p">.</span><span class="nf">Field</span><span class="p">(</span><span class="mi">0</span><span class="p">).</span><span class="nf">SetInt</span><span class="p">(</span><span class="mi">77</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="nx">s</span><span class="p">.</span><span class="nf">Field</span><span class="p">(</span><span class="mi">1</span><span class="p">).</span><span class="nf">SetString</span><span class="p">(</span><span class="s">&#34;Sunset Strip&#34;</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="nx">fmt</span><span class="p">.</span><span class="nf">Println</span><span class="p">(</span><span class="s">&#34;t is now&#34;</span><span class="p">,</span> <span class="nx">t</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="c1">// t is now {77 Sunset Strip}
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="总结">总结</h3>
+<p>再重复一遍三法则：</p>
+<ol>
+<li>可以从interface值获取反射对象</li>
+<li>可以从反射对象获取interface值</li>
+<li>想要修改反射对象，对像必须是settable</li>
+</ol>
+<p>一旦你理解这三个反射原则，那么Go就变得更容易使用了。反射是一个需要小心使用的强大工具，可以帮助你的代码减少不必要的重复。</p>
+<p>下一次我将介绍 <code>encoding/json</code> 的实现，真正深入学习反射的使用。</p>
+<h2 id="参考">参考</h2>
+<ul>
+<li><a href="https://www.wikiwand.com/zh-hans/%E5%8F%8D%E5%B0%84_%28%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%A7%91%E5%AD%A6%29" target="_blank" rel="noopener noreffer">https://www.wikiwand.com/zh-hans/%E5%8F%8D%E5%B0%84_(%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%A7%91%E5%AD%A6)</a>
+</li>
+<li><a href="https://golang.org/pkg/reflect/" target="_blank" rel="noopener noreffer">https://golang.org/pkg/reflect/</a>
+</li>
+<li><a href="https://blog.golang.org/laws-of-reflection" target="_blank" rel="noopener noreffer">https://blog.golang.org/laws-of-reflection</a>
+</li>
+<li><a href="https://colobu.com/2018/02/27/go-addressable/" target="_blank" rel="noopener noreffer">https://colobu.com/2018/02/27/go-addressable/</a>
+</li>
+<li><a href="https://studygolang.com/articles/938" target="_blank" rel="noopener noreffer">https://studygolang.com/articles/938</a>
+</li>
+<li><a href="https://research.swtch.com/interfaces" target="_blank" rel="noopener noreffer">Go Data Structures: Interfaces</a>
+</li>
+<li><a href="https://draveness.me/golang/docs/part2-foundation/ch04-basic/golang-reflect/" target="_blank" rel="noopener noreffer">https://draveness.me/golang/docs/part2-foundation/ch04-basic/golang-reflect/</a>
+</li>
+</ul>]]></description></item><item><title>DHCP协议</title><link>https://blog.firemiles.top/2020/dhcp%E5%8D%8F%E8%AE%AE/</link><pubDate>Mon, 24 Feb 2020 23:41:33 +0000</pubDate><author>firemiles</author><guid>https://blog.firemiles.top/2020/dhcp%E5%8D%8F%E8%AE%AE/</guid><description><![CDATA[<div class="featured-image">
                 <img src="https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/20200224234329.png" referrerpolicy="no-referrer">
             </div><h2 id="协议说明">协议说明</h2>
 <p>DHCP 协议（动态主机设定协定）是一个用于局域网的网络协议，位于TCP/IP的应用层，使用UDP协议工作，主要有两个用途：</p>
@@ -16,11 +483,2068 @@
 <p>甚至对于很少改变地址的服务器，DHCP仍然被建议用来设置它们的地址。如果服务器需要被重新分配地址，尽可能不改变之前的配置。对于一些设备，如路由器和防火墙，则不应该使用DHCP。</p>
 <p>DHCP 于 1993 年10月成为标准协议，前身是 BOOTP （Bootstrap Protocol， 引导程序协议），DHCP 被设计成向前兼容 BOOTP 协议。当前的DHCP定义可以在<a href="https://tools.ietf.org/html/rfc2131" target="_blank" rel="noopener noreffer">RFC 2131</a>
 找到，而基于IPv6的建议标准(DHCPv6)可以在<a href="https://tools.ietf.org/html/rfc3315" target="_blank" rel="noopener noreffer">RFC3315</a>
-中找到。</p>]]></description></item><item><title>具体数学-约瑟夫问题</title><link>https://blog.firemiles.top/2020/%E5%85%B7%E4%BD%93%E6%95%B0%E5%AD%A6-%E7%BA%A6%E7%91%9F%E5%A4%AB%E9%97%AE%E9%A2%98/</link><pubDate>Sat, 04 Jan 2020 20:07:55 +0000</pubDate><author>firemiles</author><guid>https://blog.firemiles.top/2020/%E5%85%B7%E4%BD%93%E6%95%B0%E5%AD%A6-%E7%BA%A6%E7%91%9F%E5%A4%AB%E9%97%AE%E9%A2%98/</guid><description><![CDATA[<div class="featured-image">
+中找到。</p>
+<h2 id="协议结构">协议结构</h2>
+<p></p>
+<ul>
+<li>Op：消息操作代码，既可以是引导请求（BOOTREQUEST 1）也可以是引导答复（BOOTREPLY 2）</li>
+<li>Htype：硬件地址类型</li>
+<li>Hlen：硬件地址长度</li>
+<li>Hops：客户端设置为0，relay agent使用</li>
+<li>Xid：处理ID</li>
+<li>Secs：从获取到IP地址或者续约过程开始到现在所消耗的时间</li>
+<li>Flags：标记</li>
+<li>Ciaddr：客户机IP地址</li>
+<li>Yiaddr：“你的”（客户机）IP地址</li>
+<li>Siaddr：在bootstrap中使用的下一台服务器的IP地址</li>
+<li>Giaddr：用于导入的接替代理IP地址</li>
+<li>Chaddr：客户机硬件</li>
+<li>Sname：任意服务器主机名称，空终止符</li>
+<li>File：DHCP发现协议中的引导文件名、空终止符、属名或者空，DHCP供应协议中的受限目录路径名</li>
+<li>Options：可选参数字段。参考定义选择列表中的选择文件</li>
+</ul>
+<h2 id="协议时序">协议时序</h2>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">sequenceDiagram
+</span></span><span class="line"><span class="cl">    participant  Server(not selected)
+</span></span><span class="line"><span class="cl">    participant  Client
+</span></span><span class="line"><span class="cl">    participant  Server(selected)
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    Note over Client: Begins initialization
+</span></span><span class="line"><span class="cl">    Client -&gt;&gt;+ Server(selected): DHCPDISCOVER
+</span></span><span class="line"><span class="cl">    Client -&gt;&gt;+ Server(not selected): DHCPDISCOVER
+</span></span><span class="line"><span class="cl">    Note over Server(selected): Determines configuration
+</span></span><span class="line"><span class="cl">    Server(selected) -&gt;&gt;- Client: DHCPOFFER
+</span></span><span class="line"><span class="cl">    Note over Server(not selected): Determines configuration
+</span></span><span class="line"><span class="cl">    Server(not selected) -&gt;&gt;- Client: DHCPOFFER
+</span></span><span class="line"><span class="cl">    Note over Client: Collects replies, Selects configuration
+</span></span><span class="line"><span class="cl">    Client -&gt;&gt;+ Server(selected): DHCPREQUEST
+</span></span><span class="line"><span class="cl">    Client -&gt;&gt; Server(not selected): DHCPREQUEST
+</span></span><span class="line"><span class="cl">    Note over Server(selected): Commits configuration
+</span></span><span class="line"><span class="cl">    Server(selected) -&gt;&gt;- Client: DHCPACK
+</span></span><span class="line"><span class="cl">    Note over Client: Initialization complete
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    Note over Client: Graceful shutdown
+</span></span><span class="line"><span class="cl">    Client -&gt;&gt; Server(selected): DHCPRELEASE
+</span></span><span class="line"><span class="cl">    Note over Server(selected): Discards lease
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>DHCP 客户端发送 DHCPDISCOVER 广播报文请求 DHCP 网络配置；</p>
+<p>Server 端收到后应答 DHCPOFFER 配置客户端；客户端选择一个 Server 以及它提供的网络参数，填写 <code>server identifier</code> option 后广播 DHCPREQUEST 报文；</p>
+<p>Server 接收到 DHCPREQUEST 报文，没被选中的 Sever 通过该报文确认 client 没有使用自己提供的配置，被选中的 Server 持久化客户端binding配置，并应答 DHCPACK 报文，DHCPACK 中的配置不能和之前的 DHCPOFFER 冲突，并且 Server 在该阶段并不检查提供的网络地址；</p>
+<p>客户端接收到 DHCPACK 后，应该对参数作最后的检查（例如ARP检查获得的网络地址），并记录lease时间。如果客户端发现网络地址已经被占用了，客户端需要发送 DHCPDECLINE 消息给 Server 并等待至少10s后重启配置流程。</p>
+<h2 id="dhcp-协议状态转移图">DHCP 协议状态转移图</h2>
+<p></p>
+<h2 id="dhcp-常用-option-字段">DHCP 常用 Option 字段</h2>
+<h3 id="subnet-mask">Subnet Mask</h3>
+<p>客户端子网掩码，如果subnet mask option和router option同时指定，subnet mask必须第一个。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-txt" data-lang="txt"><span class="line"><span class="cl">Code   Len        Subnet Mask
+</span></span><span class="line"><span class="cl">+-----+-----+-----+-----+-----+-----+
+</span></span><span class="line"><span class="cl">|  1  |  4  |  m1 |  m2 |  m3 |  m4 |
+</span></span><span class="line"><span class="cl">+-----+-----+-----+-----+-----+-----+
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="router-option">Router Option</h3>
+<p>指定客户端子网中的路由器IP列表。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-txt" data-lang="txt"><span class="line"><span class="cl">Code   Len         Address 1               Address 2
+</span></span><span class="line"><span class="cl">+-----+-----+-----+-----+-----+-----+-----+-----+--
+</span></span><span class="line"><span class="cl">|  3  |  n  |  a1 |  a2 |  a3 |  a4 |  a1 |  a2 |  ...
+</span></span><span class="line"><span class="cl">+-----+-----+-----+-----+-----+-----+-----+-----+--
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="domain-name-server-option">Domain Name Server Option</h3>
+<p>为客户端指定DNS列表。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-txt" data-lang="txt"><span class="line"><span class="cl">Code   Len         Address 1               Address 2
+</span></span><span class="line"><span class="cl">+-----+-----+-----+-----+-----+-----+-----+-----+--
+</span></span><span class="line"><span class="cl">|  6  |  n  |  a1 |  a2 |  a3 |  a4 |  a1 |  a2 |  ...
+</span></span><span class="line"><span class="cl">+-----+-----+-----+-----+-----+-----+-----+-----+--
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="host-name-option">Host Name Option</h3>
+<p>指定客户端名字。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-txt" data-lang="txt"><span class="line"><span class="cl">Code   Len                 Host Name
+</span></span><span class="line"><span class="cl">+-----+-----+-----+-----+-----+-----+-----+-----+--
+</span></span><span class="line"><span class="cl">|  12 |  n  |  h1 |  h2 |  h3 |  h4 |  h5 |  h6 |  ...
+</span></span><span class="line"><span class="cl">+-----+-----+-----+-----+-----+-----+-----+-----+--
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="domain-name">Domain Name</h3>
+<p>指定客户端hostname的在DNS中记录的域名。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-txt" data-lang="txt"><span class="line"><span class="cl">Code   Len        Domain Name
+</span></span><span class="line"><span class="cl">+-----+-----+-----+-----+-----+-----+--
+</span></span><span class="line"><span class="cl">|  15 |  n  |  d1 |  d2 |  d3 |  d4 |  ...
+</span></span><span class="line"><span class="cl">+-----+-----+-----+-----+-----+-----+--
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="interface-mtu-option">Interface MTU Option</h3>
+<p>网卡MTU。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-txt" data-lang="txt"><span class="line"><span class="cl">Code   Len      MTU
+</span></span><span class="line"><span class="cl">+-----+-----+-----+-----+
+</span></span><span class="line"><span class="cl">|  26 |  2  |  m1 |  m2 |
+</span></span><span class="line"><span class="cl">+-----+-----+-----+-----+
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="static-route-option">Static Route Option</h3>
+<p>指定客户端需要添加的静态路由。default route(0.0.0.0) 在静态路由中使用是非法的。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span><span class="lnt">8
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-txt" data-lang="txt"><span class="line"><span class="cl">Code   Len         Destination 1           Router 1
+</span></span><span class="line"><span class="cl">+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+
+</span></span><span class="line"><span class="cl">|  33 |  n  |  d1 |  d2 |  d3 |  d4 |  r1 |  r2 |  r3 |  r4 |
+</span></span><span class="line"><span class="cl">+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+
+</span></span><span class="line"><span class="cl">        Destination 2           Router 2
+</span></span><span class="line"><span class="cl">+-----+-----+-----+-----+-----+-----+-----+-----+---
+</span></span><span class="line"><span class="cl">|  d1 |  d2 |  d3 |  d4 |  r1 |  r2 |  r3 |  r4 | ...
+</span></span><span class="line"><span class="cl">+-----+-----+-----+-----+-----+-----+-----+-----+---
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="classless-route-option">Classless Route Option</h3>
+<p>支持CIDR目的路由，如果客户端不支持，忽略该配置；如果客户端支持，当static route 和 classless route 同时配置时，忽略static route option。如果Server同时返回 classless route和router option，忽略router option。</p>
+<p>很多客户端可能不支持该选项，Server 最好同时发送 classless route和router option，在 classless route和router option中同时指定默认网关。</p>
+<p>当客户端请求classless route，同时请求static routes或routers option时，Server只需要发送classless route，不要发送static routes和routers option。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span><span class="lnt">8
+</span><span class="lnt">9
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-txt" data-lang="txt"><span class="line"><span class="cl">Code Len Destination 1    Router 1
+</span></span><span class="line"><span class="cl">+-----+---+----+-----+----+----+----+----+----+
+</span></span><span class="line"><span class="cl">| 121 | n | d1 | ... | dN | r1 | r2 | r3 | r4 |
+</span></span><span class="line"><span class="cl">+-----+---+----+-----+----+----+----+----+----+
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">Destination 2       Router 2
+</span></span><span class="line"><span class="cl">+----+-----+----+----+----+----+----+
+</span></span><span class="line"><span class="cl">| d1 | ... | dN | r1 | r2 | r3 | r4 |
+</span></span><span class="line"><span class="cl">+----+-----+----+----+----+----+----+
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="server-identifier">Server Identifier</h3>
+<p>DHCPOFFER 和 DHCPREQUEST 中用于指定 DHCP Server。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-txt" data-lang="txt"><span class="line"><span class="cl">Code   Len            Address
+</span></span><span class="line"><span class="cl">+-----+-----+-----+-----+-----+-----+
+</span></span><span class="line"><span class="cl">|  54 |  4  |  a1 |  a2 |  a3 |  a4 |
+</span></span><span class="line"><span class="cl">+-----+-----+-----+-----+-----+-----+
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="client-identifier">Client-identifier</h3>
+<p>客户端默认用硬件地址来作为ID，但是也可以用这个值作为ID，Server 可以使用这个id来存取客户端的配置。服务器可以用域名，虚拟机用机器UUID来设置该值。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-txt" data-lang="txt"><span class="line"><span class="cl">Code   Len   Type  Client-Identifier
+</span></span><span class="line"><span class="cl">+-----+-----+-----+-----+-----+---
+</span></span><span class="line"><span class="cl">|  61 |  n  |  t1 |  i1 |  i2 | ...
+</span></span><span class="line"><span class="cl">+-----+-----+-----+-----+-----+---
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="参考资料">参考资料</h2>
+<ul>
+<li><a href="https://www.wikiwand.com/zh-hans/%E5%8A%A8%E6%80%81%E4%B8%BB%E6%9C%BA%E8%AE%BE%E7%BD%AE%E5%8D%8F%E8%AE%AE" target="_blank" rel="noopener noreffer">DHCP WIKI</a>
+</li>
+<li><a href="https://tools.ietf.org/html/rfc2131" target="_blank" rel="noopener noreffer"><strong>RFC2131</strong> Dynamic Host Configuration Protocol</a>
+</li>
+<li><a href="https://tools.ietf.org/html/rfc3315" target="_blank" rel="noopener noreffer"><strong>RFC3315</strong> Dynamic Host Configuration Protocol for IPv6 (DHCPv6)</a>
+</li>
+<li><a href="https://tools.ietf.org/html/rfc951" target="_blank" rel="noopener noreffer"><strong>RFC951</strong> BOOTSTRAP PROTOCOL (BOOTP)</a>
+</li>
+<li><a href="https://tools.ietf.org/html/rfc1542" target="_blank" rel="noopener noreffer"><strong>RFC1542</strong> Clarifications and Extensions for the Bootstrap Protocol</a>
+</li>
+<li><a href="https://tools.ietf.org/html/rfc1533" target="_blank" rel="noopener noreffer"><strong>RFC1533</strong> DHCP Options and BOOTP Vendor Extensions</a>
+</li>
+<li><a href="https://tools.ietf.org/html/rfc3442" target="_blank" rel="noopener noreffer"><strong>RFC3442</strong> The Classless Static Route Option for Dynamic Host Configuration Protocol (DHCP) version 4</a>
+</li>
+</ul>
+<h2 id="附录">附录</h2>
+<p>状态图源码</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-txt" data-lang="txt"><span class="line"><span class="cl">stateDiagram
+</span></span><span class="line"><span class="cl">    [*] --&gt; INIT
+</span></span><span class="line"><span class="cl">    INIT --&gt; SELECTING: -/Send DHCPDISCOVER
+</span></span><span class="line"><span class="cl">    SELECTING --&gt; SELECTING: DHCPOFFER/Collect replies
+</span></span><span class="line"><span class="cl">    SELECTING --&gt; REQUESTING: Select offerk/send DHCPREQUEST
+</span></span><span class="line"><span class="cl">    REQUESTING --&gt; REQUESTING: DHCPOFFER/Discard
+</span></span><span class="line"><span class="cl">    REQUESTING --&gt; INIT: DHCPNAK/Discard offer, DHCPACK (not accept.)/Send DHCPDECLINE
+</span></span><span class="line"><span class="cl">    REQUESTING --&gt; BOUND: DHCPACK/Record lease, set timers T1, T2
+</span></span><span class="line"><span class="cl">    BOUND --&gt; BOUND: DHCPOFFER, DHCPACK, DHCPNAK/Discard
+</span></span><span class="line"><span class="cl">    BOUND --&gt; RENEWING: T1 expires/Send DHCPREQUEST to leasing server
+</span></span><span class="line"><span class="cl">    RENEWING --&gt; BOUND: DHCPACK/Record lease, set timers T1, T2
+</span></span><span class="line"><span class="cl">    RENEWING --&gt; REBINDING: T2 expires/Broadcast DHCPREQUEST
+</span></span><span class="line"><span class="cl">    RENEWING --&gt; INIT: DHCPNAK/Halt network
+</span></span><span class="line"><span class="cl">    REBINDING --&gt; BOUND: DHCPACK/Record lease, set timers T1,T2
+</span></span><span class="line"><span class="cl">    REBINDING --&gt; INIT: DHCPNAK, Lease expired/Halt network
+</span></span><span class="line"><span class="cl">    INIT_REBOOT --&gt; REBOOTING: -/Send DHCPREQUEST
+</span></span><span class="line"><span class="cl">    REBOOTING --&gt; BOUND: DHCPACK/Record lease, set timers T1, T2
+</span></span><span class="line"><span class="cl">    REBOOTING --&gt; INIT: DHCPNAK/Restart
+</span></span></code></pre></td></tr></table>
+</div>
+</div>]]></description></item><item><title>具体数学-约瑟夫问题</title><link>https://blog.firemiles.top/2020/%E5%85%B7%E4%BD%93%E6%95%B0%E5%AD%A6-%E7%BA%A6%E7%91%9F%E5%A4%AB%E9%97%AE%E9%A2%98/</link><pubDate>Sat, 04 Jan 2020 20:07:55 +0000</pubDate><author>firemiles</author><guid>https://blog.firemiles.top/2020/%E5%85%B7%E4%BD%93%E6%95%B0%E5%AD%A6-%E7%BA%A6%E7%91%9F%E5%A4%AB%E9%97%AE%E9%A2%98/</guid><description><![CDATA[<div class="featured-image">
                 <img src="https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/20200104201137.png" referrerpolicy="no-referrer">
             </div><h2 id="引子">引子</h2>
 <p>最近在读计算机经典教科书《具体数学》，作为一个非科班的计算机从业者，仿佛打开了新的天地，原来我刷题遇到的算法问题很多都可以用数学方法解决，原来数学不光是高数、线代和微积分三座大山，离散数学在计算机上是绝配。为记录学习过程中的心得并分享，故展开具体数学系列博客，望与有缘人分享这份知识的喜悦。</p>
-<p>和《具体数学》的章节安排一样，本博客作为系列第一篇，主要讨论递归算法，从难易程度分成三个部分：<strong>河内塔</strong>、<strong>平面上的直线</strong>、<strong>约瑟夫问题</strong>。它们有两个共同的特征：一是都曾被数学家反复研究过；二是它们的解都用了 <em>递归</em> 的思想。</p>]]></description></item><item><title>openvswitch 使用速查</title><link>https://blog.firemiles.top/2020/openvswitch%E4%BD%BF%E7%94%A8%E9%80%9F%E6%9F%A5/</link><pubDate>Wed, 01 Jan 2020 15:47:09 +0000</pubDate><author>firemiles</author><guid>https://blog.firemiles.top/2020/openvswitch%E4%BD%BF%E7%94%A8%E9%80%9F%E6%9F%A5/</guid><description>&lt;div class="featured-image">
-&lt;img src="https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/20200101155834.png" referrerpolicy="no-referrer">
-&lt;/div>OVS 架构 本文主要针对内核态 openvsiwth，用户态 openvswitch 的使用和调试不在本文的讨论范围内。 ovs 架构如上图所示，主要由内核 datapath 和用户空间的 vswit</description></item><item><title>IPv6特性介绍</title><link>https://blog.firemiles.top/2019/ipv6%E7%89%B9%E6%80%A7%E4%BB%8B%E7%BB%8D/</link><pubDate>Wed, 27 Nov 2019 09:47:43 +0000</pubDate><author>firemiles</author><guid>https://blog.firemiles.top/2019/ipv6%E7%89%B9%E6%80%A7%E4%BB%8B%E7%BB%8D/</guid><description>IPv6 概述 IPv6（互联网协议版本6）是一种新的寻址协议，旨在包含未来互联网的所有可能需求。 为什么是新的IP版本 到目前为止，IPv4已经证明自己</description></item><item><title>常见容器网络问题诊断</title><link>https://blog.firemiles.top/2019/%E5%B8%B8%E8%A7%81%E5%AE%B9%E5%99%A8%E7%BD%91%E7%BB%9C%E9%97%AE%E9%A2%98%E8%AF%8A%E6%96%AD/</link><pubDate>Sun, 24 Nov 2019 14:36:23 +0000</pubDate><author>firemiles</author><guid>https://blog.firemiles.top/2019/%E5%B8%B8%E8%A7%81%E5%AE%B9%E5%99%A8%E7%BD%91%E7%BB%9C%E9%97%AE%E9%A2%98%E8%AF%8A%E6%96%AD/</guid><description>Kubernetes 的容器网络插件家族越来越庞大，各种模式层出不穷，但是万变不离其宗，overlay 和 underlay。overlay 常使用 vxlan 或者 ipip，u</description></item><item><title>Load Balance 访问 Kubernetes Pod 源 IP 保留方案探索</title><link>https://blog.firemiles.top/2019/preserve-source-ip-in-k8s/</link><pubDate>Wed, 04 Sep 2019 22:21:59 +0000</pubDate><author>firemiles</author><guid>https://blog.firemiles.top/2019/preserve-source-ip-in-k8s/</guid><description>&lt;p>Kuberentes 已经成为云计算事实上的基础设施，各大云服务厂商都推出了自己的Kubernets 集群托管服务。处于信息安全考虑，一些企业不允许自己的核心资产暴露在公共服务器上，公有云并不适合他们。一些云服务厂商嗅到了其中的商机，国外大厂OpenShift，国内云厂商阿里云、华为云、青云等纷纷顺势推出了基于Kubernetes的私有集群以及混合云的解决方案。&lt;/p>
-&lt;p>企业在选型方案是，网络能力往往是考量各解决方案优劣的一个重要指标，但是本文并不打算分析各厂商的网络方案（工作量太大，计划后续补上），而是主要聚焦 Kubernetes 集群中的一个小的网络特性，即 Kubernetes Load Balance Service 如何保留客户端源IP。&lt;/p></description></item><item><title>iptables 快速入门</title><link>https://blog.firemiles.top/2019/iptables%E5%BF%AB%E9%80%9F%E5%85%A5%E9%97%A8/</link><pubDate>Sat, 16 Mar 2019 21:09:26 +0000</pubDate><author>firemiles</author><guid>https://blog.firemiles.top/2019/iptables%E5%BF%AB%E9%80%9F%E5%85%A5%E9%97%A8/</guid><description>iptables 是 netfilter 项目的一部分，自1998年首发至今已经20年了，仍然是Linux中网络流量控制的重要软件。学习网络知识，iptables 是绕不过的一道</description></item></channel></rss>
+<p>和《具体数学》的章节安排一样，本博客作为系列第一篇，主要讨论递归算法，从难易程度分成三个部分：<strong>河内塔</strong>、<strong>平面上的直线</strong>、<strong>约瑟夫问题</strong>。它们有两个共同的特征：一是都曾被数学家反复研究过；二是它们的解都用了 <em>递归</em> 的思想。</p>
+<h2 id="河内塔-the-tower-of-hanoi">河内塔 THE TOWER OF HANOI</h2>
+<p>学习过递归算法的同学应该都知道知道河内塔，我当时就是通过河内塔入门了递归算法的。河内塔是由法国数学家爱德华·卢卡斯于1883 年发明的。给定一个由8个圆盘组成的塔，这些圆盘按照大小递减的的方式套在三根桩柱中的一根上。</p>
+<p></p>
+<p>我们的目的是要将整个塔移动到另一根桩柱上，每次只能移动一个圆盘，且较大的圆盘在移动过程中不能放置在较小的的圆盘上面。</p>
+<p>现在问题来了：我们能做到的最好的解法是什么？也就是说，要完成这项任务移动多少次才是必须且足够的？</p>
+<p>研究这样的问题的最好的方法是对它稍加推广，如果有n个圆盘将会怎么样？</p>
+<p>事实上，研究递归问题，我们将会看到先<strong>研究小的情形</strong>是有益的。通过少量尝试就能看出如何移动3个圆盘的塔。</p>
+<p>要用数学语言解决这个问题，我们自然需要引入适当的记号：<strong>命令并求解</strong>。我们称 $T_n$ 是根据卢卡斯的规则将圆盘从一根柱移动到另一根柱所需要的最少移动次数。那么，$T_1$ 显然是1，$T_2=3$ ，另外定义 $T_0=0$。</p>
+<p>我们从宏观的角度来分析这个问题，如何将n个圆盘移动到柱子B。首先移动上面n-1个圆盘到柱子C，然后移动最大的圆盘到柱子B，最后将n-1个圆盘移动到柱子B。就像如何将大象放入冰箱一样，只要分三步。我们将这三步用数学语言进行表示：</p>
+<p>$$
+T_n \leq 2T_{n-1}+1
+$$</p>
+<p>之所以用了 $\leq$ ，没用 = ，是因为我们的构造仅证明了 $2T_{n-1}+1$ 次移动足够完成任务，但是没有证明必须要这么多次才能完成任务。</p>
+<p>这里我没法用公式说明为什么，只能做一个思想游戏：假如我要把所有圆盘从A移动到B，必须把最大的圆盘先放到B，这个时候上面的n-1个圆盘必然在另一个柱子上，也就是说完成这一步必须要 $T_{n-1}+1$ 步，大圆盘放到B后，必须把n-1个圆盘也移动到B上，最少需要 $T_{n-1}$ 步，也就是说：</p>
+<p>$$
+T_n \geq 2T_{n-1}+1
+$$</p>
+<p>综合两个不等式，我们可以得出当我们以完全正确的步骤移动河内塔时需要的移动次数：</p>
+<p>$$
+\begin{aligned}
+&amp; T_0 = 0; \\
+&amp; T_n = 2T_{n-1}+1.
+\end{aligned}
+\tag{1.1}
+$$</p>
+<p>像（1.1）这样的一组等式我们称为<strong>递归式（recurrence）</strong>，它给出一个边界值，以及一个递推关系的方程。有时我们也把单独的一般性方程称为递归式，尽管技术上还需要一个边界值来补足。</p>
+<p>假如用代码实现，上述的递推关系已经可以完成变成了，我们可以使用递归调用简洁的实现河内塔计算。但是当n很大时，计算太耗时了。</p>
+<p><strong>递归的解</strong> 很美妙，也很容易理解，但是并不容易直接计算，在实际使用中，我们希望简化获得一个即漂亮又简洁的“封闭形式”。也就是 $T_n$ 的计算应该与上一个值 $T_{n-1}$ 无关, 只和n相关。</p>
+<p>我们通过观察，很容易想到 $T_n$ 和 2 的幂相关，在通过初始几个数字的尝试，我们可以确定：</p>
+<p>$$
+T_n = 2^n - 1, n \geq 0
+\tag {1.2}
+$$</p>
+<p>至少在我们尝试 $n \leq 6$ 时是成立的。再通过<strong>数学归纳法</strong>，很容易证明该公式对于 $n \geq 0$ 都成立。</p>
+<p>《具体数学》将解决这类问题分为了三个步骤：</p>
+<ol>
+<li>研究小的情形。这有助于我们洞察该问题</li>
+<li>对有意义的量求出数学表达式并给出证明。对于河内塔，就是递归式（1.1）。</li>
+<li>对数学表达式求出封闭形式并证明，对于河内塔，就是递归解（1.2）</li>
+</ol>
+<h2 id="平面上的直线-lines-in-the-plane">平面上的直线 LINES IN THE PLANE</h2>
+<p>第二个问题平面上的直线相信大家也都遇到过：一个蛋糕，切4到最多能分成几块（这里限定是一个平面上切）。我们把问题用数学语言重新翻译下并进行宽展：平面上n条直线所界定的的区域的最大个数 $L_n$ 是多少？这个问题于1826年被以为瑞士数学家坦纳首先解决。</p>
+<p>我们再从最小情形开始研究。</p>
+<p></p>
+<p></p>
+<p>$L_0 = 1$, $L_1 = 2$, $L_2 = 4$, $L_3 = 7$ 。</p>
+<p>思考后，我们可以得出递推关系：</p>
+<p>第n（n&gt;0）条直线使得区域增加k个，当且仅当它对k个已有区域进行了分裂；
+而它对k个已有区域进行分裂，当且仅当它在k-1个不同的地方与之前的直线相交；
+两条直线至多相交与一点，之前已有n-1条直线，因而这条新的直线与n-1条直线至多相交于n-1个不同的点，故必定有 $k \leq n-1$，我们证明了上界</p>
+<p>$$
+L_n \leq L_{n-1} + n, \quad n \gt 0.
+$$</p>
+<p>已知当 $n \lt 4$ 时可以取到 =，我们采用<strong>数学归纳法</strong>来证明对于所有n都可以取到上界。</p>
+<p><strong>证明</strong>：已知 $n \lt 4$ 时公式成立；假设当 n=k 时满足 $L_n = L_{n-1} + n$ 。需要证明当 n = k + 1 时公式仍然成立。</p>
+<p>我们径直来放第k+1条直线，该直线不与之前任何一条直线平行，因此它与之前的k条直线相交，分隔出k+1个空间，即$L_{k+1} = L_k + k+1$，所以递归式为：</p>
+<p>$$
+\begin{aligned}
+&amp; L_0 = 1; \\
+&amp; L_n = L_{n-1} + n, \quad n \gt 0.
+\end{aligned}
+\tag {2.1}
+$$</p>
+<p>证明结束。</p>
+<p>现在我们需要一个封闭形式的解，我们先观察 $L_n$ 的形式，发现递归形式很像是在求 $\sum_{i=1}^ni$，高斯告诉我们，这个求和公式的值是</p>
+<p>$$
+S_n = \frac {(n+1)n}{2}, \quad n \geq 0
+$$</p>
+<p>对比 $L_n$ 的值，我们调整下式子。</p>
+<p>$$
+L_n = \frac {(n+1)n}{2} + 1, \quad n \geq 0
+$$</p>
+<p>再使用数学归纳法，可以证明这就是正确的解。</p>
+<p>我们多次提到<strong>封闭形式</strong>，《具体数学》中有粗略定义：如果可以利用至多固定次数（其次数与n无关）的标准运算来计算量的 $f(n)$ 表达式，那么这个表达式是封闭的。当然有一些例外情况，例如，$n!$ 被证明是如此重要，故而我们都把它视为是一种基本运算，于是公式 $n!$ 就是封闭形式。</p>
+<h3 id="平面上的折线">平面上的折线</h3>
+<p>现在我们把问题做一个变形：假设我们用折线代替直线，每一条折线包含一个“锯齿”。平面上由n条这样的折线所界定的区域的最大个数 $Z_n$ 是多少？</p>
+<p>或许我们期待 $Z_n$ 是 $L_n$ 的两倍或者三倍。通过几个简单情况的观察。</p>
+<p></p>
+<p>我们发现折线的情况和直线类似，只是折线在“锯齿”处缺少了一处切割，少了两个区域。</p>
+<p></p>
+<p>也就是说放一条折线相当与放两条直线，但是需要减去两个区域。</p>
+<p>$$
+\begin{aligned}
+Z_0 &amp;= 1 \newline
+Z_n &amp;= Z_{n-1} + (2n - 1 + 2n) - 2 \newline
+&amp;= Z_{n-1} + 4n - 3, \quad n \gt 0
+\end{aligned}
+$$</p>
+<p>我们将公式进行变形。</p>
+<p>$$
+Z_n - Z_{n-1} = 4n - 3
+$$</p>
+<p>如果学习过微积分就能发现，这个形式很像微分的定义，在离散数学中，这种形式称为差分，这里不直接使用差分的性质，而是先自行推导 $Z_n$ 的计算。</p>
+<p>$$
+\begin{aligned}
+Z_n &amp;= Z_0 + \sum_{k=1}^{n}4n-3 \\
+&amp;= 2n^2 - n + 1 \\
+\end{aligned}
+\tag{2.2}
+$$</p>
+<p>方程（2.2）使用了求和累加，从 $Z_0$ 累加前后项差分值计算出 $Z_n$。《具体数学》中使用了 $L_n$ 来对 $Z_n$ 求值。</p>
+<p>$$
+Z_n = L_{2n} - 2n = 2n^2 - n + 1, n \geq 0
+$$</p>
+<p>比较 $L_n$ 和 $Z_n$， 我们发现对于大的n有</p>
+<p>$$
+\begin{aligned}
+L_n &amp;\sim \frac {1}{2}n^2, \\
+Z_n &amp;\sim 2n^2;
+\end{aligned}
+$$</p>
+<p>所以用折线所能得到的区域是用直线所能得到区域的大约4倍，也符合我们开始的直觉。</p>
+<h2 id="约瑟夫问题-the-josephus-problem">约瑟夫问题 THE JOSEPHUS PROBLEM</h2>
+<p>终于到了本文的核心问题，也是《具体数学》中第一章的点睛之笔——约瑟夫问题。在这里我们将学习到如何一般化处理这类递归问题，不再依靠解体时的灵光乍现。</p>
+<p>传说在犹太罗马战争期间，约瑟夫与其他他40名犹太反抗者困在了罗马人包围的洞穴中，这些反抗者宁愿自杀也不愿被活捉，于是决定围成一个圆圈，并沿着圆圈每个两个人杀死一个人，直到剩下两个人为止。但是约瑟夫和一个未被告发的同谋者不希望无谓的自杀，于是他迅速计算出他和朋友在这险恶的圆圈中应该站的位置。</p>
+<p>我们对问题进行一些改动和简化：从围成标有记号1到n的圆圈的n个人开始，每隔一个人删去一个人，直到有一个人幸存下来，例如 $n=10$ 的起始图形：</p>
+<p></p>
+<p>消去的顺序是2，4，6，8，10，3，7，1，9，于是5幸存下来。问题：确定幸存者的号码，我们表示为 $J(n)$.</p>
+<p>第一步，观察基本情形。</p>
+<table>
+<thead>
+<tr>
+<th>$n$</th>
+<th>1</th>
+<th>2</th>
+<th>3</th>
+<th>4</th>
+<th>5</th>
+<th>6</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>$J(n)$</td>
+<td>1</td>
+<td>1</td>
+<td>3</td>
+<td>1</td>
+<td>3</td>
+<td>5</td>
+</tr>
+</tbody>
+</table>
+<p>似乎幸存者都是奇数，事实上，第一轮结束后，所有偶数都被消灭了，第二轮开始剩下的都是偶数。等等，我们似乎发现了一个递推关系：第一轮，第二轮，第三轮，···。直到某一轮只有一个人 $J(1)$， 那个人就是最终的幸存者。但是这个递推关系中还有一个问题，就是每一轮我们需要将幸存者重新编号，找到幸存者后，我们需要恢复幸存者的真实编号。这难不倒我们，我们可以将编号的关系带入到递归公式中。</p>
+<p>当第一轮是偶数是：</p>
+<table>
+<thead>
+<tr>
+<th>第一轮</th>
+<th>1</th>
+<th>2</th>
+<th>3</th>
+<th>4</th>
+<th>5</th>
+<th>6</th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>第二轮</td>
+<td>1</td>
+<td>x</td>
+<td>2</td>
+<td>x</td>
+<td>3</td>
+<td>x</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p>当第一轮是奇数时：</p>
+<table>
+<thead>
+<tr>
+<th>第一轮</th>
+<th>1</th>
+<th>2</th>
+<th>3</th>
+<th>4</th>
+<th>5</th>
+<th>6</th>
+<th>7</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>第二轮</td>
+<td>x</td>
+<td>x</td>
+<td>1</td>
+<td>x</td>
+<td>2</td>
+<td>x</td>
+<td>3</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>当第一轮是奇数时，需要把1号删除才能结束该轮，否则第二轮开始1号会存活，违反了游戏规则。</p>
+</blockquote>
+<p>$$
+\begin{aligned}
+J(1) &amp;= 1; \\
+J(2n) &amp;= 2J(n) - 1, \quad n \geq 1; \\
+J(2n+1) &amp;= 2J(n) + 1, \quad n \geq 1.
+\end{aligned}
+$$</p>
+<blockquote>
+<p>注意到我们用了 $2n$, $2n+1$ 的形式来书写公式，没有选择 $n/2$ 的形式，避免了增加n是偶数还是奇数的条件。</p>
+</blockquote>
+<p>《具体数学》中对 $J(n)$ 的前几项展开进行了观察，发现结果和 n 与 2 的幂次相关，并使用数学归纳法获得封闭形式。
+</p>
+<p>$$
+J(2^m+l) = 2l + 1, \quad m \geq 0, \quad 0 \leq l \lt 2 ^m
+\tag{3.1}
+$$</p>
+<p>书中详细介绍了求解过程，这里我们不再是赘述。</p>
+<p>到了这里，我们已经解决最后幸存的问题，但是相对于约瑟夫问题，我们还没完全解决，因为问题中要求计算最后两个幸存者。那么倒数第二的幸存者是谁呢。</p>
+<p>我们使用类似的方法，定义倒数第二幸存者为 $I(n)$，可以得到一个递归公式。</p>
+<p>$$
+\begin{aligned}
+I(2) &amp;= 2; \\
+I(3) &amp;= 1; \\
+I(2n) &amp;= 2I(n) - 1, \quad n \geq 2; \\
+I(2n+1) &amp;= 2I(n) + 1, \quad n \geq 2;
+\end{aligned}
+$$</p>
+<p>看起来这个递归式不好简化，这里先放一边，我在文章末尾进行解答。</p>
+<h3 id="问题推广">问题推广</h3>
+<p>这一节是递归问题求解的精华部分，如果你没有仔细阅读前面的部分，这一部分可不能再错过。</p>
+<p>我们对 (3.1) 的公式进行变形，将n进行二进制展开。</p>
+<p>$$
+\begin{aligned}
+n &amp;= (b_{m} b_{m-1} \ldots b_1 b_0)<em>2 \\
+n &amp;= b</em>{m}2^m + b_{m-1}2^{m-1} + \cdots + b_{1}2^1 + b_{0}2^0
+\end{aligned}
+$$</p>
+<p>其中 $b_i$ 为0或1，而首位数字 $b_m$ 必定为 1。同时有 $n=2^m+l$ ，所以我们依次次有</p>
+<p>$$
+\begin{aligned}
+n &amp;= (1b_{m-1}b_{m-2} \cdots b_{1} b_{0})<em>2, \\
+l &amp;= (0b</em>{m-1}b_{m-2} \cdots b_{1} b_{0})<em>2, \\
+2l &amp;= (b</em>{m-1}b_{m-2} \cdots b_{1} b_{0} 0)<em>2, \\
+2l + 1 &amp;= (b</em>{m-1}b_{m-2} \cdots b_{1} b_{0} 1)<em>2, \\
+J(n) &amp;= (b</em>{m-1}b_{m-2} \cdots b_{1} b_{0} b_{m})_2.
+\end{aligned}
+$$</p>
+<p>所以我们就证明了</p>
+<p>$$
+J((b_{m}b_{m-1}b_{m-2} \cdots b_{1} b_{0})<em>2) = (b</em>{m-1}b_{m-2} \cdots b_{1} b_{0} b_{m})_2
+$$</p>
+<p>在计算机代码中，这个操作就是 $n$ 向左循环移动一位，我们就可以计算出 $J(n)$ !</p>
+<p>让我更加一般化这个结果，引入常数 $\alpha$ 、$\beta$ 、 $\gamma$ ，力图对更加一般的递归式 (3.2) 求出一个封闭形式，以此来研究这个问题。</p>
+<p>$$
+\begin{aligned}
+f(1) &amp;= \alpha ; \\
+f(2n) &amp;= 2f(n) + \beta, \quad n \geq 1; \\
+f(2n+1) &amp;= 2f(n) + \gamma, \quad n \geq 1.
+\end{aligned}
+\tag{3.2}
+$$</p>
+<p>这里我们先尝试几个数字判断 $f(n)$ 和常数之间的关系，然后可以合理猜测，$f(n)$ 与 $\alpha$ 、$\beta$ 、$\gamma$ 的一次项存在某个依存关系，我们将它表示成形式</p>
+<p>$$
+f(n) = A(n)\alpha + B(n)\beta + C(n)\gamma
+\tag{3.3}
+$$</p>
+<p>我们要求形式中的$A(n),B(n),C(n)$对于任意常数成立,也就是与常数不相关。我们可以使用取特殊值的方式求解该方程</p>
+<p>$取 \alpha = 1, \beta = \gamma = 0$</p>
+<p>$$
+\begin{aligned}
+f(1) &amp;= A(1) = 1; \\
+f(2n) &amp;= A(2n) = 2f(n) = 2A(n), \quad n \geq 1; \\
+f(2n+1) &amp;= A(2n+1) = 2f(n) = 2A(n), \quad n \geq 1.
+\end{aligned}
+$$</p>
+<p>看起来有 $A(n)=2^m$。</p>
+<p>我们再取特殊值，但是我们不再直接取值并使用递归式，因为解递归式比较麻烦，我们发现除了递归式，我们还有一个已知等式 $f(n) = A(n)\alpha + B(n)\beta + C(n)\gamma$，使用这个等式可以比较容易计算 $B(n)$ 和 $C(n)$ 的值。</p>
+<p>我们取常数函数 $f(n)=1$，研究是否有任何常数 $(\alpha, \beta, \gamma)$ 能定义它。将它带入递归式(3.2)，可以求得 $(\alpha, \beta, \gamma) = (1,-1,-1)$, 带入式子 (3.3) 可以获得 $A(n)-B(n)-C(n)=f(n)=1$，同样的方式，带入 $f(n)=n$，我们可以获得 $(\alpha,\beta,\gamma)=(1,0,1)$ ， $A(n)+C(n)=f(n)=n$。联立方程：</p>
+<p>$$
+\begin{aligned}
+A(n) &amp;= 2^m, \quad 其中 n = 2^m + 1 且 0 \leq l \lt 2^m; \\
+A(n) - B(n) - C(n) &amp;=1; \\
+A(n) + C(n) &amp;= n.
+\end{aligned}
+$$</p>
+<p>得到解：</p>
+<p>$$
+\begin{aligned}
+A(n) &amp;= 2^m \\
+C(n) &amp;= n - A(n) = l \\
+B(n) &amp;= A(n) - C(n) - 1 = 2^m - 1 - l
+\end{aligned}
+$$</p>
+<p>上述求解过程描述了一套求解递归式的<strong>成套方法(repertoire method)</strong>。首先我们来寻求一组已知解的通用参数，这会给我们一整套可以求解的特殊情形。然后将特殊情形组合起来得到一般的情况。</p>
+<blockquote>
+<p>这一方法运用于“线性的”递归式时最为成功，这里线性的含义就是它的解可以表示成任意参数与n的函数的乘积之和，比如式子（3.3）</p>
+</blockquote>
+<p>我们再对约瑟夫递归式进行推广，令 $\beta_0=\beta, \beta_1=\gamma$，那么我们可以把递归式(3.2)改写成</p>
+<p>$$
+\begin{aligned}
+f(1) &amp;= \alpha; \\
+f(2n+j) &amp;= 2f(n) + \beta_j, \quad j=0,1, \quad n \geq 1.
+\end{aligned}
+\tag{3.4}
+$$</p>
+<p>将递归式按照二进制展开，$b_m=1$</p>
+<p>$$
+\begin{aligned}
+f((b_{m}b_{m-1} \cdots b_1 b_0)<em>2) &amp;= 2f((b</em>{m}b_{m-1} \cdots b_1)<em>2) + \beta</em>{b_0} \\
+&amp;= 4f((b_{m}b{m-1} \cdots b_2)<em>2) + 2\beta</em>{b_1} + \beta_{b_0)} \\
+&amp;= 2^mf((b_m)<em>2) + 2^{m-1}\beta</em>{b_{m-1}} + \cdots + 2\beta_{b_{1}} + \beta_{b_0} \\
+&amp;= 2^m\alpha + 2^{m-1}\beta_{b_{m-1}} + \cdots + 2\beta_{b_{1}} + \beta_{b_0} \\
+&amp;= (\alpha \beta_{b_{m-1}} \beta_{b_{m-2}} \cdots \beta_1 \beta_0)_2
+\end{aligned}
+\tag{3.5}
+$$</p>
+<p>利用这个公式，我们再来计算约瑟夫问题，其中 $\alpha=1,\beta_0=-1,\beta_1=1$</p>
+<p>当 $n = 100 = (1100100)_2$时</p>
+<p></p>
+<p>改变表示法使我们对于一般的递归式(3.4)给出了紧凑解(3.5)，我们还可以更加一般化(3.4)</p>
+<p>$$
+\begin{aligned}
+f(j) &amp;= \alpha_j, \quad 1 \leq j \lt d; \\
+f(dn+j) &amp;= cf(n) + \beta_j, \quad 0 \leq j \lt d, n \geq 1.
+\end{aligned}
+\tag{3.6}
+$$</p>
+<p>与上一个递归式是相同的，除了这里是从基数为d的数着手，而产生的值是用基数c表示之外，这就是说，它有变动基数的解</p>
+<p>$$
+f((b_{m}b_{m-1} \cdots b_1 b_0)<em>d) = (\alpha</em>{b_m} \beta_{b_{m-1}} \beta_{b_{m-2}} \cdots \beta_{b_1} \beta_{b_0})_c
+\tag{3.7}
+$$</p>
+<p>这个公式十分便利，如果你没有看完前面的证明，那这个公式一定要学会使用。我们用它来解决一个递归式。</p>
+<p>$$
+\begin{aligned}
+f(1) &amp;= 34; \\
+f(2) &amp;= 5; \\
+f(3n) &amp;= 10f(n) + 76, \quad n \geq 1; \\
+f(3n+1) &amp;= 10f(n) - 2, \quad n \geq 1; \\
+f(3n+2) &amp;= 10f(n) + 8, \quad n\geq 1;
+\end{aligned}
+$$</p>
+<p>假设我们计算 $f(19)$，现在有 $19=(201)_3$</p>
+<p>$$
+f(19) = f((201)<em>3) = (5 \quad 76 \quad -2)</em>{10} = 1258
+$$</p>
+<h2 id="最后的问题">最后的问题</h2>
+<p>现在我们可以讨论上面那个倒数第二幸存者的问题了，先把前文求得的递归公式再写一遍：</p>
+<p>$$
+\begin{aligned}
+I(2) &amp;= 2; \\
+I(3) &amp;= 1; \\
+I(2n) &amp;= 2I(n) - 1, \quad n \geq 2; \\
+I(2n+1) &amp;= 2I(n) + 1, \quad n \geq 2;
+\end{aligned}
+$$</p>
+<p>我们想要使用最终获得的通用公式(3.7)来求解，但是有一个问题：我们没有 $\alpha_1$ 的定义，而且 $n=1$ 时没有定义。但是这难不到我们，回想下通用公式的推导过程</p>
+<p>$$
+\begin{aligned}
+f((b_{m}b_{m-1} \cdots b_1 b_0)<em>d) &amp;= df(b</em>{m}b_{m-1} \cdots b_1) + \beta_{b_0} \\
+&amp;= c^{m-1}f((b_{m}b_{m-1})) + c^{m-1}\beta_{b_{m-2}} + \cdots + c\beta_{b_1} + \beta_{b_0}
+\end{aligned}
+$$</p>
+<p>由于 n 在 1 时没有意义，所以我们最后不再展开 $b_{b}b_{m-1}$，而是整体进行处理，所以有</p>
+<p>$$
+f((b_{m}b_{m-1} \cdots b_1 b_0)<em>d) = (\alpha</em>{b_{m}b_{m-1}} \beta_{b_{m-2} \beta_{b_{m-2}}} \cdots \beta_{b_1} \beta_{b_0})_c
+$$</p>
+<p>这个变形后的公式正好满足我们要求，我们现在用它来计算 $I(5)$, $I(41)$</p>
+<p>$$
+\begin{aligned}
+I(5) &amp;= I((101)_2) = (2 \quad 1)_2 = 5 \\
+I(41) &amp;= I((101001)_2) = (2 \quad 1 \quad -1 \quad -1 \quad 1)_2 \\
+&amp;= 2 * 16 + 8 - 4 - 2 + 1 = 35
+\end{aligned}
+$$</p>
+<p>所以约瑟夫的朋友应该在 35 号位。</p>
+<p>再进一步推广，倒数第 k 个幸存者是几号？从上面的结论不难发现，不论是倒是第几个幸存者，递推公式是不变的，变化的只是初始值以及取值范围，所以倒数第 k 个幸存者可以表示成 $J_k(n)$：</p>
+<p>$$
+\begin{aligned}
+J_k(n) &amp;= J_k((b_{m}b_{m-1} \cdots b_1 b_0)<em>2) \\
+&amp;= (\alpha</em>{b_{m}b_{m-1} \cdots b_{m - \log_2 k}} \beta_{b_{m - \log_2 k - 1}} \cdots \beta_{b_1} \beta_{b_0})_2
+\end{aligned}
+\tag{3.8}
+$$</p>
+<p>写到这里，约瑟夫类似的递归问题应该已经难不倒大家了，只要能写出递归式，就能转换成封闭形式，直接求解，这就是数学神奇的地方。</p>
+<h2 id="参考资料">参考资料</h2>
+<ul>
+<li>Ronald L.Graham,Donald E.Knuth,Oren Patashnik ．具体数学计算机基础（第2版） ：人民邮电出版社，2013：7</li>
+</ul>]]></description></item><item><title>openvswitch 使用速查</title><link>https://blog.firemiles.top/2020/openvswitch%E4%BD%BF%E7%94%A8%E9%80%9F%E6%9F%A5/</link><pubDate>Wed, 01 Jan 2020 15:47:09 +0000</pubDate><author>firemiles</author><guid>https://blog.firemiles.top/2020/openvswitch%E4%BD%BF%E7%94%A8%E9%80%9F%E6%9F%A5/</guid><description><![CDATA[<div class="featured-image">
+                <img src="https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/20200101155834.png" referrerpolicy="no-referrer">
+            </div><h2 id="ovs-架构">OVS 架构</h2>
+<blockquote>
+<p>本文主要针对内核态 openvsiwth，用户态 openvswitch 的使用和调试不在本文的讨论范围内。</p>
+</blockquote>
+<p></p>
+<p><code>ovs</code> 架构如上图所示，主要由内核 <code>datapath</code> 和用户空间的 <code>vswitchd</code>、 <code>ovsdb</code> 组成。</p>
+<p></p>
+<h3 id="主要模块">主要模块</h3>
+<ul>
+<li><code>datapath</code> 是负责数据交换的内核模块，从网口读取数据，并快速匹配Flowtable中的流表项，成功的直接转发，失败的 upcall 到 <code>vswitchd</code> 处理。它在初始化<code>port binding</code> 的时候注册钩子函数，把端口的报文处理接收到 ovs 内核模块。</li>
+<li><code>vswitchd</code> 是一个守护进程，是ovs的管理和控制服务，通过unix socket将配置信息保存到 <code>ovsdb</code> ，并通过 <code>netlink</code> 和内核模块交互。</li>
+<li><code>ovsdb</code> 则是 ovs 的数据库，保存 ovs 的配置信息。</li>
+</ul>
+<h3 id="client与组件对应关系">client与组件对应关系</h3>
+<table>
+<thead>
+<tr>
+<th>组件</th>
+<th>功能</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ovs-dpctl</td>
+<td>datapath控制器,可以创建删除DP,控制DP中的FlowTables,最常使用show命令，其他很少手动操作</td>
+</tr>
+<tr>
+<td>ovs-ofctl</td>
+<td>流表控制器，控制bridge上的流表，查看端口统计信息等</td>
+</tr>
+<tr>
+<td>ovsdb-tool</td>
+<td>专门管理ovsdb的client</td>
+</tr>
+<tr>
+<td>ovs-vsctl</td>
+<td>最常用的命令,通过操作ovsdb去管理相关的bridge,ports什么的</td>
+</tr>
+<tr>
+<td>ovs-appctl</td>
+<td>这个可以直接与openvswitch daemon进行交互</td>
+</tr>
+</tbody>
+</table>
+<h3 id="常用子命令说明">常用子命令说明</h3>
+<ul>
+<li>ovs-dpctl <strong>show -s</strong></li>
+<li>ovs-ofctl <strong>show, dump-ports, dump-flows, add-flow, mod-flows, del-flows</strong></li>
+<li>ovsdb-tools <strong>show-log -m</strong></li>
+<li>ovs-vsctl
+<ul>
+<li>show 显示数据库内容</li>
+<li>关于桥的操作 <strong>add-br, list-br, del-br, br-exits</strong></li>
+<li>关于port的操作 <strong>list-ports, add-port, del-port, add-bond, port-to-br</strong></li>
+<li>关于interface 的操作 <strong>list-ifaces, iface-to-br</strong></li>
+<li><strong>ovs-vsctl list/set/get/add/remove/clear/destroy table record column [value]</strong> 常见的表有bridge,controller,interface,mirror,netflow,open_vswitch,port,qos,queue,ssl,sflow.</li>
+</ul>
+</li>
+<li>ovs-appctl <strong>list-commands, fdb/show, qos/show</strong></li>
+</ul>
+<h2 id="日常操作">日常操作</h2>
+<h3 id="查看有哪些桥桥中有哪些ports哪些interfaces">查看有哪些桥，桥中有哪些ports，哪些interfaces</h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-sh" data-lang="sh"><span class="line"><span class="cl">root@l-network-1:~# ovs-vsctl list-br
+</span></span><span class="line"><span class="cl">br-ex
+</span></span><span class="line"><span class="cl">br-int
+</span></span><span class="line"><span class="cl">br-tun
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">root@l-network-1:~# ovs-vsctl list-ports br-tun
+</span></span><span class="line"><span class="cl">patch-int
+</span></span><span class="line"><span class="cl">vxlan-ac1c0509
+</span></span><span class="line"><span class="cl">vxlan-ac1c050d
+</span></span><span class="line"><span class="cl">vxlan-ac1c051c
+</span></span><span class="line"><span class="cl">vxlan-ac1c053f
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">root@l-network-1:~# ovs-vsctl list-ifaces br-tun
+</span></span><span class="line"><span class="cl">patch-int
+</span></span><span class="line"><span class="cl">vxlan-ac1c0509
+</span></span><span class="line"><span class="cl">vxlan-ac1c050d
+</span></span><span class="line"><span class="cl">vxlan-ac1c051c
+</span></span><span class="line"><span class="cl">vxlan-ac1c053f
+</span></span><span class="line"><span class="cl"><span class="c1"># iface与ports同名.</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="查看-portinterface属于那个bridge-xxx-to-br">查看 port，interface属于那个bridge， xxx-to-br</h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-sh" data-lang="sh"><span class="line"><span class="cl">root@l-network-1:~# ovs-vsctl port-to-br vxlan-ac1c0509
+</span></span><span class="line"><span class="cl">br-tun
+</span></span><span class="line"><span class="cl">root@l-network-1:~# ovs-vsctl iface-to-br vxlan-ac1c0509
+</span></span><span class="line"><span class="cl">br-tun
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="查看隐藏的流表规则很少使用">查看隐藏的流表规则，很少使用</h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-sh" data-lang="sh"><span class="line"><span class="cl">root@l-network-1:# ovs-appctl bridge/dump-flows br-ex
+</span></span><span class="line"><span class="cl"><span class="nv">duration</span><span class="o">=</span>6067771s, <span class="nv">n_packets</span><span class="o">=</span>1313936898, <span class="nv">n_bytes</span><span class="o">=</span>881574100116, <span class="nv">priority</span><span class="o">=</span>0,actions<span class="o">=</span>NORMAL
+</span></span><span class="line"><span class="cl"><span class="nv">table_id</span><span class="o">=</span>254, <span class="nv">duration</span><span class="o">=</span>6067771s, <span class="nv">n_packets</span><span class="o">=</span>0, <span class="nv">n_bytes</span><span class="o">=</span>0, <span class="nv">priority</span><span class="o">=</span>2,recirc_id<span class="o">=</span>0,actions<span class="o">=</span>drop
+</span></span><span class="line"><span class="cl"><span class="nv">table_id</span><span class="o">=</span>254, <span class="nv">duration</span><span class="o">=</span>6067771s, <span class="nv">n_packets</span><span class="o">=</span>0, <span class="nv">n_bytes</span><span class="o">=</span>0, <span class="nv">priority</span><span class="o">=</span>0,reg0<span class="o">=</span>0x1,actions<span class="o">=</span>controller<span class="o">(</span><span class="nv">reason</span><span class="o">=</span>no_match<span class="o">)</span>
+</span></span><span class="line"><span class="cl"><span class="nv">table_id</span><span class="o">=</span>254, <span class="nv">duration</span><span class="o">=</span>6067771s, <span class="nv">n_packets</span><span class="o">=</span>0, <span class="nv">n_bytes</span><span class="o">=</span>0, <span class="nv">priority</span><span class="o">=</span>0,reg0<span class="o">=</span>0x2,actions<span class="o">=</span>drop
+</span></span><span class="line"><span class="cl"><span class="nv">table_id</span><span class="o">=</span>254, <span class="nv">duration</span><span class="o">=</span>6067771s, <span class="nv">n_packets</span><span class="o">=</span>0, <span class="nv">n_bytes</span><span class="o">=</span>0, <span class="nv">priority</span><span class="o">=</span>0,reg0<span class="o">=</span>0x3,actions<span class="o">=</span>drop
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="查看一些有用的统计信息">查看一些有用的统计信息</h3>
+<p>查看datapath统计信息.主要关注lost数值.hit表示datapath命中数,missed未命中，lost表示没有传递到用户空间就丢弃了. 主要关注lost值是否上升，如果上升说明存在问题了.该命令可以使用-s选项，会将每个port的统计信息也显示出来。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-sh" data-lang="sh"><span class="line"><span class="cl">root@l-network-1:# ovs-dpctl show
+</span></span><span class="line"><span class="cl">system@ovs-system:
+</span></span><span class="line"><span class="cl">        lookups: hit:2596765540 missed:6438005 lost:0
+</span></span><span class="line"><span class="cl">        flows: <span class="m">39</span>
+</span></span><span class="line"><span class="cl">        masks: hit:19416324706 total:10 hit/pkt:7.46
+</span></span><span class="line"><span class="cl">        port 0: ovs-system <span class="o">(</span>internal<span class="o">)</span>
+</span></span><span class="line"><span class="cl">        port 1: tapd9a71635-53 <span class="o">(</span>internal<span class="o">)</span>
+</span></span><span class="line"><span class="cl">        port 2: tap82059645-8e <span class="o">(</span>internal<span class="o">)</span>
+</span></span><span class="line"><span class="cl">        port 3: tap3f0507b3-70 <span class="o">(</span>internal<span class="o">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">root@l-network-1:# ovs-dpctl show -s
+</span></span><span class="line"><span class="cl">system@ovs-system:
+</span></span><span class="line"><span class="cl">        lookups: hit:2596836956 missed:6438236 lost:0
+</span></span><span class="line"><span class="cl">        flows: <span class="m">42</span>
+</span></span><span class="line"><span class="cl">        masks: hit:19416902233 total:10 hit/pkt:7.46
+</span></span><span class="line"><span class="cl">        port 0: ovs-system <span class="o">(</span>internal<span class="o">)</span>
+</span></span><span class="line"><span class="cl">                RX packets:0 errors:0 dropped:0 overruns:0 frame:0
+</span></span><span class="line"><span class="cl">                TX packets:0 errors:0 dropped:0 aborted:0 carrier:0
+</span></span><span class="line"><span class="cl">                collisions:0
+</span></span><span class="line"><span class="cl">                RX bytes:0  TX bytes:0
+</span></span><span class="line"><span class="cl">        port 1: tapd9a71635-53 <span class="o">(</span>internal<span class="o">)</span>
+</span></span><span class="line"><span class="cl">                RX packets:4170 errors:0 dropped:0 overruns:0 frame:0
+</span></span><span class="line"><span class="cl">                TX packets:1091973 errors:0 dropped:0 aborted:0 carrier:0
+</span></span><span class="line"><span class="cl">                collisions:0
+</span></span><span class="line"><span class="cl">                RX bytes:906944 <span class="o">(</span>885.7 KiB<span class="o">)</span>  TX bytes:48392325 <span class="o">(</span>46.2 MiB<span class="o">)</span>
+</span></span><span class="line"><span class="cl">        port 2: tap82059645-8e <span class="o">(</span>internal<span class="o">)</span>
+</span></span><span class="line"><span class="cl">                RX packets:7130 errors:0 dropped:0 overruns:0 frame:0
+</span></span><span class="line"><span class="cl">                TX packets:7379 errors:0 dropped:0 aborted:0 carrier:0
+</span></span><span class="line"><span class="cl">                collisions:0
+</span></span><span class="line"><span class="cl">                RX bytes:641578 <span class="o">(</span>626.5 KiB<span class="o">)</span>  TX bytes:650492 <span class="o">(</span>635.2 KiB<span class="o">)</span>
+</span></span><span class="line"><span class="cl">        port 3: tap3f0507b3-70 <span class="o">(</span>internal<span class="o">)</span>
+</span></span><span class="line"><span class="cl">                RX packets:5505 errors:0 dropped:0 overruns:0 frame:0
+</span></span><span class="line"><span class="cl">                TX packets:7549 errors:0 dropped:0 aborted:0 carrier:0
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>ovs-ofctl dump-ports br [port]也可以查看port的统计信息.这个命令优势是可以指定port.</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-sh" data-lang="sh"><span class="line"><span class="cl">root@l-network-1:# ovs-ofctl dump-ports br-ex
+</span></span><span class="line"><span class="cl">OFPST_PORT reply <span class="o">(</span><span class="nv">xid</span><span class="o">=</span>0x2<span class="o">)</span>: <span class="m">19</span> ports
+</span></span><span class="line"><span class="cl">  port LOCAL: rx <span class="nv">pkts</span><span class="o">=</span>78668524, <span class="nv">bytes</span><span class="o">=</span>34522064349, <span class="nv">drop</span><span class="o">=</span>0, <span class="nv">errs</span><span class="o">=</span>0, <span class="nv">frame</span><span class="o">=</span>0, <span class="nv">over</span><span class="o">=</span>0, <span class="nv">crc</span><span class="o">=</span><span class="m">0</span> tx <span class="nv">pkts</span><span class="o">=</span>78827893, <span class="nv">bytes</span><span class="o">=</span>5746347600, <span class="nv">drop</span><span class="o">=</span>0, <span class="nv">errs</span><span class="o">=</span>0, <span class="nv">coll</span><span class="o">=</span><span class="m">0</span> port 10: rx <span class="nv">pkts</span><span class="o">=</span>14386485, <span class="nv">bytes</span><span class="o">=</span>10843773932, <span class="nv">drop</span><span class="o">=</span>0, <span class="nv">errs</span><span class="o">=</span>0, <span class="nv">frame</span><span class="o">=</span>0, <span class="nv">over</span><span class="o">=</span>0, <span class="nv">crc</span><span class="o">=</span><span class="m">0</span> tx <span class="nv">pkts</span><span class="o">=</span>15666927, <span class="nv">bytes</span><span class="o">=</span>10659584526, <span class="nv">drop</span><span class="o">=</span>0, <span class="nv">errs</span><span class="o">=</span>0, <span class="nv">coll</span><span class="o">=</span><span class="m">0</span> port 26: rx <span class="nv">pkts</span><span class="o">=</span>3830, <span class="nv">bytes</span><span class="o">=</span>161388, <span class="nv">drop</span><span class="o">=</span>0, <span class="nv">errs</span><span class="o">=</span>0, <span class="nv">frame</span><span class="o">=</span>0, <span class="nv">over</span><span class="o">=</span>0, <span class="nv">crc</span><span class="o">=</span><span class="m">0</span> tx <span class="nv">pkts</span><span class="o">=</span>3025213, <span class="nv">bytes</span><span class="o">=</span>244511981, <span class="nv">drop</span><span class="o">=</span>0, <span class="nv">errs</span><span class="o">=</span>0, <span class="nv">coll</span><span class="o">=</span><span class="m">0</span> port 36: rx <span class="nv">pkts</span><span class="o">=</span>16, <span class="nv">bytes</span><span class="o">=</span>1200, <span class="nv">drop</span><span class="o">=</span>0, <span class="nv">errs</span><span class="o">=</span>0, <span class="nv">frame</span><span class="o">=</span>0, <span class="nv">over</span><span class="o">=</span>0, <span class="nv">crc</span><span class="o">=</span><span class="m">0</span> tx <span class="nv">pkts</span><span class="o">=</span>898463, <span class="nv">bytes</span><span class="o">=</span>68248745, <span class="nv">drop</span><span class="o">=</span>0, <span class="nv">errs</span><span class="o">=</span>0, <span class="nv">coll</span><span class="o">=</span><span class="m">0</span> port 25: rx <span class="nv">pkts</span><span class="o">=</span>4693, <span class="nv">bytes</span><span class="o">=</span>206958, <span class="nv">drop</span><span class="o">=</span>0, <span class="nv">errs</span><span class="o">=</span>0, <span class="nv">frame</span><span class="o">=</span>0, <span class="nv">over</span><span class="o">=</span>0, <span class="nv">crc</span><span class="o">=</span><span class="m">0</span> tx <span class="nv">pkts</span><span class="o">=</span>3256605, <span class="nv">bytes</span><span class="o">=</span>264430395, <span class="nv">drop</span><span class="o">=</span>0, <span class="nv">errs</span><span class="o">=</span>0, <span class="nv">coll</span><span class="o">=</span><span class="m">0</span> port 35: rx <span class="nv">pkts</span><span class="o">=</span>229447, <span class="nv">bytes</span><span class="o">=</span>21077911, <span class="nv">drop</span><span class="o">=</span>0, <span class="nv">errs</span><span class="o">=</span>0, <span class="nv">frame</span><span class="o">=</span>0, <span class="nv">over</span><span class="o">=</span>0, <span class="nv">crc</span><span class="o">=</span><span class="m">0</span> tx <span class="nv">pkts</span><span class="o">=</span>1905393, <span class="nv">bytes</span><span class="o">=</span>758729599, <span class="nv">drop</span><span class="o">=</span>0, <span class="nv">errs</span><span class="o">=</span>0, <span class="nv">coll</span><span class="o">=</span><span class="m">0</span> port 28: rx <span class="nv">pkts</span><span class="o">=</span>13, <span class="nv">bytes</span><span class="o">=</span>1074, <span class="nv">drop</span><span class="o">=</span>0, <span class="nv">errs</span><span class="o">=</span>0, <span class="nv">frame</span><span class="o">=</span>0, <span class="nv">over</span><span class="o">=</span>0, <span class="nv">crc</span><span class="o">=</span><span class="m">0</span> tx <span class="nv">pkts</span><span class="o">=</span>2266685, <span class="nv">bytes</span><span class="o">=</span>179166266, <span class="nv">drop</span><span class="o">=</span>0, <span class="nv">errs</span><span class="o">=</span>0, <span class="nv">coll</span><span class="o">=</span><span class="m">0</span> port 23: rx <span class="nv">pkts</span><span class="o">=</span>10345, <span class="nv">bytes</span><span class="o">=</span>636977, <span class="nv">drop</span><span class="o">=</span>0, <span class="nv">errs</span><span class="o">=</span>0, <span class="nv">frame</span><span class="o">=</span>0, <span class="nv">over</span><span class="o">=</span>0, <span class="nv">crc</span><span class="o">=</span><span class="m">0</span> tx <span class="nv">pkts</span><span class="o">=</span>3345437, <span class="nv">bytes</span><span class="o">=</span>272099392, <span class="nv">drop</span><span class="o">=</span>0, <span class="nv">errs</span><span class="o">=</span>0, <span class="nv">coll</span><span class="o">=</span><span class="m">0</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="查看bridge的转发表">查看bridge的转发表</h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-sh" data-lang="sh"><span class="line"><span class="cl">root@l-network-1:# ovs-appctl fdb/show br-ex
+</span></span><span class="line"><span class="cl"> port  VLAN  MAC                Age
+</span></span><span class="line"><span class="cl">   <span class="m">10</span>     <span class="m">0</span>  fa:16:3e:f8:28:9f    <span class="m">9</span>
+</span></span><span class="line"><span class="cl">   <span class="m">11</span>     <span class="m">0</span>  fa:16:3e:a7:d2:f5    <span class="m">8</span>
+</span></span><span class="line"><span class="cl">   <span class="m">34</span>     <span class="m">0</span>  fa:16:3e:2f:b2:71    <span class="m">8</span>
+</span></span><span class="line"><span class="cl">    <span class="m">4</span>     <span class="m">0</span>  2c:44:fd:89:cf:3a    <span class="m">6</span>
+</span></span><span class="line"><span class="cl">    <span class="m">6</span>     <span class="m">0</span>  fa:16:3e:45:c7:c5    <span class="m">5</span>
+</span></span><span class="line"><span class="cl">    <span class="m">4</span>     <span class="m">0</span>  fa:16:3e:44:15:eb    <span class="m">5</span>
+</span></span><span class="line"><span class="cl">    <span class="m">4</span>     <span class="m">0</span>  2c:44:fd:8a:78:06    <span class="m">4</span>
+</span></span><span class="line"><span class="cl">    <span class="m">1</span>     <span class="m">0</span>  fa:16:3e:be:08:35    <span class="m">2</span>
+</span></span><span class="line"><span class="cl">    <span class="m">3</span>     <span class="m">0</span>  fa:16:3e:2f:dd:71    <span class="m">1</span>
+</span></span><span class="line"><span class="cl">    <span class="m">2</span>     <span class="m">0</span>  fa:16:3e:d7:f0:c1    <span class="m">0</span>
+</span></span><span class="line"><span class="cl">LOCAL     <span class="m">0</span>  2c:44:fd:8a:32:ce    <span class="m">0</span>
+</span></span><span class="line"><span class="cl">    <span class="m">4</span>     <span class="m">0</span>  20:0b:c7:37:d0:05    <span class="m">0</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="设置qos">设置qos</h2>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-sh" data-lang="sh"><span class="line"><span class="cl">ovs-vsctl <span class="nb">set</span> Interface tap0 <span class="nv">ingress_policing_rate</span><span class="o">=</span><span class="m">100000</span> ovs-vsctl <span class="nb">set</span> Intervace tap <span class="nv">ingress_policing_burst</span><span class="o">=</span><span class="m">10000</span> ovs-appctl qos/show &lt;iface&gt;
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="调试技巧">调试技巧</h2>
+<h3 id="查看流表匹配规则">查看流表匹配规则</h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-sh" data-lang="sh"><span class="line"><span class="cl">watch -d -n <span class="m">1</span> <span class="s2">&#34;ovs-ofctl dump-flows &lt;bridge&gt;&#34;</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="查看统计信息">查看统计信息</h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-sh" data-lang="sh"><span class="line"><span class="cl">ovs-dpctl show -s
+</span></span><span class="line"><span class="cl">ovs-ofctl dump-ports &lt;br&gt; <span class="o">[</span>port<span class="o">]</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="使用tcpdump抓包需要设置端口镜像">使用tcpdump抓包,需要设置端口镜像</h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-sh" data-lang="sh"><span class="line"><span class="cl">ip link add name snooper0 <span class="nb">type</span> dummy
+</span></span><span class="line"><span class="cl">ip link <span class="nb">set</span> dev snooper0 up
+</span></span><span class="line"><span class="cl">ovs-vsctl add-port br-int snooper0
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">ovs-vsctl -- <span class="nb">set</span> Bridge br-int <span class="nv">mirrors</span><span class="o">=</span>@m -- --id<span class="o">=</span>@snooper0 <span class="se">\
+</span></span></span><span class="line"><span class="cl"><span class="se"></span>  get Port snooper0  -- --id<span class="o">=</span>@patch-tun get Port patch-tun <span class="se">\
+</span></span></span><span class="line"><span class="cl"><span class="se"></span>  -- --id<span class="o">=</span>@m create Mirror <span class="nv">name</span><span class="o">=</span>mymirror <span class="k">select</span>-dst-port<span class="o">=</span>@patch-tun <span class="se">\
+</span></span></span><span class="line"><span class="cl"><span class="se"></span>  <span class="k">select</span>-src-port<span class="o">=</span>@patch-tun output-port<span class="o">=</span>@snooper0 <span class="nv">select_all</span><span class="o">=</span><span class="m">1</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">tcpdump -i snooper0
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">ovs-vsctl clear Bridge br-int mirrors
+</span></span><span class="line"><span class="cl">ovs-vsctl del-port br-int snooper0
+</span></span><span class="line"><span class="cl">ip link delete dev snooper0
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="查看日志">查看日志</h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-sh" data-lang="sh"><span class="line"><span class="cl">cat /var/log/openvswitch/*.log
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="使用ovs-appctl-ofprototrace-bridge-k1v1k2v2测试流匹配">使用ovs-appctl ofproto/trace {bridge} k1=v1,k2=v2测试流匹配</h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-sh" data-lang="sh"><span class="line"><span class="cl">root@l-network-1:~# ovs-appctl ofproto/trace br-ex <span class="nv">in_port</span><span class="o">=</span>10,dl_src<span class="o">=</span>66:4e:cc:ae:4d:20,dl_dst<span class="o">=</span>46:54:8a:95:dd:f8 -generate
+</span></span><span class="line"><span class="cl">Bridge: br-ex
+</span></span><span class="line"><span class="cl">Flow: <span class="nv">in_port</span><span class="o">=</span>10,vlan_tci<span class="o">=</span>0x0000,dl_src<span class="o">=</span>66:4e:cc:ae:4d:20,dl_dst<span class="o">=</span>46:54:8a:95:dd:f8,dl_type<span class="o">=</span>0x0000
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">Rule: <span class="nv">table</span><span class="o">=</span><span class="m">0</span> <span class="nv">cookie</span><span class="o">=</span><span class="m">0</span> <span class="nv">priority</span><span class="o">=</span><span class="m">0</span>
+</span></span><span class="line"><span class="cl">OpenFlow <span class="nv">actions</span><span class="o">=</span>NORMAL
+</span></span><span class="line"><span class="cl">no learned MAC <span class="k">for</span> destination, flooding
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">Final flow: <span class="nv">in_port</span><span class="o">=</span>10,vlan_tci<span class="o">=</span>0x0000,dl_src<span class="o">=</span>66:4e:cc:ae:4d:20,dl_dst<span class="o">=</span>46:54:8a:95:dd:f8,dl_type<span class="o">=</span>0x0000
+</span></span><span class="line"><span class="cl">Megaflow: <span class="nv">in_port</span><span class="o">=</span>10,vlan_tci<span class="o">=</span>0x0000/0x1fff,dl_src<span class="o">=</span>66:4e:cc:ae:4d:20,dl_dst<span class="o">=</span>46:54:8a:95:dd:f8,dl_type<span class="o">=</span>0x0000
+</span></span><span class="line"><span class="cl">Datapath actions: 27,30,12,14,15,17,20,37,9,28,47,48,54,57,29,25,61,21
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="参考">参考</h2>
+<ul>
+<li><a href="https://docs.openvswitch.org/en/latest/" target="_blank" rel="noopener noreffer">https://docs.openvswitch.org/en/latest/</a>
+</li>
+<li><a href="http://fishcried.com/2016-02-09/openvswitch-ops-guide/" target="_blank" rel="noopener noreffer">http://fishcried.com/2016-02-09/openvswitch-ops-guide/</a>
+</li>
+</ul>
+]]></description></item><item><title>IPv6特性介绍</title><link>https://blog.firemiles.top/2019/ipv6%E7%89%B9%E6%80%A7%E4%BB%8B%E7%BB%8D/</link><pubDate>Wed, 27 Nov 2019 09:47:43 +0000</pubDate><author>firemiles</author><guid>https://blog.firemiles.top/2019/ipv6%E7%89%B9%E6%80%A7%E4%BB%8B%E7%BB%8D/</guid><description><![CDATA[<h2 id="ipv6-概述">IPv6 概述</h2>
+<p>IPv6（互联网协议版本6）是一种新的寻址协议，旨在包含未来互联网的所有可能需求。</p>
+<h3 id="为什么是新的ip版本">为什么是新的IP版本</h3>
+<p>到目前为止，IPv4已经证明自己是一个可靠的的可路由寻址协议，并且已经为我们服务了几十年。它是80年代初设计的，可以提供大约2^32个地址，在当时被认为是完全足够的，没想到的是互联网的爆发式增长，把地址已经耗尽。</p>
+<h3 id="为什么不是ipv5">为什么不是IPv5</h3>
+<p>目前为止，Internet协议已经被是被具有IPv4。版本0到3被使用，而协议本身已经正在开发和和实验过程。因此，新协议投入生产前，有许多使用实验协议的后台仍然活跃。协议版本5，我们称为互联网流协议，它使用因特网协议号5来封装其数据报，它从来没有被带入公众使用，但它已经使用。</p>
+<p>这里是一个IP版本表及其使用方法:</p>
+<p></p>
+<h2 id="ipv6-特性">IPv6 特性</h2>
+<p>IPv6 的设计并不是向后兼容的。IPv6被重新设计。它提供以下功能：</p>
+<ul>
+<li><strong>较大的地址空间</strong></li>
+<li><strong>简化报头</strong>。IPv6将不必要的选项放在报头末尾，使用链表形式，简化了报头。IPv6报头只有IPv4的两倍大。</li>
+<li><strong>端到端连接</strong>。每个系统都有唯一地址，并且可以通过Internate而不使用NAT。</li>
+<li><strong>自动配置</strong>。IPv6支持其主机设备的有状态和无状态自动配置模式。这样，没有DHCP服务器不会停止段间通信。</li>
+<li><strong>更快转发/路由</strong>。 简化头将不必要的的信息放在末尾。包含在报头的第一部分中的信息对于路由器进行路由决定是足够的，从而使得路由决定与查看强制报头一样快。</li>
+<li><strong>IPSec</strong>。</li>
+<li><strong>无广播</strong>。IPv6不再支持广播，使用多播和多个主机通信。</li>
+<li><strong>任播（anycast）支持</strong>。Internet上的多个网口分配相同的任播IP地址。当路由器路由时，发送数据包到最近的目的地。</li>
+<li><strong>移动性</strong>。IPv6被设计成保持移动性。此功能使主机(如移动电话)在不同的地理区域漫游，并保持与同一IP地址连接。</li>
+<li><strong>增强优先级支持</strong>。IPv4使用6位DSCP(差分服务代码点)和2位ECN(显式拥塞通知)来提供服务质量，但它只能在端到端设备支持它时使用，即源设备和目的设备 并且底层网络必须支持它。在IPv6中，流量类和流标签用于告诉底层路由器如何有效地处理数据包和路由它。</li>
+<li><strong>平稳过渡</strong>。IPv6 的大IP地址方案使得设备能够分配具有全球唯一IP地址。此机制保留源IP，不需要NAT。</li>
+<li><strong>可扩展性</strong>。IPv4 仅提供40字节选项；IPv6的选项可以和IPv6数据包本身大小一样多</li>
+</ul>
+<h2 id="ipv6-寻址模式">IPv6 寻址模式</h2>
+<p>IPv6 支持三种寻址模式：</p>
+<ul>
+<li><strong>单播</strong></li>
+<li><strong>多播</strong></li>
+<li><strong>任播</strong></li>
+</ul>
+<p>单播和多播与IPv4差别不大，任播比较少见，这里做下介绍。</p>
+<p>IPv6引入了一种新型的寻址，称为Anycast寻址。 在此寻址模式下，多个接口(host)被分配相同的任播IP地址。 当主机希望与配备有任播IP地址的主机通信时，它发送单播消息。 在复杂的路由机制的帮助下，在路由成本方面，该单播消息被递送到最接近发送方的主机。</p>
+<p></p>
+<h2 id="ipv6-地址类型和格式">IPv6 地址类型和格式</h2>
+<p>IPv6 使用 128 bit 地址，被划分成8个16位块，每个块转换成由冒号符号分隔的4位十六进制数字。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-txt" data-lang="txt"><span class="line"><span class="cl">2001:0000:3238:DFE1:0063:0000:0000:FEFB
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>IPv6 提供了一些规则来缩短地址。规则如下：</p>
+<p><strong>规则1</strong> ：丢弃前导0
+例如（第5块）</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-txt" data-lang="txt"><span class="line"><span class="cl">2001:0000:3238:DFE1:63:0000:0000:FEFB
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><strong>规则2</strong>：如果两个或多个块包含连续零，则省略它们并用双冒号::替换。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-txt" data-lang="txt"><span class="line"><span class="cl">2001:0000:3238:DFE1:63::FEFB
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>连续的零块只能被::替换一次。如果地址中仍有零块，它们可以缩小到一个零</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-txt" data-lang="txt"><span class="line"><span class="cl">2001:0:3238:DFE1:63::FEFB
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="接口id">接口ID</h3>
+<p>IPv6 有三种不同类型的单播地址方案。</p>
+<ul>
+<li>全局单播地址</li>
+<li>链路本地地址</li>
+<li>唯一本地地址</li>
+</ul>
+<p>地址的后半部分（最后64位）始终用于接口ID。系统的MAC地址由48位组成并以十六进制表示。 MAC地址被认为是在世界范围内唯一分配的。 接口ID利用MAC地址的这种唯一性。 主机可以使用IEEE的扩展唯一标识符(EUI-64)格式自动配置其接口ID。 首先，主机将其自己的MAC地址划分为两个24位的半部分。 然后16位十六进制值0xFFFE被夹在这两个MAC地址的两半之间，产生EUI-64接口ID。</p>
+<p></p>
+<p>为了将EUI-64 ID转换为IPv6接口标识符，EUI-64 ID的最高有效的第7位(U/L)需要取反。(EUI-64和IPv6该字段含义相反)</p>
+<p></p>
+<h3 id="全局单播地址">全局单播地址</h3>
+<p>此地址类型等同于IPv4的公共地址。IPv6中的全球单播地址是全局可识别和唯一可寻址的。</p>
+<p></p>
+<p>全局路由前缀:最高有效48位指定为全局路由前缀，分配给特定的自治系统。 全局路由前缀的三个最高有效位始终设置为001。</p>
+<h3 id="链路本地地址">链路本地地址</h3>
+<p>自动配置的IPv6地址称为链路本地地址。 此地址始终以FE80开头。 链路本地地址的前16位总是设置为1111 1110 1000 0000(FE80)。 接下来的48位设置为0，因此:</p>
+<p></p>
+<p>链路本地地址仅用于链路(广播段)上的IPv6主机之间的通信。 这些地址不可路由，因此路由器不会将这些地址转发到链路之外。</p>
+<h3 id="唯一本地地址">唯一本地地址</h3>
+<p>这种类型的IPv6地址是全局唯一的，但它应该用于本地通信。 该地址的后半部分包含接口ID，前半部分被分为前缀，本地位，全局ID和子网ID。</p>
+<p></p>
+<p>前缀始终设置为1111 110。L位，如果地址是本地分配，则设置为1。 到目前为止，L位到0的含义没有定义。因此，唯一本地IPv6地址始终以“FD&quot;开头。</p>
+<p>IPv6单播地址范围：</p>
+<p></p>
+<p>链路本地地址的范围仅限于段。 唯一本地地址是本地全局的，但不通过Internet路由，将其范围限制为组织的边界。 全球单播地址是全球唯一和可识别的。 他们应该是互联网v2寻址的本质。</p>
+<p></p>
+<h2 id="ipv6-特殊地址">IPv6 特殊地址</h2>
+<p></p>
+<p>路由协议的保留组播地址</p>
+<p></p>
+<p>保留路由器/节点的多播地址</p>
+<p></p>
+<p>这些地址帮助路由器和主机与段上的可用路由器和主机通信，而无需配置IPv6地址。 主机使用基于EUI-64的自动配置来自配置IPv6地址，然后通过这些地址与段上的可用主机/路由器通信。</p>
+<h2 id="ipv6-通信">IPv6 通信</h2>
+<p>在 IPv6 中，没有广播机制。启用IPv6的主机不是必须从DHCP获取IP地址，它可以自动配置自己的IP。ARP协议被ICMPv6邻居发现协议替代。</p>
+<h3 id="地址管理和分配">地址管理和分配</h3>
+<p>在IPv6中，主机地址可使用四种方法进行配置：</p>
+<ul>
+<li>静态配置—类似于IPv4，主机地址、掩码和网关地址通过人工方式定义。</li>
+<li>无状态自动地址配置（SLAAC）—在这种情况下，主机自动配置其地址。启动节点
+发送路由器请求消息，申请路由器广播（RA），以配置接口（RFC2462）。</li>
+<li>基于状态的DHCPv6—主机使用DHCP获取其IPv6地址。此地址管理类似于IPv4的
+DHCP行为（RFC3315）。</li>
+<li>无状态DHCP—主机使用SLAAC以及DHCP，来获取其它参数，如TFTP服务器、
+WINS等。</li>
+</ul>
+<p></p>
+<h3 id="邻居发现协议">邻居发现协议</h3>
+<p>邻居发现协议NDP（Neighbor Discovery Protocol）是IPv6协议体系中一个重要的基础协议。邻居发现协议替代了IPv4的ARP（Address Resolution Protocol）和ICMP路由器发现（Router Discovery），它定义了使用ICMPv6报文实现地址解析，跟踪邻居状态，重复地址检测，路由器发现以及重定向等功能。</p>
+<h4 id="地址解析">地址解析</h4>
+<p></p>
+<h4 id="跟踪邻居状态">跟踪邻居状态</h4>
+<p>通过邻居或到达邻居的通信，会因各种原因而中断，包括硬件故障、接口卡的热插入等。如果目的地失效，则恢复是不可能的，通信失败；如果路径失效，则恢复是可能的。因此节点需要维护一张邻居表，每个邻居都有相应的状态，状态之间可以迁移。</p>
+<p>RFC2461中定义了5种邻居状态，分别是：</p>
+<ul>
+<li>未完成（Incomplete）</li>
+<li>可达（Reachable）</li>
+<li>陈旧（Stale）</li>
+<li>延迟（Delay）</li>
+<li>探查（Probe）</li>
+</ul>
+<p></p>
+<h4 id="重复地址检测">重复地址检测</h4>
+<p>重复地址检测DAD（Duplicate Address Detect）是在接口使用某个IPv6单播地址之前进行的，主要是为了探测是否有其它的节点使用了该地址。尤其是在地址自动配置的时候，进行DAD检测是很必要的。一个IPv6单播地址在分配给一个接口之后且通过重复地址检测之前称为试验地址（Tentative Address）。此时该接口不能使用这个试验地址进行单播通信，但是仍然会加入两个组播组：ALL-NODES组播组和试验地址所对应的Solicited-Node组播组。</p>
+<p>IPv6重复地址检测技术和IPv4中的免费ARP类似：节点向试验地址所对应的Solicited-Node组播组发送NS报文。NS报文中目标地址即为该试验地址。如果收到某个其他站点回应的NA报文，就证明该地址已被网络上使用，节点将不能使用该试验地址通讯。</p>
+<p></p>
+<p>当两端同时检测时情况如下：</p>
+<p></p>
+<ul>
+<li>若2个节点配置相同地址，同时作重复地址检测时，该地址处于Tentative状态，当一方收到对方发出的DAD NS，则接收方将不启用该地址</li>
+<li>一种极端的情况，如果同时收到NS报文，则两端都放弃改地址</li>
+</ul>
+<h4 id="路由器发现">路由器发现</h4>
+<p>路由器发现功能用来发现与本地链路相连的设备，并获取与地址自动配置相关的前缀和其他配置参数。</p>
+<p>在IPv6中，IPv6地址可以支持无状态的自动配置，即主机通过某种机制获取网络前缀信息，然后主机自己生成地址的接口标识部分。路由器发现功能是IPv6地址自动配置功能的基础，主要通过以下两种报文实现：</p>
+<ul>
+<li>路由器通告RA（Router Advertisement）报文：每台设备为了让二层网络上的主机和设备知道自己的存在，定时都会组播发送RA报文，RA报文中会带有网络前缀信息，及其他一些标志位信息。</li>
+<li>路由器请求RS（Router Solicitation）报文：很多情况下主机接入网络后希望尽快获取网络前缀进行通信，此时主机可以立刻发送RS报文，网络上的设备将回应RA报文。</li>
+</ul>
+<h5 id="地址自动配置">地址自动配置</h5>
+<p>IPv6地址增长为128位，且终端节点多，对于自动配置的要求更为迫切，除保留了DHCP作为有状态自动配置外，还增加了无状态自动配置。无状态自动配置即自动生成链路本地地址，主机根据RA报文的前缀信息，自动配置全球单播地址等，并获得其他相关信息。</p>
+<p>IPv6主机无状态自动配置过程：</p>
+<ol>
+<li>根据接口标识产生链路本地地址。</li>
+<li>发出邻居请求，进行重复地址检测。</li>
+<li>如地址冲突，则停止自动配置，需要手工配置。</li>
+<li>如不冲突，链路本地地址生效，节点具备本地链路通信能力。</li>
+<li>主机会发送RS报文（或接收到设备定期发送的RA报文）。</li>
+<li>根据RA报文中的前缀信息和接口标识得到IPv6地址。</li>
+</ol>
+<h4 id="重定向">重定向</h4>
+<p>当网关设备发现报文从其它网关设备转发更好，它就会发送重定向报文告知报文的发送者，让报文发送者选择另一个网关设备。重定向报文也承载在ICMPv6报文中，其Type字段值为137，报文中会携带更好的路径下一跳地址和需要重定向转发的报文的目的地址等信息。</p>
+<h2 id="ipv6-子网划分">IPv6 子网划分</h2>
+<p>在IPv4中，使用网络掩码允许使用借用主机位作为子网位。这导致多个子网，但每个子网的主机较少。</p>
+<p>IPv6 地址使用128位来表示，其中16位表示子网划分。地址的后半段（最低有效64位）始终仅用于主机。</p>
+<p></p>
+<p>在IPv6中，前缀大致相当于IPv4中的子网划分。IPv6前缀由最左边的位构成，起网络标识符的作用。</p>
+<p>IPv6规范中为普通IPv6单播地址定义了/64前缀长度。由于IPv6有非常大的地址空间，用户有可能希望使用非/64前缀长度。</p>
+<p>在IPv6中，非/64前缀长度将使以下技术失效：</p>
+<ul>
+<li>
+<p>邻居发现（ND）</p>
+</li>
+<li>
+<p>安全邻居发现（SEND）［RFC3971］</p>
+</li>
+<li>
+<p>私密性扩展［RFC4941］</p>
+</li>
+<li>
+<p>部分移动IPv6［RFC4866］</p>
+</li>
+<li>
+<p>稀疏模式独立组播协议（PIM-SM），带内嵌RP［RFC3956］</p>
+</li>
+<li>
+<p>通过IPv6协调支持的站点多重寻址（SHIM6）［SHIM6］</p>
+</li>
+<li>
+<p><strong>/64前缀</strong></p>
+</li>
+</ul>
+<p>64位前缀适用于网络设备的传统局域网/广域网接口。</p>
+<ul>
+<li><strong>/126前缀</strong></li>
+</ul>
+<p>126位前缀一般用于点对点链路，类似于IPv4中为点对点链路分配的/30保留地址。但
+IPv6的地址空间要远大于IPv4地址空间。一般建议在点对点链路上使用/64。</p>
+<ul>
+<li><strong>/127前缀</strong></li>
+</ul>
+<p>RFC3627认为，在点对点链路上使用相当于IPv4 /31的/127前缀（RFC 3021），是有害
+的。这种分配就像为点对点链路分配/126前缀，使用127前缀是出于考虑地址保留的原
+因。为简化运营，应考虑为点对点链路使用/64前缀。</p>
+<ul>
+<li><strong>/128前缀</strong></li>
+</ul>
+<p>128位前缀可用于需要一个地址的情况。网络设备的回环地址即是这类地址的一个</p>
+<h2 id="从-ipv4-转变到-ipv6">从 IPv4 转变到 IPv6</h2>
+<p>从 IPv4 到 IPv6 完全转换不太可能，因为 IPv6 不向后兼容。这导致单纯和IPv6站点或IPv4站点无法被跨IP版本访问。</p>
+<p>为了克服这种短缺，我们有几种技术可以用来确保从IPv4到IPv6的缓慢而平滑的过渡。</p>
+<h3 id="双栈路由器">双栈路由器</h3>
+<p>路由器可以同时配置IPv4和IPv6地址。</p>
+<p></p>
+<h3 id="隧道">隧道</h3>
+<p>在中间路径或中转网络上存在不同IP版本的情况下，隧道提供了更好的解决方案，其中用户的数据可以通过不支持的IP版本。</p>
+<p></p>
+<h3 id="nat协议翻译">NAT协议翻译</h3>
+<p>这是通过启用NAT-PT（网络地址转换-协议转换）的设备转换到IPv6的另一个重要方法。在NAT-PT的设备的帮助下，实际可以发生在IPv4和IPv6分组之间，反之亦然。见下图：</p>
+<p></p>
+<p>几乎所有大型企业部署IPv6时都在内部使用双堆栈。双堆栈是学习和获取IPv6地址部署经验的一种简单方法，这对成功迁移非常重要。</p>
+<h2 id="ipv6-路由">IPv6 路由</h2>
+<p>路由概念在IPv6的情况下保持相同，但是几乎所有路由协议都被相应的重新定义。</p>
+<p>存在两种形式的路由协议：</p>
+<ul>
+<li><strong>距离向量路由协议</strong>：运行距离向量协议的路由器通告其连接的路由，并从其邻居学习新的路由。RIP和BGP是距离矢量协议。</li>
+<li><strong>链路状态路由协议</strong>：此协议确认链路的状态，并通告邻居。从对等路由器学习新的路由。在所有路由信息已经收敛之后，链路状态路由协议使用其自己的算法来计算到所有可用链路的最佳路径。OSPF和IS-IS是链路状态路由协议，它们都使用dijkstra的最短路径优先算法。</li>
+</ul>
+<p>路由协议可分为两类：</p>
+<ul>
+<li><strong>内部路由协议</strong>：自治系统或组织内用于在其边界内分发路由。RIP、OSPF</li>
+<li><strong>外部路由协议</strong>：不同自治系统或组织间发布路由信息。如BGP</li>
+</ul>
+<h3 id="路由协议">路由协议</h3>
+<ul>
+<li>
+<p><strong>RIPng</strong> RIPng 代表下一代路由信息协议。这是一个内部路由协议，是一个距离矢量协议。RIPng已升级支持IPv6</p>
+</li>
+<li>
+<p><strong>OSPFv3</strong> 开放最短路径优先版本3是经过修改以支持IPv6的内部路由协议。</p>
+</li>
+<li>
+<p><strong>BGPv4</strong> BGPv4是BGP的升级以支持IPv6路由</p>
+</li>
+</ul>
+<h3 id="协议更改为支持ipv6">协议更改为支持IPv6</h3>
+<ul>
+<li><strong>ICMPv6</strong>：Internet控制消息协议版本6是ICMP的升级实现，以适应IPv6要求。ICMPv6邻居发现协议替换ARP，并帮助发现链路上的邻居和路由器。</li>
+<li><strong>DHCPv6</strong>：启用IPv6的主机不需要任何DHCPv6服务器获取IP地址，因为它们可以自动配置。 他们也不需要DHCPv6定位DNS服务器，因为可以通过ICMPv6邻居发现协议发现和配置DNS。 然而DHCPv6服务器可以用于提供这些信息。</li>
+<li><strong>DNS</strong>：没有新版本的DNS，但它现在配备了扩展，以支持查询IPv6地址。 添加了新的AAAA(quad-A)记录以回复IPv6查询消息。 现在DNS可以用两个IP版本(4和6)回复，而查询格式没有任何改变。</li>
+</ul>
+<h2 id="参考资料">参考资料</h2>
+<ul>
+<li><a href="https://www.wikiwand.com/en/IPv6_address" target="_blank" rel="noopener noreffer">https://www.wikiwand.com/en/IPv6_address</a>
+</li>
+<li><a href="https://www.cisco.com/c/dam/global/zh_cn/solutions/industry/segment_sol/enterprise/programs_for_large_enterprise/iba/pdf/bn_enterprise_ipv6_addressing_guide_h2cy10.pdf" target="_blank" rel="noopener noreffer">https://www.cisco.com/c/dam/global/zh_cn/solutions/industry/segment_sol/enterprise/programs_for_large_enterprise/iba/pdf/bn_enterprise_ipv6_addressing_guide_h2cy10.pdf</a>
+</li>
+<li><a href="https://www.w3cschool.cn/ipv6/ipv6_overview.html" target="_blank" rel="noopener noreffer">https://www.w3cschool.cn/ipv6/ipv6_overview.html</a>
+</li>
+<li><a href="https://www.hi-linux.com/posts/26571.html" target="_blank" rel="noopener noreffer">https://www.hi-linux.com/posts/26571.html</a>
+</li>
+<li><a href="http://www.what21.com/sys/view/net_ipv6_1536653956137.html" target="_blank" rel="noopener noreffer">http://www.what21.com/sys/view/net_ipv6_1536653956137.html</a>
+</li>
+<li><a href="https://cshihong.github.io/2018/01/29/IPv6%E9%82%BB%E5%B1%85%E5%8F%91%E7%8E%B0%E5%8D%8F%E8%AE%AE/" target="_blank" rel="noopener noreffer">https://cshihong.github.io/2018/01/29/IPv6%E9%82%BB%E5%B1%85%E5%8F%91%E7%8E%B0%E5%8D%8F%E8%AE%AE/</a>
+</li>
+</ul>
+]]></description></item><item><title>常见容器网络问题诊断</title><link>https://blog.firemiles.top/2019/%E5%B8%B8%E8%A7%81%E5%AE%B9%E5%99%A8%E7%BD%91%E7%BB%9C%E9%97%AE%E9%A2%98%E8%AF%8A%E6%96%AD/</link><pubDate>Sun, 24 Nov 2019 14:36:23 +0000</pubDate><author>firemiles</author><guid>https://blog.firemiles.top/2019/%E5%B8%B8%E8%A7%81%E5%AE%B9%E5%99%A8%E7%BD%91%E7%BB%9C%E9%97%AE%E9%A2%98%E8%AF%8A%E6%96%AD/</guid><description><![CDATA[<p>Kubernetes 的容器网络插件家族越来越庞大，各种模式层出不穷，但是万变不离其宗，overlay 和 underlay。overlay 常使用 vxlan 或者 ipip，underlay 使用 host-gw、bgp，或者结合云厂商提供的底层路由，如：vpc router，virtual switch；还有一类underlay 是目前各大云厂商主推的 eni（Elastic Network Interface）模式，将本来虚拟机使用的网卡插入到容器使用，使容器网络和虚拟机网络一样成为一等公民，拥有相同的网络访问权限，这个场景下容器网络被极度简化，大部分功能都由公有云虚拟机网络完成。</p>
+<p>容器网络发展到现在，基本的组网方式已经十分成熟，抛开负载的性能优化问题不谈，网络功能问题的根因定位已经没多少新花样了，下面我就介绍下我在工作中使用的三板斧。</p>
+<h2 id="系统配置">系统配置</h2>
+<p>系统配置被修改导致网络行为改变，容器网络故障是最常出现的。</p>
+<h3 id="sysctl">sysctl</h3>
+<ul>
+<li>net.ipv4.ip_forward（需要打开）</li>
+<li>net.ipv4.conf.{all,interface}.rp_filter（非对称路由环境设置为0或2）</li>
+<li>net.ipv4.tcp_tw_recycle（NAT环境关闭）</li>
+<li>net.ipv4.tcp_tw_reuse</li>
+</ul>
+<p><code>net.ipv4.ip_forward</code> 控制主机是否允许转发数据报文，该值一般是 1，为0时常常导致容器访问service失败。</p>
+<p><code>net.ipv4.conf.all.rp_filter</code> 控制系统是否开启对数据包源地址的校验。先看下文档中的介绍：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-txt" data-lang="txt"><span class="line"><span class="cl">rp_filter - INTEGER
+</span></span><span class="line"><span class="cl">0 - No source validation.
+</span></span><span class="line"><span class="cl">1 - Strict mode as defined in RFC3704 Strict Reverse Path
+</span></span><span class="line"><span class="cl">    Each incoming packet is tested against the FIB and if the interface
+</span></span><span class="line"><span class="cl">    is not the best reverse path the packet check will fail.
+</span></span><span class="line"><span class="cl">    By default failed packets are discarded.
+</span></span><span class="line"><span class="cl">2 - Loose mode as defined in RFC3704 Loose Reverse Path
+</span></span><span class="line"><span class="cl">    Each incoming packet&#39;s source address is also tested against the FIB
+</span></span><span class="line"><span class="cl">    and if the source address is not reachable via any interface
+</span></span><span class="line"><span class="cl">    the packet check will fail.
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">　　Current recommended practice in RFC3704 is to enable strict mode
+</span></span><span class="line"><span class="cl">to prevent IP spoofing from DDos attacks. If using asymmetric routing
+</span></span><span class="line"><span class="cl">or other complicated routing, then loose mode is recommended.
+</span></span><span class="line"><span class="cl">　　The max value from conf/{all,interface}/rp_filter is used
+</span></span><span class="line"><span class="cl">when doing source validation on the {interface}.
+</span></span><span class="line"><span class="cl">　　Default value is 0. Note that some distributions enable itin startup scripts.
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>即rp_filter参数有三个值，0，1，2，具体含义：</p>
+<ul>
+<li>0: 不开启源地址校验</li>
+<li>1: 开启严格的反向路径校验，对每个进来的包，校验其反向路径是否最佳。如果不是最佳，则丢弃该数据包</li>
+<li>2: 开启松散的反向路径校验。对每个进来的包，校验其反向源地址是否可达（通过任意网口），如果不可达，则丢弃该数据包。</li>
+</ul>
+<p>容器网络假如使用了非对称路由，rp_filter 一定要设置成2或者0.</p>
+<p><code>net.ipv4.tcp_tw_recycle</code> 参数是为了服务端快速回收 <code>TIME_WAIT</code> 状态的 sockets 设置的，一些网络调优的文档可能会提到设置这个参数，但是该参数并不建议在 NAT(Network Address Translation) 环境中使用。</p>
+<p>TCP 为了避免序列号反转的问题，使用时间戳（非标准时间，只是一个计数器）识别过时的报文并丢弃，即 PAWS(<a href="https://www.freesoft.org/CIE/RFC/1323/13.htm" target="_blank" rel="noopener noreffer">PROTECT AGAINST WRAPPED SEQUENCE NUMBERS</a>
+)。默认PAWS是针对单个连接的，如果开启了 <code>net.ipv4.tcp_tw_recycle</code> ，为了解决重用 <code>TIME_WAIT</code> 导致的前一个连接发来的数据包在新连接中被当成有效数据包处理，Per-Connection 被升级成了 Per-Host。在SNAT环境中，来自不同HOST的连接被当成来自同一个HOST，导致时间戳数字小的友军会被系统误认为是过时报文丢弃。</p>
+<blockquote>
+<p>该参数在 Linux 4.1 内核中已经移除</p>
+</blockquote>
+<p><code>net.ipv4.tcp_tw_reuse</code> 和上一个 <code>net.ipv4.tcp_tw_recycle</code> 功能类似，主要用于客户端快速回收 <code>TIME_WAIT</code> 状态的 port 重用。该参数当前还没有发现明显的问题，打不开开都可以。</p>
+<h3 id="iptables">iptables</h3>
+<ul>
+<li>iptalbes &ndash;policy FORWARD ACCEPT</li>
+<li>DROP</li>
+<li>SNAT</li>
+</ul>
+<p>数据包经过主机时第二道关口一般是 iptables，常常 tcpdump 抓到了数据包，但是应用就是没有收到，这个时候很可能是 iptables 把数据包过滤了。</p>
+<p>大多数容器网络需要iptables默认接受数据包转发，即设置：<code>iptables --policy FORWARD ACCEPT</code>。</p>
+<p>这个可以用 iptables -nvL FORWARD 查看当前默认规则。</p>
+<p></p>
+<p>iptables 还有其他规则可能导致丢包，使用 <code>iptables -nvL ｜ grep DROP</code> 查看丢包统计。</p>
+<p>除了丢包，错误的处理 SNAT 也可能导致容器网络访问外网失败，可以查看 iptables 的 SNAT 规则，并在主机上抓包确认。</p>
+<h3 id="route">route</h3>
+<ul>
+<li>default route</li>
+<li>ip rule</li>
+</ul>
+<p>如果容器访问某个ip报错 <code>no route to host</code>，这个时候自然要查看下路由了。不光要排查容器内部，还要排查报文经过路径上的路由，并且需要注意 iptables 的 DNAT 规则改写目的ip，以及 <code>ip rule</code> 的 route table 查找规则。</p>
+<h2 id="定位工具">定位工具</h2>
+<p>当我们排查了一遍系统参数还没有头绪的时候，这个时候就该网络调试工具上场了。</p>
+<ul>
+<li>tcpdump</li>
+<li>wireshark</li>
+<li>netstat/ss</li>
+<li>iptables</li>
+<li>lsof – p PID</li>
+</ul>
+<p>使用 <code>tcpdump</code> 抓包是网络问题排查的常见手段。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-sh" data-lang="sh"><span class="line"><span class="cl">tcpdump -i eth0 tcp host 192.168.4.3 and port <span class="m">4789</span> -ne
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>也可以将抓到的包信息写入文件放到 wireshark 中分析，可以得到更全面的信息。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-sh" data-lang="sh"><span class="line"><span class="cl">tcpdump -i eth0 tcp host 192.168.4.3 -w packet.pcap
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><code>netstat</code> 或 <code>ss</code> 命令用来查看当前连接统计信息，可以分析连接失败的原因。</p>
+<p></p>
+<p></p>
+<p><code>iptables</code> 需要排查规则是否符合期望，具体使用可以参见 <a href="https://blog.firemiles.top/2019/03/16/iptables%E5%BF%AB%E9%80%9F%E5%85%A5%E9%97%A8/" target="_blank" rel="noopener noreffer">iptables快速入门</a>
+</p>
+<p><code>lsof</code> 可以用来查看进程占用的句柄数，有时候新的连接无法建立，可能是程序句柄泄露或者最大值设置太小（<code>ulimits -a</code>查看）</p>
+<h2 id="配置扫描脚本">配置扫描脚本</h2>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-sh" data-lang="sh"><span class="line"><span class="cl"><span class="c1">## green to echo </span>
+</span></span><span class="line"><span class="cl"><span class="k">function</span> green<span class="o">(){</span>
+</span></span><span class="line"><span class="cl">    <span class="nb">echo</span> -e <span class="s2">&#34;\033[32m[ </span><span class="nv">$1</span><span class="s2"> ]\033[0m&#34;</span>
+</span></span><span class="line"><span class="cl"><span class="o">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="nv">containerID</span><span class="o">=</span><span class="nv">$1</span>
+</span></span><span class="line"><span class="cl">green kernel: <span class="sb">`</span>uname -r<span class="sb">`</span>
+</span></span><span class="line"><span class="cl">green cni.conf
+</span></span><span class="line"><span class="cl">cat /etc/cni/net.d/cni.conf
+</span></span><span class="line"><span class="cl">green IP in container:
+</span></span><span class="line"><span class="cl">docker <span class="nb">exec</span> -ti <span class="nv">$containerID</span> ip a s
+</span></span><span class="line"><span class="cl">green Route in container:
+</span></span><span class="line"><span class="cl">docker <span class="nb">exec</span> -ti <span class="nv">$containerID</span> ip r s
+</span></span><span class="line"><span class="cl">green rp_filter in container:
+</span></span><span class="line"><span class="cl">docker <span class="nb">exec</span> -ti <span class="nv">$containerID</span> sysctl -a<span class="p">|</span>grep rp_filter
+</span></span><span class="line"><span class="cl">green route in host:
+</span></span><span class="line"><span class="cl">ip r s
+</span></span><span class="line"><span class="cl">green ip rule in host:
+</span></span><span class="line"><span class="cl">ip rule
+</span></span><span class="line"><span class="cl">green ip forward in host:
+</span></span><span class="line"><span class="cl">sysctl sysctl net.ipv4.ip_forward
+</span></span><span class="line"><span class="cl">iptables -nvL<span class="p">|</span>grep FORWARD
+</span></span><span class="line"><span class="cl">green rp_filter in host:
+</span></span><span class="line"><span class="cl">sysctl -a<span class="p">|</span>grep rp_filter
+</span></span><span class="line"><span class="cl">green tcp_tw_recycle in host:
+</span></span><span class="line"><span class="cl">sysctl net.ipv4.tcp_tw_recycle
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="参考资料">参考资料</h2>
+<ul>
+<li><a href="https://computingforgeeks.com/netstat-vs-ss-usage-guide-linux/" target="_blank" rel="noopener noreffer">https://computingforgeeks.com/netstat-vs-ss-usage-guide-linux/</a>
+</li>
+</ul>
+]]></description></item><item><title>Load Balance 访问 Kubernetes Pod 源 IP 保留方案探索</title><link>https://blog.firemiles.top/2019/preserve-source-ip-in-k8s/</link><pubDate>Wed, 04 Sep 2019 22:21:59 +0000</pubDate><author>firemiles</author><guid>https://blog.firemiles.top/2019/preserve-source-ip-in-k8s/</guid><description><![CDATA[<p>Kuberentes 已经成为云计算事实上的基础设施，各大云服务厂商都推出了自己的Kubernets 集群托管服务。处于信息安全考虑，一些企业不允许自己的核心资产暴露在公共服务器上，公有云并不适合他们。一些云服务厂商嗅到了其中的商机，国外大厂OpenShift，国内云厂商阿里云、华为云、青云等纷纷顺势推出了基于Kubernetes的私有集群以及混合云的解决方案。</p>
+<p>企业在选型方案是，网络能力往往是考量各解决方案优劣的一个重要指标，但是本文并不打算分析各厂商的网络方案（工作量太大，计划后续补上），而是主要聚焦 Kubernetes 集群中的一个小的网络特性，即 Kubernetes Load Balance Service 如何保留客户端源IP。</p>
+<h2 id="现状">现状</h2>
+<p>Kuberntes 的 Service Type 分为三种<sup id="fnref:1"><a href="#fn:1" class="footnote-ref" role="doc-noteref">1</a></sup>：</p>
+<ol>
+<li>Cluster IP</li>
+<li>NodePort</li>
+<li>LoadBalancer</li>
+</ol>
+<p>以下我们基于 kube-proxy 的 iptables 模式或 ipvs 模式进行分析，不考虑 userspace 模式。</p>
+<p><code>Type=ClusterIP</code> 的 Service 一般只支持集群内部访问，通过 iptables 规则或者 ipvs 规则完成 ClusterIP 到 Pod IP的转换，Kubernetes只对访问ClusterIP的流量进行DNAT，并不会进行SNAT，但是实际集群是否会进行 SNAT 还要看CNI网络插件实现，像calico、flannel等，流量必须经过主机网络空间的容器网络实现，并不需要进行SNAT，而一些基于IPVlan，VLAN，将网络直接接入容器的实现，则需要进行SNAT，保证回程流量能够经过主机网络空间，实现NAT转换。大致流量如图：</p>
+<p></p>
+<p><code>Type=NodePort</code> 的 Service 支持集群外访问，客户端通过访问节点的端口，在节点内通
+过iptables 或ipvs 规则转发流量实现负载均衡，该模式下Kubernetes除了会对流量进行DNAT，还会进行SNAT，这是为了保证负载均衡到其他节点的流量能够回到该节点，进行NAT解除操作。可能有的用户不想要在节点上再进行一次负载均衡，并且想要保留 client ip，Kubernetes 很贴心的支持了这个选项，Service  <code>service.spec.externalTrafficPolicy</code> 字段设置成 <code>Local</code> 后，访问NodePort的流量就不再进行SNAT和负载均衡了。</p>
+<p> <code>Type=LoadBalance</code> 的 Service 默认开启 SNAT，因为所有的 <code>Ready</code> 节点都是 LB 的后端，如果数据报文到了一个没有 endpoint 的节点，系统需要将该报文转发到其他节点。</p>
+<p>如果是在 Google Kubernetes Engine/GCE，同样的设置<code>service.spec.externalTrafficPolicy</code> 为 <code>Local</code> 可以让没有endpoint 的节点 service 健康检查失败，移除LB后端，kubernetes不会将流量转发到其他节点，也就不再需要进行 SNAT，保留了源 IP。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span><span class="lnt">8
+</span><span class="lnt">9
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-shell" data-lang="shell"><span class="line"><span class="cl">                      client
+</span></span><span class="line"><span class="cl">                        <span class="p">|</span>
+</span></span><span class="line"><span class="cl">                      lb VIP
+</span></span><span class="line"><span class="cl">                     / ^
+</span></span><span class="line"><span class="cl">                    v /
+</span></span><span class="line"><span class="cl">health check ---&gt;   node <span class="m">1</span>   node <span class="m">2</span> &lt;--- health check
+</span></span><span class="line"><span class="cl">        <span class="m">200</span>  &lt;---   ^ <span class="p">|</span>             ---&gt; <span class="m">500</span>
+</span></span><span class="line"><span class="cl">                    <span class="p">|</span> V
+</span></span><span class="line"><span class="cl">                 endpoint
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="loadbalancer-保留源-ip">LoadBalancer 保留源 IP</h2>
+<p>LoadBalancer的工作模式有两种：</p>
+<ol>
+<li>作为代理，接收来自客户端的请求，同时建立新的连接请求，和后端服务器建立连接。这种情况下，后端服务器看到的源IP是LB的IP。</li>
+<li>作为数据包转发器，客户端访问 LB 的 VIP，最终保持源IP和后端服务器建立连接。</li>
+</ol>
+<p>第一种模式的LB需要依赖协议通知客户端真实的源IP，例如 HTTP 的 X-FORWARD-FOR，或者proxy protocol。第二种模式天然保留了源IP，但是在kubernetes中，需要配合关闭SNAT，保留源IP进入Pod，同时<code>service.spec.healthCheckNodePort</code>可以帮助LB检测节点上是否存在endpoint，剔除不合格的node。</p>
+<h3 id="direct-route">Direct Route</h3>
+<p>Direct Route模式即LB作为路由器角色，将客户端的流量直接负载均衡，路由到后端节点，也就是上面提到的工作模式2.</p>
+<p>DR 模式有几个限制<sup id="fnref:2"><a href="#fn:2" class="footnote-ref" role="doc-noteref">2</a></sup>：</p>
+<ol>
+<li>VIP 的端口必须和RS服务的端口一致（DR模式只修改包的 mac 地址，不会修改IP及上层的内容）</li>
+<li>RS 必须对 arp 做相关设置，lo 接口需要绑定VIP（使用iptables进行DNAT处理也是可行的<sup id="fnref:3"><a href="#fn:3" class="footnote-ref" role="doc-noteref">3</a></sup>）</li>
+<li>VIP 和 RIP 不需要在同一个网段，但是 Director 要有一个网口和 RS 是再同一个物理网络下</li>
+</ol>
+<p>支持该模式的开源方案有LVS和HAPROXY。</p>
+<h4 id="lvs">LVS</h4>
+<p></p>
+<h4 id="haproxy">Haproxy</h4>
+<p></p>
+<h4 id="kubernetes">kubernetes</h4>
+<p>Kubernetes 可以利用这两个组件实现 DR 模式源IP保留。</p>
+<p></p>
+<h3 id="proxy-protocol">PROXY Protocol</h3>
+<p>PROXY Protocol 是HAProxy作者提出的一个协议<sup id="fnref:4"><a href="#fn:4" class="footnote-ref" role="doc-noteref">4</a></sup>，通过在数据流前端加入一小段协议报文，实现源IP透传。该协议要求有 sender 和 receiver，两者需要匹配 proxy protocol，否则数据流解析就会有问题。目前已经有很多开源软件加入支持该协议，因此通过部署支持该协议的LB，如F5，以及在容器中加入支持proxy protocol的sidecar，例如nginx，envoy，可以实现源IP透传。</p>
+<p></p>
+<h3 id="toa">TOA</h3>
+<p>TOA是一个内核模块，通过在TCP包中添加一个OPTION来传递客户端的源IP<sup id="fnref:5"><a href="#fn:5" class="footnote-ref" role="doc-noteref">5</a></sup>。LB需要支持在TCP报文中插入该OPTION，节点通过安装TOA模块，修改getpeername()系统调用，让Pod内应用通过getpeername()获取到真实的源IP。</p>
+<div class="footnotes" role="doc-endnotes">
+<hr>
+<ol>
+<li id="fn:1">
+<p><a href="https://kubernetes.io/docs/tutorials/services/source-ip/" target="_blank" rel="noopener noreffer">https://kubernetes.io/docs/tutorials/services/source-ip/</a>
+&#160;<a href="#fnref:1" class="footnote-backref" role="doc-backlink">&#x21a9;&#xfe0e;</a></p>
+</li>
+<li id="fn:2">
+<p><a href="http://linbo.github.io/2017/08/20/lvs-dr" target="_blank" rel="noopener noreffer">http://linbo.github.io/2017/08/20/lvs-dr</a>
+&#160;<a href="#fnref:2" class="footnote-backref" role="doc-backlink">&#x21a9;&#xfe0e;</a></p>
+</li>
+<li id="fn:3">
+<p><a href="https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/7/html/load_balancer_administration/s1-lvs-direct-vsa" target="_blank" rel="noopener noreffer">https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/7/html/load_balancer_administration/s1-lvs-direct-vsa</a>
+&#160;<a href="#fnref:3" class="footnote-backref" role="doc-backlink">&#x21a9;&#xfe0e;</a></p>
+</li>
+<li id="fn:4">
+<p><a href="https://www.haproxy.com/blog/haproxy/proxy-protocol/" target="_blank" rel="noopener noreffer">https://www.haproxy.com/blog/haproxy/proxy-protocol/</a>
+&#160;<a href="#fnref:4" class="footnote-backref" role="doc-backlink">&#x21a9;&#xfe0e;</a></p>
+</li>
+<li id="fn:5">
+<p><a href="http://www.just4coding.com/blog/2015/11/16/toa/" target="_blank" rel="noopener noreffer">http://www.just4coding.com/blog/2015/11/16/toa/</a>
+&#160;<a href="#fnref:5" class="footnote-backref" role="doc-backlink">&#x21a9;&#xfe0e;</a></p>
+</li>
+</ol>
+</div>]]></description></item><item><title>iptables 快速入门</title><link>https://blog.firemiles.top/2019/iptables%E5%BF%AB%E9%80%9F%E5%85%A5%E9%97%A8/</link><pubDate>Sat, 16 Mar 2019 21:09:26 +0000</pubDate><author>firemiles</author><guid>https://blog.firemiles.top/2019/iptables%E5%BF%AB%E9%80%9F%E5%85%A5%E9%97%A8/</guid><description><![CDATA[<p>iptables 是 <a href="https://www.wikiwand.com/en/Netfilter" target="_blank" rel="noopener noreffer">netfilter</a>
+ 项目的一部分，自1998年首发至今已经20年了，仍然是Linux中网络流量控制的重要软件。学习网络知识，iptables 是绕不过的一道坎。不论是配置网络防火墙，NAT，IP流量转发，使用iptables都可以实现。</p>
+<p>介绍iptables的文章已经有很多，在这里我再炒一遍冷饭，为的是把已有的资料糅合在一起，方便能在一篇文章里找到需要的知识。</p>
+<h2 id="基本概念">基本概念</h2>
+<p>iptables 可以检测、修改、转发、重定向和丢弃IPv4数据包。过滤IPv4数据包的代码已经内置在内核中，并且按照不同的目的被组织成 <strong>表</strong> 的集合。 <strong>表</strong> 由一组预先定义的 <strong>链</strong> 组成，<strong>链</strong> 包含便利顺序规则。每一条规则包含一个谓词的潜在匹配和相应的动作（称为 <strong>目标</strong>），如果谓词为真，该动作会被执行。这就是<strong>条件匹配</strong>。iptables 是用户工具，允许用户使用 <strong>链</strong> 和 <strong>规则</strong>。<strong>链</strong> 和 <strong>规则</strong> 能组合成非常复杂的Linux IP 路由规则，新手面对这些规则时可能会感到气馁，但是，实际上最常用的一些应用案例（NAT或者基本网络防火墙）并不是很复杂。</p>
+<p>理解iptables如果工作的关键是下面这张图。</p>
+<p></p>
+<p>从任何网络端口进来的每一个IP数据包都要从上到下穿过这张图。一种常见的困扰是认为iptables对从内部端口进入的数据包和从面向互联网端口进入的数据包采用不同的处理方式，相反，iptables对从任何端口进入的数据包都会采用相同的处理方式。可以定义规则使iptables采取不同的方式对待从不同端口进入的数据包。</p>
+<p>这张图里的顺序有点复杂，我把它拆成两组顺序关系：<strong>表</strong> 的顺序和 <strong>链</strong> 的顺序。</p>
+<p>表的顺序：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">raw -&gt; mangle -&gt; nat -&gt; filter
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>链的顺序：</p>
+<p></p>
+<h3 id="表tables">表（Tables）</h3>
+<p>iptables 包含5张表</p>
+<ul>
+<li><code>raw</code> 用于配置数据包，<code>raw</code> 中的数据包不会被系统跟踪</li>
+<li><code>filter</code> 是用于存放所有与防火墙相关操作的默认表</li>
+<li><code>nat</code> 用于网络地址转换</li>
+<li><code>mangle</code> 用于对特定数据包的修改</li>
+<li><code>security</code> 用于强制访问控制（例如：SELinux）</li>
+</ul>
+<p>大部分情况仅需要使用 <code>filter</code> 和 <code>nat</code> 。其他表用于更复杂的情况——包括多路由和路由判定。</p>
+<h3 id="链chains">链（Chains）</h3>
+<p>表由链组成，链是一些安装顺序排列的规则和列表。默认的 <code>filter</code> 表包含 <code>INPUT</code>，<code>OUTPUT</code> 和 <code>FORWARD</code> 3 条内建链。 <code>nat</code> 表包含 <code>PREROUTING</code>, <code>POSTROUTING</code> 和 <code>OUTPUT</code> 链。</p>
+<p></p>
+<h3 id="规则rules">规则（Rules）</h3>
+<p>数据包的过滤基于 <strong>规则</strong>。<strong>规则</strong>由一个目标（数据包包匹配所有条件后的动作）和很多匹配（导致该规则可以应用的数据包所满足的条件）指定。一个规则的典型匹配事项是数据包进入的端口（例如： eth0或者eth1）、数据包的类型（ICMP，TCP或者UDP）和数据包的目的端口。</p>
+<p>目标使用 <code>-j</code> 或者 <code>--jump</code> 选项指定。目标是可以用户定义的链、一个内置的特定目标或者是一个目标扩展。内置目标有 <code>ACCEPT</code>,<code>DROP</code>,<code>QUEUE</code>和<code>RETURN</code>,目标扩展是<code>REJECT</code>和<code>LOG</code>。如果目标是内置目标，数据包的命运立刻被决定并且在当前表的数据包处理过程会停止。如果目标用户定义的链，并且数据包成功穿过第二条链，目标将移动到原始链中的下一个规则。目标扩展可以被终止（像内置目标一样）或者不终止（像用户定义链一样）。</p>
+<h3 id="遍历链traversing-chains">遍历链（Traversing Chains）</h3>
+<p>上述流程图描述了在任何接口上收到的网络数据包是按照怎样的顺序走过表的交通管制链。第一个路由策略包决定数据包的目的地址是本地主机（这时穿过 <code>INPUT</code> 链），还是其他主机（穿过<code>FORWARD</code>链）;中间的路由策略决定传出的包使用哪个源地址、分配哪个接口；最后一个路由策略存在是因为先前的 mangle 与 nat 链可能会改变数据包的路由信息。数据包通过路径上的每一条链时，链中的每一条规则按顺序匹配；无论何时匹配了一条规则，相应的 target/jump 动作将会执行。最常用的 3 个 taget 是 <code>ACCPET</code> , <code>DROP</code> 或者 jump 到自定义链。内置的链有默认的策略，但是用户自定义的链没有默认策略。在jump到的链中，若每条规则都不能完全匹配，那么数据包像下图一样返回到调用链。</p>
+<p></p>
+<p><code>DROP</code> target 的规则完全能匹配，那么被匹配的数据包会被丢弃。如果一个数据包在链中被 <code>ACCEPT</code>，那么他会被所有的父链 <code>ACCEPT</code>。并且不在便利其他父链。然而，要注意的是，数据包还会以正常的方式继续遍历其他表中的其他链。</p>
+<p><code>REJECT</code> 拦阻该数据包，并返回数据包通知对方，可以返回的数据包有几个选择：ICMP port-unreachable、ICMP echo-reply 或者是 tcp-reset（这个数据包会要求对方变比连接），进行完此处理动作后，不再对比其他规则，直接中断过滤程序。范例如下：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-sh" data-lang="sh"><span class="line"><span class="cl">iptables -A  INPUT -p TCP --dport <span class="m">22</span> -j REJECT --reject-with ICMP echo-reply
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><code>REDIRECT</code> 将封包重新导向另一个端口（PNAT），进行完此动作后，将会继续对比其他规则。这个动作可以用来实现透明代理或者保护web服务器。例如：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-sh" data-lang="sh"><span class="line"><span class="cl">iptables -t nat -A PREROUTING -p tcp --dport <span class="m">80</span> -j REDIRECT--to-ports <span class="m">8081</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><code>MASQUERADE</code> 改写封包来源IP为防火墙的IP，可以指定port对应的范围，进行完此处理动作后，直接跳往下一个规则链(mangle:postrouting)。这个功能与 SNAT 略有不同，当进行IP伪装时，不需要指定为装成哪个IP，IP会从网卡直接读取，当使用拨接连线时，IP通常是由ISP公司的DHCP服务器指派的，这个时候 <code>MASQUERADE</code> 特别有用，范例如下:</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-sh" data-lang="sh"><span class="line"><span class="cl">iptables -t nat -A POSTROUTING -p TCP -j MASQUERADE --to-ports 21000-31000
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><code>LOG</code> 将数据包相关信息记录在 /var/log 中，详细位置请查阅 /etc/syslog/conf 配置文件，进行完此处理动作后，将会继续对比其他规则。例如：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-sh" data-lang="sh"><span class="line"><span class="cl">iptables -A INPUT -p tcp -j LOG --log-prefix <span class="s2">&#34;input packet&#34;</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><code>SNAT</code> 改写封包来源为某特定IP或IP范围，可以指定port对应的范围，进行完此处理动作后，将直接跳往下一规则链（mangle:postrouting）。范例如下：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-sh" data-lang="sh"><span class="line"><span class="cl">iptables -t nat -A POSTROUTING -p tcp -o eth0 -j SNAT --to-source 192.168.10.15-192.168.10.160:2100-3200
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><code>DNAT</code> 改写数据包包目的地IP为某特定IP或IP范围，可以指定port对应的范围，进行完此处理动作后，将会直接跳往下一规则链（filter:input或filter:forward)</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-sh" data-lang="sh"><span class="line"><span class="cl">iptables -t nat -A PREROUTING -p tcp -d 15.45.23.67 --dport <span class="m">80</span> -j DNAT --to-destination 192.168.10.1-192.168.10.10:80-100
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><code>MIRROR</code> 镜像数据包，也就是将来源IP与目的IP对调后，将数据包返回，进行完此处理动作后将会中断过滤程序。</p>
+<p><code>QUEUE</code> 中断过滤程序，将封包放入队列，交给其他程序处理。透过自行开发的处理程序，可以进行其他应用，例如：计算联机费用……等。</p>
+<p><code>RETURN</code> 结束在目前规则链中的处理程序，返回父规则链中继续过滤。</p>
+<p><code>MARK</code> 将封包打上某个代号，以便提供作为后续过滤的条件判断依据，尽享完此处理动作后，将会继续对比其他规则，范例如下：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-sh" data-lang="sh"><span class="line"><span class="cl">iptables -t mangle -A PREROUTING -p tcp --dport <span class="m">22</span> -j MARK --set-mark <span class="m">22</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="模块">模块</h3>
+<p>有许多模块可以用来扩展 iptables，例如 connlimit， conntrack，limit和recent。这些模块增添了功能，可以进行更复杂的过滤。</p>
+<h2 id="配置并运行-iptables">配置并运行 iptables</h2>
+<p>iptables 是一个 systemd 服务，因此可以这样启动：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-sh" data-lang="sh"><span class="line"><span class="cl"><span class="c1"># systemctl start iptables</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>但是，除非有 <code>/etc/iptables/iptables.rules</code> 否则服务不会启动。因此第一次启动服务时如果没有该文件，使用以下命令创建：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-sh" data-lang="sh"><span class="line"><span class="cl"><span class="c1"># touch /etc/iptables/iptables.rules</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="命令行">命令行</h3>
+<p><strong>显示当前规则</strong></p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-sh" data-lang="sh"><span class="line"><span class="cl"><span class="c1"># iptables -nvL</span>
+</span></span><span class="line"><span class="cl">-----------------------------------------------------
+</span></span><span class="line"><span class="cl">Chain INPUT <span class="o">(</span>policy ACCEPT <span class="m">0</span> packets, <span class="m">0</span> bytes<span class="o">)</span>
+</span></span><span class="line"><span class="cl"> pkts bytes target     prot opt in     out     <span class="nb">source</span>               destination   
+</span></span><span class="line"><span class="cl">     
+</span></span><span class="line"><span class="cl">Chain FORWARD <span class="o">(</span>policy ACCEPT <span class="m">0</span> packets, <span class="m">0</span> bytes<span class="o">)</span>
+</span></span><span class="line"><span class="cl"> pkts bytes target     prot opt in     out     <span class="nb">source</span>               destination    
+</span></span><span class="line"><span class="cl">    
+</span></span><span class="line"><span class="cl">Chain OUTPUT <span class="o">(</span>policy ACCEPT 0K packets, <span class="m">0</span> bytes<span class="o">)</span>
+</span></span><span class="line"><span class="cl"> pkts bytes target     prot opt in     out     <span class="nb">source</span>               destination
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>添加 <code>--line-numbers</code> 选项可以显示行号，插入规则是有用。</p>
+<p><strong>重置规则</strong></p>
+<p>使用这些命令刷新和重置iptalbes到默认状态：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-sh" data-lang="sh"><span class="line"><span class="cl"><span class="c1"># iptables -F</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># iptables -X</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># iptables -t nat -F</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># iptables -t nat -X</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># iptables -t mangle -F</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># iptables -t mangle -X</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># iptables -t raw -F</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># iptables -t raw -X</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># iptables -t security -F</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># iptables -t security -X</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># iptables -P INPUT ACCEPT</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># iptables -P FORWARD ACCEPT</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># iptables -P OUTPUT ACCEPT</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>没有任何参数的 <code>-F</code> 命令在当前表中刷新所有链。同样的, <code>-X</code> 命令删除表中所有非默认链。</p>
+<p><strong>编辑规则</strong></p>
+<p>有两种添加规则的方式，一种是在链上附加规则，另一种是将规则插入到链上的某个特定位置。</p>
+<p>让计算机禁止转发数据包，将 <code>FORWARD</code> 链默认的路由规则由 <code>ACCEPT</code> 改成 <code>DROP</code>。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-sh" data-lang="sh"><span class="line"><span class="cl"><span class="c1"># iptables -P FORWARD DROP</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>Dropbox 的局域网同步特性，每30s广播数据包到所有可视的计算机，如果我们碰巧在一个拥有Dropbox客户端的局域网中，但是我们不想使用这个特性，那么我们希望拒绝这些数据包。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-sh" data-lang="sh"><span class="line"><span class="cl"><span class="c1"># iptables -A INPUT -p tcp --dport 17500 -j REJECT --reject-with icmp-port-unreachable</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-sh" data-lang="sh"><span class="line"><span class="cl"><span class="c1"># iptables -nvL --line-numbers</span>
+</span></span><span class="line"><span class="cl">------------------------------------------------------------------
+</span></span><span class="line"><span class="cl">Chain INPUT <span class="o">(</span>policy ACCEPT <span class="m">0</span> packets, <span class="m">0</span> bytes<span class="o">)</span>
+</span></span><span class="line"><span class="cl">num   pkts bytes target     prot opt in     out     <span class="nb">source</span>               destination
+</span></span><span class="line"><span class="cl"><span class="m">1</span>        <span class="m">0</span>     <span class="m">0</span> REJECT     tcp  --  *      *       0.0.0.0/0            0.0.0.0/0            tcp dpt:17500 reject-with icmp-port-unreachable
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">Chain FORWARD <span class="o">(</span>policy DROP <span class="m">0</span> packets, <span class="m">0</span> bytes<span class="o">)</span>
+</span></span><span class="line"><span class="cl">num   pkts bytes target     prot opt in     out     <span class="nb">source</span>               destination
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">Chain OUTPUT <span class="o">(</span>policy ACCEPT <span class="m">0</span> packets, <span class="m">0</span> bytes<span class="o">)</span>
+</span></span><span class="line"><span class="cl">num   pkts bytes target     prot opt in     out     <span class="nb">source</span>               destination
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>现在我们希望安装Dropbox，也希望局域网同步，但是我们的网络只有一个特定的IP地址，因此需要使用 <code>-R</code> 参数来替换旧规则，只接收特定IP地址的广播包，<code>10.0.0.85</code>是我们另一个IP地址。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-sh" data-lang="sh"><span class="line"><span class="cl"><span class="c1"># iptables -R INPUT 1 -p tcp --dport 17500 ! -s 10.0.0.85 -j REJECT --reject-with icmp-port-unreachable</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-sh" data-lang="sh"><span class="line"><span class="cl"><span class="c1"># iptables -nvL --line-numbers</span>
+</span></span><span class="line"><span class="cl">-------------------------------------------------------------------
+</span></span><span class="line"><span class="cl">Chain INPUT <span class="o">(</span>policy ACCEPT <span class="m">0</span> packets, <span class="m">0</span> bytes<span class="o">)</span>
+</span></span><span class="line"><span class="cl">num   pkts bytes target     prot opt in     out     <span class="nb">source</span>               destination
+</span></span><span class="line"><span class="cl"><span class="m">1</span>        <span class="m">0</span>     <span class="m">0</span> REJECT     tcp  --  *      *      !10.0.0.85            0.0.0.0/0            tcp dpt:17500 reject-with icmp-port-unreachable
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">Chain FORWARD <span class="o">(</span>policy DROP <span class="m">0</span> packets, <span class="m">0</span> bytes<span class="o">)</span>
+</span></span><span class="line"><span class="cl">num   pkts bytes target     prot opt in     out     <span class="nb">source</span>               destination
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">Chain OUTPUT <span class="o">(</span>policy ACCEPT <span class="m">0</span> packets, <span class="m">0</span> bytes<span class="o">)</span>
+</span></span><span class="line"><span class="cl">num   pkts bytes target     prot opt in     out     <span class="nb">source</span>               destination
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>我们现在允许 <code>10.0.0.85</code> 访问计算机 <code>17500</code> 端口，但是这条规则不可升级，如果有友好的Dropbox用户想要访问设备上的 &lsquo;17500&rsquo; 端口，我们应该马上允许，而不是在测试过所有防火墙规则后再允许。</p>
+<p>因此我们在旧规则前插入一条新规则：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-sh" data-lang="sh"><span class="line"><span class="cl"><span class="c1"># iptables -I INPUT -p tcp --dport 17500 -s 10.0.0.85 -j ACCEPT -m comment --comment &#34;Friendly Dropbox&#34;</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-sh" data-lang="sh"><span class="line"><span class="cl"><span class="c1"># iptables -nvL --line-numbers</span>
+</span></span><span class="line"><span class="cl">-------------------------------------------------------------------
+</span></span><span class="line"><span class="cl">Chain INPUT <span class="o">(</span>policy ACCEPT <span class="m">0</span> packets, <span class="m">0</span> bytes<span class="o">)</span>
+</span></span><span class="line"><span class="cl">num   pkts bytes target     prot opt in     out     <span class="nb">source</span>               destination
+</span></span><span class="line"><span class="cl"><span class="m">1</span>        <span class="m">0</span>     <span class="m">0</span> ACCEPT     tcp  --  *      *       10.0.0.85            0.0.0.0/0            tcp dpt:17500 /* Friendly Dropbox */
+</span></span><span class="line"><span class="cl"><span class="m">2</span>        <span class="m">0</span>     <span class="m">0</span> REJECT     tcp  --  *      *      !10.0.0.85            0.0.0.0/0            tcp dpt:17500 reject-with icmp-port-unreachable
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">Chain FORWARD <span class="o">(</span>policy DROP <span class="m">0</span> packets, <span class="m">0</span> bytes<span class="o">)</span>
+</span></span><span class="line"><span class="cl">num   pkts bytes target     prot opt in     out     <span class="nb">source</span>               destination
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">Chain OUTPUT <span class="o">(</span>policy ACCEPT <span class="m">0</span> packets, <span class="m">0</span> bytes<span class="o">)</span>
+</span></span><span class="line"><span class="cl">num   pkts bytes target     prot opt in     out     <span class="nb">source</span>               destination
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>改变第二条规则，使其拒绝<code>17500</code>端口的任何数据包：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-sh" data-lang="sh"><span class="line"><span class="cl"><span class="c1"># iptables -R INPUT 2 -p tcp --dport 17500 -j REJECT --reject-with icmp-port-unreachable</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-sh" data-lang="sh"><span class="line"><span class="cl"><span class="c1"># iptables -nvL --line-numbers</span>
+</span></span><span class="line"><span class="cl">-------------------------------------------------------------------
+</span></span><span class="line"><span class="cl">Chain INPUT <span class="o">(</span>policy ACCEPT <span class="m">0</span> packets, <span class="m">0</span> bytes<span class="o">)</span>
+</span></span><span class="line"><span class="cl">num   pkts bytes target     prot opt in     out     <span class="nb">source</span>               destination
+</span></span><span class="line"><span class="cl"><span class="m">1</span>        <span class="m">0</span>     <span class="m">0</span> ACCEPT     tcp  --  *      *       10.0.0.85            0.0.0.0/0            tcp dpt:17500 /* Friendly Dropbox */
+</span></span><span class="line"><span class="cl"><span class="m">2</span>        <span class="m">0</span>     <span class="m">0</span> REJECT     tcp  --  *      *       0.0.0.0/0            0.0.0.0/0            tcp dpt:17500 reject-with icmp-port-unreachable
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">Chain FORWARD <span class="o">(</span>policy DROP <span class="m">0</span> packets, <span class="m">0</span> bytes<span class="o">)</span>
+</span></span><span class="line"><span class="cl">num   pkts bytes target     prot opt in     out     <span class="nb">source</span>               destination
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">Chain OUTPUT <span class="o">(</span>policy ACCEPT <span class="m">0</span> packets, <span class="m">0</span> bytes<span class="o">)</span>
+</span></span><span class="line"><span class="cl">num   pkts bytes target     prot opt in     out     <span class="nb">source</span>               destination
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><strong>保存规则</strong>
+通过命令行添加规则，规则文件不会自动改变，必须手动保存：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-sh" data-lang="sh"><span class="line"><span class="cl"><span class="c1"># iptables-save &gt; /etc/iptables/iptables.rules</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>修改配置文件后，需要重新加载服务：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-sh" data-lang="sh"><span class="line"><span class="cl"><span class="c1"># systemctl reload iptables</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>或者通过iptables直接加载：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-sh" data-lang="sh"><span class="line"><span class="cl"><span class="c1"># iptables-restore &lt; /etc/iptables/iptables.rules</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="日志">日志</h2>
+<p>LOG 目标可以来记录匹配某个规则的数据包。和ACCEPT或DROP规则不同，进入LOG目标之后数据包会继续沿着链往下走。所以要记录所有丢弃的数据包，只需要在DROP规则前加上相应的LOG规则。但是这样会比较复杂，影响效率，所以应该创建一个<code>logdrop</code>链。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-sh" data-lang="sh"><span class="line"><span class="cl"><span class="c1"># iptables -N logdrop</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># iptables -A logdrop -m limit --limit 5/m --limit-burst 10 -j LOG</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># iptables -A logdrop -j DROP</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>现在任何时候想要丢弃数据包并且记录该事件，只要跳转到<code>logdrop</code>链，例如：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-sh" data-lang="sh"><span class="line"><span class="cl"><span class="c1"># iptables -A INPUT -m conntrack --ctstate INVALID -j logdrop</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="限制日志级别">限制日志级别</h3>
+<p>上述 &rsquo;logdrop&rsquo; 链使用限制(limit)模式来防止iptables日志过大造成不必要的硬盘读写。</p>
+<p>限制模式使用 <code>-m limit</code>，可以使用 <code>--limit</code> 来设置平均速率或者使用 <code>--limit-brust</code> 来设置起始触发速率。在上述 <code>logdrop</code> 里，添加一条记录所有通过其数据包的规则，开始的连续10个数据包将被记录，之后的每分钟只会记录5个数据包。</p>
+<h3 id="查看记录的数据包">查看记录的数据包</h3>
+<p>记录的数据包作为内核信息，可以在 systemd journal看到，使用以下命令查看所有最近一次启动后所记录的数据包：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-sh" data-lang="sh"><span class="line"><span class="cl"><span class="c1"># journalctl -k | grep &#34;IN=.*OUT=.*&#34; | less</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="ulogd">ulogd</h3>
+<p><code>ulogd</code> 是专门用于netfilter的日志工具，可以替代默认的LOG目标。</p>
+<h2 id="faq">FAQ</h2>
+<h3 id="tcpdump-可以抓到包但是程序接收不到">tcpdump 可以抓到包，但是程序接收不到</h3>
+<p>tcpdump在进入iptables之前抓包，所有有可能数据包被iptables丢弃了。</p>
+<h2 id="参考资料">参考资料</h2>
+<ul>
+<li><a href="https://wiki.archlinux.org/index.php/Iptables_%28%E7%AE%80%E4%BD%93%E4%B8%AD%E6%96%87%29" target="_blank" rel="noopener noreffer">https://wiki.archlinux.org/index.php/Iptables_(%E7%AE%80%E4%BD%93%E4%B8%AD%E6%96%87)</a>
+</li>
+<li><a href="https://www.jianshu.com/p/6d77d73325bf" target="_blank" rel="noopener noreffer">https://www.jianshu.com/p/6d77d73325bf</a>
+</li>
+</ul>
+]]></description></item></channel></rss>

@@ -1,9 +1,202 @@
-<rss xmlns:atom="http://www.w3.org/2005/Atom" version="2.0"><channel><title>tool - 分类 - Firemiles 的技术博客</title><link>https://blog.firemiles.top/categories/tool/</link><description>tool - 分类 - Firemiles 的技术博客</description><generator>Hugo -- gohugo.io</generator><language>zh-CN</language><managingEditor>miles.dev@outlook.comm (firemiles)</managingEditor><webMaster>miles.dev@outlook.comm (firemiles)</webMaster><lastBuildDate>Sat, 06 Jan 2018 00:24:46 +0000</lastBuildDate><atom:link href="https://blog.firemiles.top/categories/tool/" rel="self" type="application/rss+xml"/><item><title>在CentOS7中编译安装emacs25</title><link>https://blog.firemiles.top/2018/%E5%9C%A8centos7%E4%B8%AD%E7%BC%96%E8%AF%91%E5%AE%89%E8%A3%85emacs25/</link><pubDate>Sat, 06 Jan 2018 00:24:46 +0000</pubDate><author>firemiles</author><guid>https://blog.firemiles.top/2018/%E5%9C%A8centos7%E4%B8%AD%E7%BC%96%E8%AF%91%E5%AE%89%E8%A3%85emacs25/</guid><description>&lt;h2 id="讲在前面">讲在前面&lt;/h2>
-&lt;p>目前使用spacemacs越来越顺手，每个环境我都要装一个，但是在CentOS7环境下默认的emacs版本是23，spacemacs只支持24以上版本，因此需要自行编译安装源代码，本文记录编译安装流程，方便后续查用。&lt;/p></description></item><item><title>神器Emacs上手</title><link>https://blog.firemiles.top/2017/%E7%A5%9E%E5%99%A8emacs%E4%B8%8A%E6%89%8B/</link><pubDate>Fri, 03 Feb 2017 20:46:44 +0000</pubDate><author>firemiles</author><guid>https://blog.firemiles.top/2017/%E7%A5%9E%E5%99%A8emacs%E4%B8%8A%E6%89%8B/</guid><description><![CDATA[<p><a href="http://spacemacs.org" target="_blank" rel="noopener noreffer"></a>
+<rss xmlns:atom="http://www.w3.org/2005/Atom" version="2.0"><channel><title>tool - 分类 - Firemiles 的技术博客</title><link>https://blog.firemiles.top/categories/tool/</link><description>tool - 分类 - Firemiles 的技术博客</description><generator>Hugo -- gohugo.io</generator><language>zh-CN</language><managingEditor>miles.dev@outlook.comm (firemiles)</managingEditor><webMaster>miles.dev@outlook.comm (firemiles)</webMaster><lastBuildDate>Sat, 06 Jan 2018 00:24:46 +0000</lastBuildDate><atom:link href="https://blog.firemiles.top/categories/tool/" rel="self" type="application/rss+xml"/><item><title>在CentOS7中编译安装emacs25</title><link>https://blog.firemiles.top/2018/%E5%9C%A8centos7%E4%B8%AD%E7%BC%96%E8%AF%91%E5%AE%89%E8%A3%85emacs25/</link><pubDate>Sat, 06 Jan 2018 00:24:46 +0000</pubDate><author>firemiles</author><guid>https://blog.firemiles.top/2018/%E5%9C%A8centos7%E4%B8%AD%E7%BC%96%E8%AF%91%E5%AE%89%E8%A3%85emacs25/</guid><description><![CDATA[<h2 id="讲在前面">讲在前面</h2>
+<p>目前使用spacemacs越来越顺手，每个环境我都要装一个，但是在CentOS7环境下默认的emacs版本是23，spacemacs只支持24以上版本，因此需要自行编译安装源代码，本文记录编译安装流程，方便后续查用。</p>
+<p>本文记录安装的包可能并不是最精简的，可以自行根据需要进行裁剪。</p>
+<h2 id="下载源码">下载源码</h2>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">wget http://mirrors.ustc.edu.cn/gnu/emacs/emacs-25.3.tar.gz 
+</span></span><span class="line"><span class="cl">tar xzvf emacs-25.3.tar.gz 
+</span></span><span class="line"><span class="cl">cd emacs-25.3
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="安装编译依赖">安装编译依赖</h2>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">yum install -y gcc gtk2 gtk2-devel libXpm libXpm-devel libtiff libtiff-devel libjpeg-turbo  libjpeg-turbo-devel giflib giflib-devel ncurses-devel texinfo
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="编译安装">编译&amp;安装</h2>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">./configure --prefix=/usr/local/emacs-25
+</span></span><span class="line"><span class="cl">make
+</span></span><span class="line"><span class="cl">make install
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="下载spacemacs和configure">下载spacemacs和configure</h2>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">git clone https://github.com/syl20bnr/spacemacs ~/.emacs.d/
+</span></span><span class="line"><span class="cl">git clone https://github.com/firemiles/configures.git ~/configure 
+</span></span><span class="line"><span class="cl">ln -s ~/Workspace/configures/comm/emacs/spacemacs/spacemacs-private/ ~/.spacemacs.d
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>至此，spacemacs编译安装完成，尽情享受spacemacs的美妙吧。</p>]]></description></item><item><title>神器Emacs上手</title><link>https://blog.firemiles.top/2017/%E7%A5%9E%E5%99%A8emacs%E4%B8%8A%E6%89%8B/</link><pubDate>Fri, 03 Feb 2017 20:46:44 +0000</pubDate><author>firemiles</author><guid>https://blog.firemiles.top/2017/%E7%A5%9E%E5%99%A8emacs%E4%B8%8A%E6%89%8B/</guid><description><![CDATA[<p><a href="http://spacemacs.org" target="_blank" rel="noopener noreffer"></a>
 </p>
 <h2 id="为什么是emacs">为什么是Emacs</h2>
 <p>vi（及其衍生软件）和Emacs的编辑器之战由来以久，vi被称为编辑器之神，而Emacs则是神的编辑器。两款软件有着自己的哲学，vi党认为vi专注编辑，通过扩展能够适应各种编辑需求，是最好的编辑器，继承了Unix小而美的传统；Emacs党认为Emacs不仅仅是编辑器，而是一款操作系统，通过使用Emacs，很多工作都可以在Emacs中完成，这种All-in-one的哲学也有很多人推崇，认为Emacs是一种信仰。</p>
 <p>我曾经是坚定的vim党，认为编辑器就应该做编辑器应该做的事，直到遇上<code>Org-mode</code>。<code>Org-mode</code>是Emacs中的一个主模式，相信很多人使用Emacs就是为了使用<code>Org-mode</code>。相比简单的Markdown，Org-mode拥有更加丰富的语法功能，和Emacs的良好配合让写文档变成了一种享受，通过使用Emacs写Org的过程中接触了Emacs的其他功能，被它良好的文档和帮助系统，插件扩展系统深深的吸引，让我明白了，这就是我想要一直使用的工具，vim只是我临时使用会打开的编辑器，而Emacs是可以让我一直在里面工作的编辑器。</p>
 <p>配置Emacs的过程中发现了<a href="https://github.com/syl20bnr/spacemacs" target="_blank" rel="noopener noreffer">Spacemacs</a>
 ，这是一个民间的Emacs配置方案，使用layers机制将不同类型的功能进行良好的封装，由社区进行开发维护，开箱即用的特性让Emacs新手也能够很好的使用Emacs。安装了Spacemacs后发现Emacs的使用变得更加简单了，良好的交互式补全功能让Emacs的使用曲线不再那么陡峭。</p>
-<p></p>]]></description></item></channel></rss>
+<p></p>
+<h2 id="spacemacs的安装">Spacemacs的安装</h2>
+<p>Spacemacs的安装十分简单，先安装Emacs软件，然后下载Spacemacs配置，根据官方仓库的说明操作。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-sh" data-lang="sh"><span class="line"><span class="cl">$ git clone https://github.com/syl20bnr/spacemacs ~/.emacs.d
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>使用Spacemacs的配置前记得备份原先的配置。</p>
+<p>为了方便Spacemacs升级，不要修改 <code>~/.emacs.d</code> 中的文件，新建文件夹<code>~/.spacemacs.d</code>，并将<code>.spacemacs</code>移动到<code>~/.spacemacs.d/init.el</code>，然后进行修改。Spacemacs会加载<code>~/.spacemacs.d</code>目录优先作为用户配置。</p>
+<h2 id="spacemacs-的简单配置">Spacemacs 的简单配置</h2>
+<p>首先在<code>init.el</code>中添加进几个常用的layers。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-elisp" data-lang="elisp"><span class="line"><span class="cl"><span class="nv">dotspacemacs-configuration-layers</span>
+</span></span><span class="line"><span class="cl"><span class="o">&#39;</span><span class="p">(</span>
+</span></span><span class="line"><span class="cl">  <span class="nv">html</span>
+</span></span><span class="line"><span class="cl">  <span class="c1">;; ----------------------------------------------------------------</span>
+</span></span><span class="line"><span class="cl">  <span class="c1">;; Example of useful layers you may want to use right away.</span>
+</span></span><span class="line"><span class="cl">  <span class="c1">;; Uncomment some layer names and press &lt;SPC f e R&gt; (Vim style) or</span>
+</span></span><span class="line"><span class="cl">  <span class="c1">;; &lt;M-m f e R&gt; (Emacs style) to install them.</span>
+</span></span><span class="line"><span class="cl">  <span class="c1">;; ----------------------------------------------------------------</span>
+</span></span><span class="line"><span class="cl">  <span class="nv">osx</span>
+</span></span><span class="line"><span class="cl">  <span class="nv">chinese</span>            <span class="c1">;; pinyin</span>
+</span></span><span class="line"><span class="cl">  <span class="nv">auto-completion</span>
+</span></span><span class="line"><span class="cl">  <span class="nv">better-defaults</span>
+</span></span><span class="line"><span class="cl">  <span class="nv">emacs-lisp</span>
+</span></span><span class="line"><span class="cl">  <span class="nv">git</span>
+</span></span><span class="line"><span class="cl">  <span class="nv">markdown</span>
+</span></span><span class="line"><span class="cl">  <span class="nv">org</span>
+</span></span><span class="line"><span class="cl">  <span class="nv">python</span>
+</span></span><span class="line"><span class="cl">  <span class="c1">;; (shell :variables</span>
+</span></span><span class="line"><span class="cl">  <span class="c1">;;        shell-default-height 30</span>
+</span></span><span class="line"><span class="cl">  <span class="c1">;;        shell-default-position &#39;bottom)</span>
+</span></span><span class="line"><span class="cl">  <span class="c1">;; spell-checking</span>
+</span></span><span class="line"><span class="cl">  <span class="c1">;; syntax-checking</span>
+</span></span><span class="line"><span class="cl">  <span class="c1">;; version-control</span>
+</span></span><span class="line"><span class="cl">  <span class="p">)</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>为了方便管理配置文件，在<code>.spacemacs.d</code>中创建目录<code>custom</code>，作为用户配置目录。在<code>init.el</code>中的<code>user-config</code>函数中添加以下代码：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-elisp" data-lang="elisp"><span class="line"><span class="cl"><span class="p">(</span><span class="nb">defun</span> <span class="nv">dotspacemacs/user-config</span> <span class="p">()</span>
+</span></span><span class="line"><span class="cl">  <span class="s">&#34;Configuration function for user code.
+</span></span></span><span class="line"><span class="cl"><span class="s">This function is called at the very end of Spacemacs initialization after
+</span></span></span><span class="line"><span class="cl"><span class="s">layers configuration.
+</span></span></span><span class="line"><span class="cl"><span class="s">This is the place where most of your configurations should be done. Unless it is
+</span></span></span><span class="line"><span class="cl"><span class="s">explicitly specified that a variable should be set before a package is loaded,
+</span></span></span><span class="line"><span class="cl"><span class="s">you should place your code here.&#34;</span>
+</span></span><span class="line"><span class="cl">  <span class="c1">;; import user configurations</span>
+</span></span><span class="line"><span class="cl">  <span class="p">(</span><span class="nv">add-to-list</span> <span class="ss">&#39;load-path</span> <span class="p">(</span><span class="nf">expand-file-name</span> <span class="s">&#34;custom&#34;</span> <span class="nv">dotspacemacs-directory</span><span class="p">))</span>
+</span></span><span class="line"><span class="cl">  <span class="p">(</span><span class="nb">require</span> <span class="ss">&#39;init-packages</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">  <span class="p">(</span><span class="nb">require</span> <span class="ss">&#39;init-ui</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">  <span class="p">(</span><span class="nb">require</span> <span class="ss">&#39;init-better-defaults</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">  <span class="p">(</span><span class="nb">require</span> <span class="ss">&#39;init-keybindings</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">  <span class="p">(</span><span class="nb">require</span> <span class="ss">&#39;init-org</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">  <span class="p">(</span><span class="nb">setq</span> <span class="nv">custom-file</span> <span class="p">(</span><span class="nf">expand-file-name</span> <span class="s">&#34;custom/custom.el&#34;</span> <span class="nv">dotspacemacs-directory</span><span class="p">))</span>
+</span></span><span class="line"><span class="cl">  <span class="p">(</span><span class="nv">load-file</span> <span class="nv">custom-file</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">  <span class="p">)</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>首先使用<code>add-to-list</code>将<code>custom</code>目录添加到<code>load-path</code>变量中，让Emacs可以从用户自定义目录中加载设置，然后是一系列的<code>require</code>命令，该命令会从<code>features</code>变量中寻找相同的名字，如果找到了相应的feature，则使用<code>load</code>函数进行加载，<code>load</code>会使用<code>load-file</code>函数加载相应的文件。如何将自定义的配置添加到<code>features</code>变量中呢，Emacs提供了一个<code>Provide</code>函数通过在配置文件中调用<code>(provide 'init-packages)</code>可以将该配置文件添加到<code>features</code>中，并命名为<code>init-packages</code>。</p>
+<p>Emacs默认会将用户自定义自动生成在<code>init.el</code> 文件末尾。将自动生成的代码和手写的代码放在一起不是一个好的选择，因此将自动生成代码分离到<code>custom.el</code>中：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-elisp" data-lang="elisp"><span class="line"><span class="cl"><span class="p">(</span><span class="nb">setq</span> <span class="nv">custom-file</span> <span class="p">(</span><span class="nf">expand-file-name</span> <span class="s">&#34;custom/custom.el&#34;</span> <span class="nv">dotspacemacs-directory</span><span class="p">))</span>
+</span></span><span class="line"><span class="cl"><span class="p">(</span><span class="nv">load-file</span> <span class="nv">custom-file</span><span class="p">)</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>以上是Spacemacs的简单配置思路。</p>
+<h2 id="spacemacs-的缺点">Spacemacs 的缺点</h2>
+<p>如果说Spacemacs有什么缺点的话，就是太容易卡住了，常常需要使用命令：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-shell" data-lang="shell"><span class="line"><span class="cl">$ pkill -SIGUSR2 -i emacs
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>该命令可以让Emacs停止耗时的操作，恢复响应。</p>
+<p>Spacemacs还提供了精简版本，可以最大限度的提升速度，减少Bug发生，如果发现完整版本使用经常出现Bug，可以考虑使用精简版本。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-elisp" data-lang="elisp"><span class="line"><span class="cl"><span class="nv">dotspacemacs-distribution</span> <span class="ss">&#39;spacemacs-base</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>更多Spacemacs的使用经验后续再继续更新。</p>]]></description></item></channel></rss>
