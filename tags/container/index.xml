@@ -10,19 +10,15 @@
 <p>MACVLAN是linux提供的一种简单的网络子接口技术，它允许你在主机的一个网络接口上配置多个虚拟的网络接口，这些网络interface拥有自己独立的mac地址，也可以配置上独立的ip地址进行通信。macvlan下的容器和主机在同一网段中，共享同一广播域。macvlan和bridge比较类似，但是它省去了bridge的存在，网络效率更高，除此之外，macvlan也完美支持VLAN技术。</p>
 <p>如果希望容器放在主机相同的网络中，享受已经存在的网络栈的各种优势，可以考虑macvlan。</p>
 <ul>
-<li><a href="https://docs.docker.com/network/macvlan/" target="_blank" rel="noopener noreffer">https://docs.docker.com/network/macvlan/</a>
-</li>
-<li><a href="http://cizixs.com/2017/02/14/network-virtualization-macvlan" target="_blank" rel="noopener noreffer">http://cizixs.com/2017/02/14/network-virtualization-macvlan</a>
-</li>
+<li><a href="https://docs.docker.com/network/macvlan/" target="_blank" rel="noopener noreffer">https://docs.docker.com/network/macvlan/</a></li>
+<li><a href="http://cizixs.com/2017/02/14/network-virtualization-macvlan" target="_blank" rel="noopener noreffer">http://cizixs.com/2017/02/14/network-virtualization-macvlan</a></li>
 </ul>
 <h4 id="ipvlan">IPVLAN</h4>
 <p>IPVLAN和MACVLAN类似，都是从一个主机接口虚拟出多个虚拟网络接口。一个重要区别是所有的虚拟接口都有相同的mac地址，而拥有不同的ip地址。因为所有的虚拟接口要共享mac地址，因此DNCP不能使用mac地址分配ip。</p>
 <p>IPVLAN支持两种模式L2和L3，在Underlay L2中，我们使用L2模式。L2模式相比L3模式，父接口工作在类似交换机的模式，子接口可以收到并处理L2报文，相比L3有着更高的处理效率。</p>
 <ul>
-<li><a href="https://people.netfilter.org/pablo/netdev0.1/papers/IPVLAN-The-beginning.pdf" target="_blank" rel="noopener noreffer">https://people.netfilter.org/pablo/netdev0.1/papers/IPVLAN-The-beginning.pdf</a>
-</li>
-<li><a href="http://cizixs.com/2017/02/14/network-virtualization-macvlan" target="_blank" rel="noopener noreffer">http://cizixs.com/2017/02/14/network-virtualization-macvlan</a>
-</li>
+<li><a href="https://people.netfilter.org/pablo/netdev0.1/papers/IPVLAN-The-beginning.pdf" target="_blank" rel="noopener noreffer">https://people.netfilter.org/pablo/netdev0.1/papers/IPVLAN-The-beginning.pdf</a></li>
+<li><a href="http://cizixs.com/2017/02/14/network-virtualization-macvlan" target="_blank" rel="noopener noreffer">http://cizixs.com/2017/02/14/network-virtualization-macvlan</a></li>
 </ul>
 <h3 id="underlay-l3">Underlay L3</h3>
 <p>在Underlay L3组网中，可以选择使用IPVLAN的L3模式，该模式下ipvlan 有点像路由器的功能，它在各个虚拟网络和主机网络之间进行不同网络报文的路由转发工作。只要父接口相同，即使虚拟机/容器不在同一个网络，也可以互相 ping 通对方，因为 ipvlan 会在中间做报文的转发工作。</p>
@@ -38,10 +34,8 @@
 <p>Overlay技术主要用VXLAN、NVGRE、GENEVE等，无论哪种协议都要求在发送方向对报文进行封装外层头，接收方向剥离外层头。VXLAN作为Overlay技术一个代表，是云计算的核心技术之一。</p>
 <p>上图的容器Overlay L2网络就由VXLAN实现，通过在UDP包中封装L2报文，实现了容器跨主机进行L2通信。</p>
 <ul>
-<li><a href="https://feisky.gitbooks.io/sdn/basic/overlay.html" target="_blank" rel="noopener noreffer">https://feisky.gitbooks.io/sdn/basic/overlay.html</a>
-</li>
-<li><a href="http://techblog.d2-si.eu/2017/05/09/deep-dive-into-docker-overlay-networks-part-2.html" target="_blank" rel="noopener noreffer">http://techblog.d2-si.eu/2017/05/09/deep-dive-into-docker-overlay-networks-part-2.html</a>
-</li>
+<li><a href="https://feisky.gitbooks.io/sdn/basic/overlay.html" target="_blank" rel="noopener noreffer">https://feisky.gitbooks.io/sdn/basic/overlay.html</a></li>
+<li><a href="http://techblog.d2-si.eu/2017/05/09/deep-dive-into-docker-overlay-networks-part-2.html" target="_blank" rel="noopener noreffer">http://techblog.d2-si.eu/2017/05/09/deep-dive-into-docker-overlay-networks-part-2.html</a></li>
 </ul>
 <h3 id="overlay-l3">Overlay L3</h3>
 <p>Overlay L3组网类似Overlay L2，但是节点上会增加一个网关。每个节点上的容器都在同一个子网内，可以直接进行二层通信，但是跨节点的容器间通信只能走L3，都会经过网关转发，性能相比于Overlay L2较弱。但是牺牲的性能获得了更高的灵活性，跨节点的容器可以存在于不同的网段中。</p>
@@ -50,8 +44,7 @@
 <center> flannel 基于 VXLAN 的 Overlay L3 组网 </center>
 <h2 id="参考">参考</h2>
 <ul>
-<li><a href="https://www.sdnlab.com/21143.html" target="_blank" rel="noopener noreffer">https://www.sdnlab.com/21143.html</a>
-</li>
+<li><a href="https://www.sdnlab.com/21143.html" target="_blank" rel="noopener noreffer">https://www.sdnlab.com/21143.html</a></li>
 </ul>]]></description></item><item><title>深入浅出容器网络（一）</title><link>https://blog.firemiles.top/2018/%E6%B7%B1%E5%85%A5%E6%B5%85%E5%87%BA%E5%AE%B9%E5%99%A8%E7%BD%91%E7%BB%9C%E4%B8%80/</link><pubDate>Sun, 27 May 2018 02:36:56 +0000</pubDate><author>firemiles</author><guid>https://blog.firemiles.top/2018/%E6%B7%B1%E5%85%A5%E6%B5%85%E5%87%BA%E5%AE%B9%E5%99%A8%E7%BD%91%E7%BB%9C%E4%B8%80/</guid><description><![CDATA[<div class="featured-image">
                 <img src="https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/2018-05-26-185616.jpg" referrerpolicy="no-referrer">
             </div><p>作为系列第一篇，先开个头，介绍模型和框架，后续再新增实战系列，理论是实战结合才能更好的理解容器网络的设计和实现原理。</p>
@@ -127,8 +120,7 @@ Foundry， Kubernetes，Kurma和rkt。另外Calico 和Weave这些项目也为CNI
 唯一的名称。CNI插件需要提供两个命令：一个用来将网络接口加入到指定网络，另一
 个用来将其移除。这两个接口分别再容器被创建和销毁时调用。</p>
 <h4 id="cni工作流程">CNI工作流程</h4>
-<p>docker 已经支持安装CNI插件。<a href="https://docs.docker.com/ee/ucp/kubernetes/install-cni-plugin/" target="_blank" rel="noopener noreffer">https://docs.docker.com/ee/ucp/kubernetes/install-cni-plugin/</a>
-</p>
+<p>docker 已经支持安装CNI插件。<a href="https://docs.docker.com/ee/ucp/kubernetes/install-cni-plugin/" target="_blank" rel="noopener noreffer">https://docs.docker.com/ee/ucp/kubernetes/install-cni-plugin/</a></p>
 <p>容器runtime(e.g. kubernetes)首先需要分配一个网络命名空间以及一个容器ID。然后连同一些CNI配置
 参数传给网络驱动。接着网络驱动会将容器间接入网络，并将分配的IP地址以JSON格
 式返回给容器runtime。</p>
@@ -148,13 +140,9 @@ Docker。由于CNI简单的设计，许多人认为编写CNI插件会比编写CN
 命令，来是心啊从CNI到CNM的转化。</p>
 <h2 id="reference">Reference</h2>
 <ul>
-<li><a href="https://github.com/containernetworking/cni" target="_blank" rel="noopener noreffer">https://github.com/containernetworking/cni</a>
-</li>
-<li><a href="https://thenewstack.io/container-networking-landscape-cni-coreos-cnm-docker/" target="_blank" rel="noopener noreffer">https://thenewstack.io/container-networking-landscape-cni-coreos-cnm-docker/</a>
-</li>
-<li><a href="http://dockone.io/article/1974" target="_blank" rel="noopener noreffer">http://dockone.io/article/1974</a>
-</li>
-<li><a href="http://www.cnblogs.com/xuxinkun/p/5707687.html" target="_blank" rel="noopener noreffer">http://www.cnblogs.com/xuxinkun/p/5707687.html</a>
-</li>
+<li><a href="https://github.com/containernetworking/cni" target="_blank" rel="noopener noreffer">https://github.com/containernetworking/cni</a></li>
+<li><a href="https://thenewstack.io/container-networking-landscape-cni-coreos-cnm-docker/" target="_blank" rel="noopener noreffer">https://thenewstack.io/container-networking-landscape-cni-coreos-cnm-docker/</a></li>
+<li><a href="http://dockone.io/article/1974" target="_blank" rel="noopener noreffer">http://dockone.io/article/1974</a></li>
+<li><a href="http://www.cnblogs.com/xuxinkun/p/5707687.html" target="_blank" rel="noopener noreffer">http://www.cnblogs.com/xuxinkun/p/5707687.html</a></li>
 </ul>
 ]]></description></item></channel></rss>

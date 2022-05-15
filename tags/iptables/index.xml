@@ -1,5 +1,4 @@
-<rss xmlns:atom="http://www.w3.org/2005/Atom" version="2.0"><channel><title>iptables - 标签 - firemiles 的个人博客</title><link>https://blog.firemiles.top/tags/iptables/</link><description>iptables - 标签 - firemiles 的个人博客</description><generator>Hugo -- gohugo.io</generator><language>zh-CN</language><managingEditor>miles.dev@outlook.comm (firemiles)</managingEditor><webMaster>miles.dev@outlook.comm (firemiles)</webMaster><lastBuildDate>Sat, 16 Mar 2019 21:09:26 +0000</lastBuildDate><atom:link href="https://blog.firemiles.top/tags/iptables/" rel="self" type="application/rss+xml"/><item><title>iptables 快速入门</title><link>https://blog.firemiles.top/2019/iptables%E5%BF%AB%E9%80%9F%E5%85%A5%E9%97%A8/</link><pubDate>Sat, 16 Mar 2019 21:09:26 +0000</pubDate><author>firemiles</author><guid>https://blog.firemiles.top/2019/iptables%E5%BF%AB%E9%80%9F%E5%85%A5%E9%97%A8/</guid><description><![CDATA[<p>iptables 是 <a href="https://www.wikiwand.com/en/Netfilter" target="_blank" rel="noopener noreffer">netfilter</a>
- 项目的一部分，自1998年首发至今已经20年了，仍然是Linux中网络流量控制的重要软件。学习网络知识，iptables 是绕不过的一道坎。不论是配置网络防火墙，NAT，IP流量转发，使用iptables都可以实现。</p>
+<rss xmlns:atom="http://www.w3.org/2005/Atom" version="2.0"><channel><title>iptables - 标签 - firemiles 的个人博客</title><link>https://blog.firemiles.top/tags/iptables/</link><description>iptables - 标签 - firemiles 的个人博客</description><generator>Hugo -- gohugo.io</generator><language>zh-CN</language><managingEditor>miles.dev@outlook.comm (firemiles)</managingEditor><webMaster>miles.dev@outlook.comm (firemiles)</webMaster><lastBuildDate>Sat, 16 Mar 2019 21:09:26 +0000</lastBuildDate><atom:link href="https://blog.firemiles.top/tags/iptables/" rel="self" type="application/rss+xml"/><item><title>iptables 快速入门</title><link>https://blog.firemiles.top/2019/iptables%E5%BF%AB%E9%80%9F%E5%85%A5%E9%97%A8/</link><pubDate>Sat, 16 Mar 2019 21:09:26 +0000</pubDate><author>firemiles</author><guid>https://blog.firemiles.top/2019/iptables%E5%BF%AB%E9%80%9F%E5%85%A5%E9%97%A8/</guid><description><![CDATA[<p>iptables 是 <a href="https://www.wikiwand.com/en/Netfilter" target="_blank" rel="noopener noreffer">netfilter</a> 项目的一部分，自1998年首发至今已经20年了，仍然是Linux中网络流量控制的重要软件。学习网络知识，iptables 是绕不过的一道坎。不论是配置网络防火墙，NAT，IP流量转发，使用iptables都可以实现。</p>
 <p>介绍iptables的文章已经有很多，在这里我再炒一遍冷饭，为的是把已有的资料糅合在一起，方便能在一篇文章里找到需要的知识。</p>
 <h2 id="基本概念">基本概念</h2>
 <p>iptables 可以检测、修改、转发、重定向和丢弃IPv4数据包。过滤IPv4数据包的代码已经内置在内核中，并且按照不同的目的被组织成 <strong>表</strong> 的集合。 <strong>表</strong> 由一组预先定义的 <strong>链</strong> 组成，<strong>链</strong> 包含便利顺序规则。每一条规则包含一个谓词的潜在匹配和相应的动作（称为 <strong>目标</strong>），如果谓词为真，该动作会被执行。这就是<strong>条件匹配</strong>。iptables 是用户工具，允许用户使用 <strong>链</strong> 和 <strong>规则</strong>。<strong>链</strong> 和 <strong>规则</strong> 能组合成非常复杂的Linux IP 路由规则，新手面对这些规则时可能会感到气馁，但是，实际上最常用的一些应用案例（NAT或者基本网络防火墙）并不是很复杂。</p>
@@ -424,9 +423,7 @@
 <p>tcpdump在进入iptables之前抓包，所有有可能数据包被iptables丢弃了。</p>
 <h2 id="参考资料">参考资料</h2>
 <ul>
-<li><a href="https://wiki.archlinux.org/index.php/Iptables_%28%E7%AE%80%E4%BD%93%E4%B8%AD%E6%96%87%29" target="_blank" rel="noopener noreffer">https://wiki.archlinux.org/index.php/Iptables_(%E7%AE%80%E4%BD%93%E4%B8%AD%E6%96%87)</a>
-</li>
-<li><a href="https://www.jianshu.com/p/6d77d73325bf" target="_blank" rel="noopener noreffer">https://www.jianshu.com/p/6d77d73325bf</a>
-</li>
+<li><a href="https://wiki.archlinux.org/index.php/Iptables_%28%E7%AE%80%E4%BD%93%E4%B8%AD%E6%96%87%29" target="_blank" rel="noopener noreffer">https://wiki.archlinux.org/index.php/Iptables_(%E7%AE%80%E4%BD%93%E4%B8%AD%E6%96%87)</a></li>
+<li><a href="https://www.jianshu.com/p/6d77d73325bf" target="_blank" rel="noopener noreffer">https://www.jianshu.com/p/6d77d73325bf</a></li>
 </ul>
 ]]></description></item></channel></rss>

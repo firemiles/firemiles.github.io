@@ -59,8 +59,7 @@
 </ul>
 <p>容器网络假如使用了非对称路由，rp_filter 一定要设置成2或者0.</p>
 <p><code>net.ipv4.tcp_tw_recycle</code> 参数是为了服务端快速回收 <code>TIME_WAIT</code> 状态的 sockets 设置的，一些网络调优的文档可能会提到设置这个参数，但是该参数并不建议在 NAT(Network Address Translation) 环境中使用。</p>
-<p>TCP 为了避免序列号反转的问题，使用时间戳（非标准时间，只是一个计数器）识别过时的报文并丢弃，即 PAWS(<a href="https://www.freesoft.org/CIE/RFC/1323/13.htm" target="_blank" rel="noopener noreffer">PROTECT AGAINST WRAPPED SEQUENCE NUMBERS</a>
-)。默认PAWS是针对单个连接的，如果开启了 <code>net.ipv4.tcp_tw_recycle</code> ，为了解决重用 <code>TIME_WAIT</code> 导致的前一个连接发来的数据包在新连接中被当成有效数据包处理，Per-Connection 被升级成了 Per-Host。在SNAT环境中，来自不同HOST的连接被当成来自同一个HOST，导致时间戳数字小的友军会被系统误认为是过时报文丢弃。</p>
+<p>TCP 为了避免序列号反转的问题，使用时间戳（非标准时间，只是一个计数器）识别过时的报文并丢弃，即 PAWS(<a href="https://www.freesoft.org/CIE/RFC/1323/13.htm" target="_blank" rel="noopener noreffer">PROTECT AGAINST WRAPPED SEQUENCE NUMBERS</a>)。默认PAWS是针对单个连接的，如果开启了 <code>net.ipv4.tcp_tw_recycle</code> ，为了解决重用 <code>TIME_WAIT</code> 导致的前一个连接发来的数据包在新连接中被当成有效数据包处理，Per-Connection 被升级成了 Per-Host。在SNAT环境中，来自不同HOST的连接被当成来自同一个HOST，导致时间戳数字小的友军会被系统误认为是过时报文丢弃。</p>
 <blockquote>
 <p>该参数在 Linux 4.1 内核中已经移除</p>
 </blockquote>
@@ -113,8 +112,7 @@
 </div><p><code>netstat</code> 或 <code>ss</code> 命令用来查看当前连接统计信息，可以分析连接失败的原因。</p>
 <p></p>
 <p></p>
-<p><code>iptables</code> 需要排查规则是否符合期望，具体使用可以参见 <a href="https://blog.firemiles.top/2019/03/16/iptables%E5%BF%AB%E9%80%9F%E5%85%A5%E9%97%A8/" target="_blank" rel="noopener noreffer">iptables快速入门</a>
-</p>
+<p><code>iptables</code> 需要排查规则是否符合期望，具体使用可以参见 <a href="https://blog.firemiles.top/2019/03/16/iptables%E5%BF%AB%E9%80%9F%E5%85%A5%E9%97%A8/" target="_blank" rel="noopener noreffer">iptables快速入门</a></p>
 <p><code>lsof</code> 可以用来查看进程占用的句柄数，有时候新的连接无法建立，可能是程序句柄泄露或者最大值设置太小（<code>ulimits -a</code>查看）</p>
 <h2 id="配置扫描脚本">配置扫描脚本</h2>
 <div class="highlight"><div class="chroma">
@@ -177,7 +175,6 @@
 </div>
 </div><h2 id="参考资料">参考资料</h2>
 <ul>
-<li><a href="https://computingforgeeks.com/netstat-vs-ss-usage-guide-linux/" target="_blank" rel="noopener noreffer">https://computingforgeeks.com/netstat-vs-ss-usage-guide-linux/</a>
-</li>
+<li><a href="https://computingforgeeks.com/netstat-vs-ss-usage-guide-linux/" target="_blank" rel="noopener noreffer">https://computingforgeeks.com/netstat-vs-ss-usage-guide-linux/</a></li>
 </ul>
 ]]></description></item></channel></rss>

@@ -4,8 +4,7 @@
 <h2 id="安装">安装</h2>
 <ul>
 <li>
-<p>第一步先去github上下载WSL2内核源码，仓库在 <a href="https://github.com/microsoft/WSL2-Linux-Kernel" target="_blank" rel="noopener noreffer">https://github.com/microsoft/WSL2-Linux-Kernel</a>
- 。下载当前运行的内核版本。这里以<code>4.19.121</code>为例</p>
+<p>第一步先去github上下载WSL2内核源码，仓库在 <a href="https://github.com/microsoft/WSL2-Linux-Kernel" target="_blank" rel="noopener noreffer">https://github.com/microsoft/WSL2-Linux-Kernel</a> 。下载当前运行的内核版本。这里以<code>4.19.121</code>为例</p>
 </li>
 <li>
 <p>开始安装依赖</p>
@@ -46,8 +45,7 @@
 <p>编译完成后，在 /lib/modules/ 会出现 4.19.121-microsoft-standard 目录，头文件就可以使用了，借助头文件，其他的内核模块也可以自行编译安装。</p>
 <h2 id="参考资料">参考资料</h2>
 <ul>
-<li><a href="https://mashiro01.github.io/2020/08/24/wsl2%E4%B8%8B%E5%86%85%E6%A0%B8%E5%A4%B4%E6%96%87%E4%BB%B6/" target="_blank" rel="noopener noreffer">WSL2 下的 kernel header 的安装</a>
-</li>
+<li><a href="https://mashiro01.github.io/2020/08/24/wsl2%E4%B8%8B%E5%86%85%E6%A0%B8%E5%A4%B4%E6%96%87%E4%BB%B6/" target="_blank" rel="noopener noreffer">WSL2 下的 kernel header 的安装</a></li>
 </ul>
 ]]></description></item><item><title>LDD阅读笔记之字符设备驱动</title><link>https://blog.firemiles.top/2015/ldd%E9%98%85%E8%AF%BB%E7%AC%94%E8%AE%B0%E4%B9%8B%E5%AD%97%E7%AC%A6%E8%AE%BE%E5%A4%87%E9%A9%B1%E5%8A%A8/</link><pubDate>Sun, 04 Jan 2015 09:23:20 +0000</pubDate><author>firemiles</author><guid>https://blog.firemiles.top/2015/ldd%E9%98%85%E8%AF%BB%E7%AC%94%E8%AE%B0%E4%B9%8B%E5%AD%97%E7%AC%A6%E8%AE%BE%E5%A4%87%E9%A9%B1%E5%8A%A8/</guid><description><![CDATA[<h1 id="主要开发流程介绍">主要开发流程介绍</h1>
 <p>module_init宏和module_exit宏</p>

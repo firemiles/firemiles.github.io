@@ -255,17 +255,11 @@ IPv6的地址空间要远大于IPv4地址空间。一般建议在点对点链路
 </ul>
 <h2 id="参考资料">参考资料</h2>
 <ul>
-<li><a href="https://www.wikiwand.com/en/IPv6_address" target="_blank" rel="noopener noreffer">https://www.wikiwand.com/en/IPv6_address</a>
-</li>
-<li><a href="https://www.cisco.com/c/dam/global/zh_cn/solutions/industry/segment_sol/enterprise/programs_for_large_enterprise/iba/pdf/bn_enterprise_ipv6_addressing_guide_h2cy10.pdf" target="_blank" rel="noopener noreffer">https://www.cisco.com/c/dam/global/zh_cn/solutions/industry/segment_sol/enterprise/programs_for_large_enterprise/iba/pdf/bn_enterprise_ipv6_addressing_guide_h2cy10.pdf</a>
-</li>
-<li><a href="https://www.w3cschool.cn/ipv6/ipv6_overview.html" target="_blank" rel="noopener noreffer">https://www.w3cschool.cn/ipv6/ipv6_overview.html</a>
-</li>
-<li><a href="https://www.hi-linux.com/posts/26571.html" target="_blank" rel="noopener noreffer">https://www.hi-linux.com/posts/26571.html</a>
-</li>
-<li><a href="http://www.what21.com/sys/view/net_ipv6_1536653956137.html" target="_blank" rel="noopener noreffer">http://www.what21.com/sys/view/net_ipv6_1536653956137.html</a>
-</li>
-<li><a href="https://cshihong.github.io/2018/01/29/IPv6%E9%82%BB%E5%B1%85%E5%8F%91%E7%8E%B0%E5%8D%8F%E8%AE%AE/" target="_blank" rel="noopener noreffer">https://cshihong.github.io/2018/01/29/IPv6%E9%82%BB%E5%B1%85%E5%8F%91%E7%8E%B0%E5%8D%8F%E8%AE%AE/</a>
-</li>
+<li><a href="https://www.wikiwand.com/en/IPv6_address" target="_blank" rel="noopener noreffer">https://www.wikiwand.com/en/IPv6_address</a></li>
+<li><a href="https://www.cisco.com/c/dam/global/zh_cn/solutions/industry/segment_sol/enterprise/programs_for_large_enterprise/iba/pdf/bn_enterprise_ipv6_addressing_guide_h2cy10.pdf" target="_blank" rel="noopener noreffer">https://www.cisco.com/c/dam/global/zh_cn/solutions/industry/segment_sol/enterprise/programs_for_large_enterprise/iba/pdf/bn_enterprise_ipv6_addressing_guide_h2cy10.pdf</a></li>
+<li><a href="https://www.w3cschool.cn/ipv6/ipv6_overview.html" target="_blank" rel="noopener noreffer">https://www.w3cschool.cn/ipv6/ipv6_overview.html</a></li>
+<li><a href="https://www.hi-linux.com/posts/26571.html" target="_blank" rel="noopener noreffer">https://www.hi-linux.com/posts/26571.html</a></li>
+<li><a href="http://www.what21.com/sys/view/net_ipv6_1536653956137.html" target="_blank" rel="noopener noreffer">http://www.what21.com/sys/view/net_ipv6_1536653956137.html</a></li>
+<li><a href="https://cshihong.github.io/2018/01/29/IPv6%E9%82%BB%E5%B1%85%E5%8F%91%E7%8E%B0%E5%8D%8F%E8%AE%AE/" target="_blank" rel="noopener noreffer">https://cshihong.github.io/2018/01/29/IPv6%E9%82%BB%E5%B1%85%E5%8F%91%E7%8E%B0%E5%8D%8F%E8%AE%AE/</a></li>
 </ul>
 ]]></description></item></channel></rss>

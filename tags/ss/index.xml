@@ -2,8 +2,7 @@
                 <img src="https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/2018-09-02-082740.jpg" referrerpolicy="no-referrer">
             </div><h2 id="开始">开始</h2>
 <p>起因是banwogon的ip又被墙了，由于bandwagon是包年的，换ip并不容易，因此决定使用别家的服务。</p>
-<p><a href="https://www.vultr.com/?ref=6905056" target="_blank" rel="noopener noreffer">Vultr</a>
- 相比 linode 等老牌厂商，界面简单清爽，提供了月付2.5刀，随时可以删除换ip的VPS，非常适合作为扶墙主机。</p>
+<p><a href="https://www.vultr.com/?ref=6905056" target="_blank" rel="noopener noreffer">Vultr</a> 相比 linode 等老牌厂商，界面简单清爽，提供了月付2.5刀，随时可以删除换ip的VPS，非常适合作为扶墙主机。</p>
 <p></p>
 <p></p>
 <h2 id="搭建">搭建</h2>
@@ -30,27 +29,19 @@
 </div>
 </div><p>自从docker出现后，很多事情变得简单。</p>
 <p>一条命令就完成了ssr服务端的下载和启动，并且是支持TCP BBR的。启动命令中的具体参数的定义可以查看附录中的ssr-bbr-docker，这里就不多做解释了。命令中的aes-128-ctr、auth_aes128_sha1和http_post作为ssr客户端中的协议类型和混淆协议类型进行配置，端口推荐使用自定义端口，不要用常用的443，容易被封。</p>
-<p>想了解大名鼎鼎的BBR的请点<a href="https://medium.com/google-cloud/tcp-bbr-magic-dust-for-network-performance-57a5f1ccf437" target="_blank" rel="noopener noreffer">这里</a>
-</p>
+<p>想了解大名鼎鼎的BBR的请点<a href="https://medium.com/google-cloud/tcp-bbr-magic-dust-for-network-performance-57a5f1ccf437" target="_blank" rel="noopener noreffer">这里</a></p>
 <h2 id="配置-ssr-客户端">配置 ssr 客户端</h2>
 <p>ssr各平台客户端的下载地址，具体配置可以参考客户端帮助文档，这里就不赘述了。</p>
 <ul>
-<li><a href="https://github.com/shadowsocks/shadowsocks-windows" target="_blank" rel="noopener noreffer">Windows</a>
-</li>
-<li><a href="https://github.com/shadowsocks/shadowsocks-iOS/releases" target="_blank" rel="noopener noreffer">Mac</a>
-</li>
-<li><a href="https://github.com/shadowsocks/shadowsocks-android" target="_blank" rel="noopener noreffer">Android</a>
-</li>
-<li><a href="https://github.com/shadowsocks/shadowsocks-iOS/wiki/Help" target="_blank" rel="noopener noreffer">IOS</a>
-</li>
-<li><a href="https://github.com/shadowsocks/openwrt-shadowsocks" target="_blank" rel="noopener noreffer">OpenWRT</a>
-</li>
+<li><a href="https://github.com/shadowsocks/shadowsocks-windows" target="_blank" rel="noopener noreffer">Windows</a></li>
+<li><a href="https://github.com/shadowsocks/shadowsocks-iOS/releases" target="_blank" rel="noopener noreffer">Mac</a></li>
+<li><a href="https://github.com/shadowsocks/shadowsocks-android" target="_blank" rel="noopener noreffer">Android</a></li>
+<li><a href="https://github.com/shadowsocks/shadowsocks-iOS/wiki/Help" target="_blank" rel="noopener noreffer">IOS</a></li>
+<li><a href="https://github.com/shadowsocks/openwrt-shadowsocks" target="_blank" rel="noopener noreffer">OpenWRT</a></li>
 </ul>
 <h2 id="附录">附录</h2>
 <ul>
-<li><a href="https://www.vultr.com/?ref=6905056" target="_blank" rel="noopener noreffer">Vultr</a>
-</li>
-<li><a href="https://github.com/work-on-docker/ssr-bbr-docker" target="_blank" rel="noopener noreffer">ssr-bbr-docker</a>
-</li>
+<li><a href="https://www.vultr.com/?ref=6905056" target="_blank" rel="noopener noreffer">Vultr</a></li>
+<li><a href="https://github.com/work-on-docker/ssr-bbr-docker" target="_blank" rel="noopener noreffer">ssr-bbr-docker</a></li>
 </ul>
 ]]></description></item></channel></rss>

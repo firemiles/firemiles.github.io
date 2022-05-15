@@ -4,8 +4,7 @@
 <h2 id="安装">安装</h2>
 <ul>
 <li>
-<p>第一步先去github上下载WSL2内核源码，仓库在 <a href="https://github.com/microsoft/WSL2-Linux-Kernel" target="_blank" rel="noopener noreffer">https://github.com/microsoft/WSL2-Linux-Kernel</a>
- 。下载当前运行的内核版本。这里以<code>4.19.121</code>为例</p>
+<p>第一步先去github上下载WSL2内核源码，仓库在 <a href="https://github.com/microsoft/WSL2-Linux-Kernel" target="_blank" rel="noopener noreffer">https://github.com/microsoft/WSL2-Linux-Kernel</a> 。下载当前运行的内核版本。这里以<code>4.19.121</code>为例</p>
 </li>
 <li>
 <p>开始安装依赖</p>
@@ -46,8 +45,7 @@
 <p>编译完成后，在 /lib/modules/ 会出现 4.19.121-microsoft-standard 目录，头文件就可以使用了，借助头文件，其他的内核模块也可以自行编译安装。</p>
 <h2 id="参考资料">参考资料</h2>
 <ul>
-<li><a href="https://mashiro01.github.io/2020/08/24/wsl2%E4%B8%8B%E5%86%85%E6%A0%B8%E5%A4%B4%E6%96%87%E4%BB%B6/" target="_blank" rel="noopener noreffer">WSL2 下的 kernel header 的安装</a>
-</li>
+<li><a href="https://mashiro01.github.io/2020/08/24/wsl2%E4%B8%8B%E5%86%85%E6%A0%B8%E5%A4%B4%E6%96%87%E4%BB%B6/" target="_blank" rel="noopener noreffer">WSL2 下的 kernel header 的安装</a></li>
 </ul>
 ]]></description></item><item><title>容器网络的怪问题</title><link>https://blog.firemiles.top/2020/%E5%AE%B9%E5%99%A8%E7%BD%91%E7%BB%9C%E7%9A%84%E6%80%AA%E9%97%AE%E9%A2%98/</link><pubDate>Sun, 19 Jul 2020 22:17:49 +0800</pubDate><author>firemiles</author><guid>https://blog.firemiles.top/2020/%E5%AE%B9%E5%99%A8%E7%BD%91%E7%BB%9C%E7%9A%84%E6%80%AA%E9%97%AE%E9%A2%98/</guid><description><![CDATA[<p>案例太多，一次写完有点太难为我，我就想到哪写到哪，保持更新。</p>
 <h2 id="长连接报文重传失败">长连接报文重传失败</h2>
@@ -208,8 +206,7 @@
 <p>这里不需要进行类型断言，因为 <code>Write</code> 接口满足空interface类型要求，而 <code>Read</code> 接口和 <code>Wirte</code> 接口的方法集并不匹配，我们需要显式进行类型断言，告诉编译器我们知道它们存储的值是满足接口的。</p>
 <p>还有很重要的一点要记住：interface中存储的pair是（value， concrete type），并不是 (value, interface type)。所以interface不能保存interface 值。</p>
 <h3 id="第一个法则-可以从-interface-值获取反射对象">第一个法则： 可以从 interface 值获取反射对象</h3>
-<p>先说基本功能，反射是测试interface中存储的值和类型的机制。我们需要了解 <a href="https://golang.org/pkg/reflect/" target="_blank" rel="noopener noreffer">package reflect</a>
- 中的 <code>Type</code> 和 <code>Value</code>。这两个类型可以访问interface中的内容。<code>reflect.TypeOf</code> 和 <code>reflect.ValueOf</code> 用来从interface中获取 <code>reflect.Type</code> 和 <code>reflect.Value</code> 。</p>
+<p>先说基本功能，反射是测试interface中存储的值和类型的机制。我们需要了解 <a href="https://golang.org/pkg/reflect/" target="_blank" rel="noopener noreffer">package reflect</a> 中的 <code>Type</code> 和 <code>Value</code>。这两个类型可以访问interface中的内容。<code>reflect.TypeOf</code> 和 <code>reflect.ValueOf</code> 用来从interface中获取 <code>reflect.Type</code> 和 <code>reflect.Value</code> 。</p>
 <div class="highlight"><div class="chroma">
 <table class="lntable"><tr><td class="lntd">
 <pre tabindex="0" class="chroma"><code><span class="lnt"> 1
@@ -457,20 +454,13 @@
 <p>下一次我将介绍 <code>encoding/json</code> 的实现，真正深入学习反射的使用。</p>
 <h2 id="参考">参考</h2>
 <ul>
-<li><a href="https://www.wikiwand.com/zh-hans/%E5%8F%8D%E5%B0%84_%28%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%A7%91%E5%AD%A6%29" target="_blank" rel="noopener noreffer">https://www.wikiwand.com/zh-hans/%E5%8F%8D%E5%B0%84_(%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%A7%91%E5%AD%A6)</a>
-</li>
-<li><a href="https://golang.org/pkg/reflect/" target="_blank" rel="noopener noreffer">https://golang.org/pkg/reflect/</a>
-</li>
-<li><a href="https://blog.golang.org/laws-of-reflection" target="_blank" rel="noopener noreffer">https://blog.golang.org/laws-of-reflection</a>
-</li>
-<li><a href="https://colobu.com/2018/02/27/go-addressable/" target="_blank" rel="noopener noreffer">https://colobu.com/2018/02/27/go-addressable/</a>
-</li>
-<li><a href="https://studygolang.com/articles/938" target="_blank" rel="noopener noreffer">https://studygolang.com/articles/938</a>
-</li>
-<li><a href="https://research.swtch.com/interfaces" target="_blank" rel="noopener noreffer">Go Data Structures: Interfaces</a>
-</li>
-<li><a href="https://draveness.me/golang/docs/part2-foundation/ch04-basic/golang-reflect/" target="_blank" rel="noopener noreffer">https://draveness.me/golang/docs/part2-foundation/ch04-basic/golang-reflect/</a>
-</li>
+<li><a href="https://www.wikiwand.com/zh-hans/%E5%8F%8D%E5%B0%84_%28%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%A7%91%E5%AD%A6%29" target="_blank" rel="noopener noreffer">https://www.wikiwand.com/zh-hans/%E5%8F%8D%E5%B0%84_(%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%A7%91%E5%AD%A6)</a></li>
+<li><a href="https://golang.org/pkg/reflect/" target="_blank" rel="noopener noreffer">https://golang.org/pkg/reflect/</a></li>
+<li><a href="https://blog.golang.org/laws-of-reflection" target="_blank" rel="noopener noreffer">https://blog.golang.org/laws-of-reflection</a></li>
+<li><a href="https://colobu.com/2018/02/27/go-addressable/" target="_blank" rel="noopener noreffer">https://colobu.com/2018/02/27/go-addressable/</a></li>
+<li><a href="https://studygolang.com/articles/938" target="_blank" rel="noopener noreffer">https://studygolang.com/articles/938</a></li>
+<li><a href="https://research.swtch.com/interfaces" target="_blank" rel="noopener noreffer">Go Data Structures: Interfaces</a></li>
+<li><a href="https://draveness.me/golang/docs/part2-foundation/ch04-basic/golang-reflect/" target="_blank" rel="noopener noreffer">https://draveness.me/golang/docs/part2-foundation/ch04-basic/golang-reflect/</a></li>
 </ul>]]></description></item><item><title>DHCP协议</title><link>https://blog.firemiles.top/2020/dhcp%E5%8D%8F%E8%AE%AE/</link><pubDate>Mon, 24 Feb 2020 23:41:33 +0000</pubDate><author>firemiles</author><guid>https://blog.firemiles.top/2020/dhcp%E5%8D%8F%E8%AE%AE/</guid><description><![CDATA[<div class="featured-image">
                 <img src="https://firemiles-blog.oss-cn-shanghai.aliyuncs.com/20200224234329.png" referrerpolicy="no-referrer">
             </div><h2 id="协议说明">协议说明</h2>
@@ -481,9 +471,7 @@
 </ul>
 <p>DHCP 用一台或一组DHCP服务器来管理网络参数的分配，这种分配方式具有容错性。即使在一个仅拥有少量机器的网络中，DHCP仍然是有用的，因为一台机器可以不造成任何影响的被加入到网路中。</p>
 <p>甚至对于很少改变地址的服务器，DHCP仍然被建议用来设置它们的地址。如果服务器需要被重新分配地址，尽可能不改变之前的配置。对于一些设备，如路由器和防火墙，则不应该使用DHCP。</p>
-<p>DHCP 于 1993 年10月成为标准协议，前身是 BOOTP （Bootstrap Protocol， 引导程序协议），DHCP 被设计成向前兼容 BOOTP 协议。当前的DHCP定义可以在<a href="https://tools.ietf.org/html/rfc2131" target="_blank" rel="noopener noreffer">RFC 2131</a>
-找到，而基于IPv6的建议标准(DHCPv6)可以在<a href="https://tools.ietf.org/html/rfc3315" target="_blank" rel="noopener noreffer">RFC3315</a>
-中找到。</p>
+<p>DHCP 于 1993 年10月成为标准协议，前身是 BOOTP （Bootstrap Protocol， 引导程序协议），DHCP 被设计成向前兼容 BOOTP 协议。当前的DHCP定义可以在<a href="https://tools.ietf.org/html/rfc2131" target="_blank" rel="noopener noreffer">RFC 2131</a>找到，而基于IPv6的建议标准(DHCPv6)可以在<a href="https://tools.ietf.org/html/rfc3315" target="_blank" rel="noopener noreffer">RFC3315</a>中找到。</p>
 <h2 id="协议结构">协议结构</h2>
 <p></p>
 <ul>
@@ -745,20 +733,13 @@
 </div>
 </div><h2 id="参考资料">参考资料</h2>
 <ul>
-<li><a href="https://www.wikiwand.com/zh-hans/%E5%8A%A8%E6%80%81%E4%B8%BB%E6%9C%BA%E8%AE%BE%E7%BD%AE%E5%8D%8F%E8%AE%AE" target="_blank" rel="noopener noreffer">DHCP WIKI</a>
-</li>
-<li><a href="https://tools.ietf.org/html/rfc2131" target="_blank" rel="noopener noreffer"><strong>RFC2131</strong> Dynamic Host Configuration Protocol</a>
-</li>
-<li><a href="https://tools.ietf.org/html/rfc3315" target="_blank" rel="noopener noreffer"><strong>RFC3315</strong> Dynamic Host Configuration Protocol for IPv6 (DHCPv6)</a>
-</li>
-<li><a href="https://tools.ietf.org/html/rfc951" target="_blank" rel="noopener noreffer"><strong>RFC951</strong> BOOTSTRAP PROTOCOL (BOOTP)</a>
-</li>
-<li><a href="https://tools.ietf.org/html/rfc1542" target="_blank" rel="noopener noreffer"><strong>RFC1542</strong> Clarifications and Extensions for the Bootstrap Protocol</a>
-</li>
-<li><a href="https://tools.ietf.org/html/rfc1533" target="_blank" rel="noopener noreffer"><strong>RFC1533</strong> DHCP Options and BOOTP Vendor Extensions</a>
-</li>
-<li><a href="https://tools.ietf.org/html/rfc3442" target="_blank" rel="noopener noreffer"><strong>RFC3442</strong> The Classless Static Route Option for Dynamic Host Configuration Protocol (DHCP) version 4</a>
-</li>
+<li><a href="https://www.wikiwand.com/zh-hans/%E5%8A%A8%E6%80%81%E4%B8%BB%E6%9C%BA%E8%AE%BE%E7%BD%AE%E5%8D%8F%E8%AE%AE" target="_blank" rel="noopener noreffer">DHCP WIKI</a></li>
+<li><a href="https://tools.ietf.org/html/rfc2131" target="_blank" rel="noopener noreffer"><strong>RFC2131</strong> Dynamic Host Configuration Protocol</a></li>
+<li><a href="https://tools.ietf.org/html/rfc3315" target="_blank" rel="noopener noreffer"><strong>RFC3315</strong> Dynamic Host Configuration Protocol for IPv6 (DHCPv6)</a></li>
+<li><a href="https://tools.ietf.org/html/rfc951" target="_blank" rel="noopener noreffer"><strong>RFC951</strong> BOOTSTRAP PROTOCOL (BOOTP)</a></li>
+<li><a href="https://tools.ietf.org/html/rfc1542" target="_blank" rel="noopener noreffer"><strong>RFC1542</strong> Clarifications and Extensions for the Bootstrap Protocol</a></li>
+<li><a href="https://tools.ietf.org/html/rfc1533" target="_blank" rel="noopener noreffer"><strong>RFC1533</strong> DHCP Options and BOOTP Vendor Extensions</a></li>
+<li><a href="https://tools.ietf.org/html/rfc3442" target="_blank" rel="noopener noreffer"><strong>RFC3442</strong> The Classless Static Route Option for Dynamic Host Configuration Protocol (DHCP) version 4</a></li>
 </ul>
 <h2 id="附录">附录</h2>
 <p>状态图源码</p>
@@ -1567,10 +1548,8 @@ $$</p>
 </div>
 </div><h2 id="参考">参考</h2>
 <ul>
-<li><a href="https://docs.openvswitch.org/en/latest/" target="_blank" rel="noopener noreffer">https://docs.openvswitch.org/en/latest/</a>
-</li>
-<li><a href="http://fishcried.com/2016-02-09/openvswitch-ops-guide/" target="_blank" rel="noopener noreffer">http://fishcried.com/2016-02-09/openvswitch-ops-guide/</a>
-</li>
+<li><a href="https://docs.openvswitch.org/en/latest/" target="_blank" rel="noopener noreffer">https://docs.openvswitch.org/en/latest/</a></li>
+<li><a href="http://fishcried.com/2016-02-09/openvswitch-ops-guide/" target="_blank" rel="noopener noreffer">http://fishcried.com/2016-02-09/openvswitch-ops-guide/</a></li>
 </ul>
 ]]></description></item><item><title>IPv6特性介绍</title><link>https://blog.firemiles.top/2019/ipv6%E7%89%B9%E6%80%A7%E4%BB%8B%E7%BB%8D/</link><pubDate>Wed, 27 Nov 2019 09:47:43 +0000</pubDate><author>firemiles</author><guid>https://blog.firemiles.top/2019/ipv6%E7%89%B9%E6%80%A7%E4%BB%8B%E7%BB%8D/</guid><description><![CDATA[<h2 id="ipv6-概述">IPv6 概述</h2>
 <p>IPv6（互联网协议版本6）是一种新的寻址协议，旨在包含未来互联网的所有可能需求。</p>
@@ -1829,18 +1808,12 @@ IPv6的地址空间要远大于IPv4地址空间。一般建议在点对点链路
 </ul>
 <h2 id="参考资料">参考资料</h2>
 <ul>
-<li><a href="https://www.wikiwand.com/en/IPv6_address" target="_blank" rel="noopener noreffer">https://www.wikiwand.com/en/IPv6_address</a>
-</li>
-<li><a href="https://www.cisco.com/c/dam/global/zh_cn/solutions/industry/segment_sol/enterprise/programs_for_large_enterprise/iba/pdf/bn_enterprise_ipv6_addressing_guide_h2cy10.pdf" target="_blank" rel="noopener noreffer">https://www.cisco.com/c/dam/global/zh_cn/solutions/industry/segment_sol/enterprise/programs_for_large_enterprise/iba/pdf/bn_enterprise_ipv6_addressing_guide_h2cy10.pdf</a>
-</li>
-<li><a href="https://www.w3cschool.cn/ipv6/ipv6_overview.html" target="_blank" rel="noopener noreffer">https://www.w3cschool.cn/ipv6/ipv6_overview.html</a>
-</li>
-<li><a href="https://www.hi-linux.com/posts/26571.html" target="_blank" rel="noopener noreffer">https://www.hi-linux.com/posts/26571.html</a>
-</li>
-<li><a href="http://www.what21.com/sys/view/net_ipv6_1536653956137.html" target="_blank" rel="noopener noreffer">http://www.what21.com/sys/view/net_ipv6_1536653956137.html</a>
-</li>
-<li><a href="https://cshihong.github.io/2018/01/29/IPv6%E9%82%BB%E5%B1%85%E5%8F%91%E7%8E%B0%E5%8D%8F%E8%AE%AE/" target="_blank" rel="noopener noreffer">https://cshihong.github.io/2018/01/29/IPv6%E9%82%BB%E5%B1%85%E5%8F%91%E7%8E%B0%E5%8D%8F%E8%AE%AE/</a>
-</li>
+<li><a href="https://www.wikiwand.com/en/IPv6_address" target="_blank" rel="noopener noreffer">https://www.wikiwand.com/en/IPv6_address</a></li>
+<li><a href="https://www.cisco.com/c/dam/global/zh_cn/solutions/industry/segment_sol/enterprise/programs_for_large_enterprise/iba/pdf/bn_enterprise_ipv6_addressing_guide_h2cy10.pdf" target="_blank" rel="noopener noreffer">https://www.cisco.com/c/dam/global/zh_cn/solutions/industry/segment_sol/enterprise/programs_for_large_enterprise/iba/pdf/bn_enterprise_ipv6_addressing_guide_h2cy10.pdf</a></li>
+<li><a href="https://www.w3cschool.cn/ipv6/ipv6_overview.html" target="_blank" rel="noopener noreffer">https://www.w3cschool.cn/ipv6/ipv6_overview.html</a></li>
+<li><a href="https://www.hi-linux.com/posts/26571.html" target="_blank" rel="noopener noreffer">https://www.hi-linux.com/posts/26571.html</a></li>
+<li><a href="http://www.what21.com/sys/view/net_ipv6_1536653956137.html" target="_blank" rel="noopener noreffer">http://www.what21.com/sys/view/net_ipv6_1536653956137.html</a></li>
+<li><a href="https://cshihong.github.io/2018/01/29/IPv6%E9%82%BB%E5%B1%85%E5%8F%91%E7%8E%B0%E5%8D%8F%E8%AE%AE/" target="_blank" rel="noopener noreffer">https://cshihong.github.io/2018/01/29/IPv6%E9%82%BB%E5%B1%85%E5%8F%91%E7%8E%B0%E5%8D%8F%E8%AE%AE/</a></li>
 </ul>
 ]]></description></item><item><title>常见容器网络问题诊断</title><link>https://blog.firemiles.top/2019/%E5%B8%B8%E8%A7%81%E5%AE%B9%E5%99%A8%E7%BD%91%E7%BB%9C%E9%97%AE%E9%A2%98%E8%AF%8A%E6%96%AD/</link><pubDate>Sun, 24 Nov 2019 14:36:23 +0000</pubDate><author>firemiles</author><guid>https://blog.firemiles.top/2019/%E5%B8%B8%E8%A7%81%E5%AE%B9%E5%99%A8%E7%BD%91%E7%BB%9C%E9%97%AE%E9%A2%98%E8%AF%8A%E6%96%AD/</guid><description><![CDATA[<p>Kubernetes 的容器网络插件家族越来越庞大，各种模式层出不穷，但是万变不离其宗，overlay 和 underlay。overlay 常使用 vxlan 或者 ipip，underlay 使用 host-gw、bgp，或者结合云厂商提供的底层路由，如：vpc router，virtual switch；还有一类underlay 是目前各大云厂商主推的 eni（Elastic Network Interface）模式，将本来虚拟机使用的网卡插入到容器使用，使容器网络和虚拟机网络一样成为一等公民，拥有相同的网络访问权限，这个场景下容器网络被极度简化，大部分功能都由公有云虚拟机网络完成。</p>
 <p>容器网络发展到现在，基本的组网方式已经十分成熟，抛开负载的性能优化问题不谈，网络功能问题的根因定位已经没多少新花样了，下面我就介绍下我在工作中使用的三板斧。</p>
@@ -1903,8 +1876,7 @@ IPv6的地址空间要远大于IPv4地址空间。一般建议在点对点链路
 </ul>
 <p>容器网络假如使用了非对称路由，rp_filter 一定要设置成2或者0.</p>
 <p><code>net.ipv4.tcp_tw_recycle</code> 参数是为了服务端快速回收 <code>TIME_WAIT</code> 状态的 sockets 设置的，一些网络调优的文档可能会提到设置这个参数，但是该参数并不建议在 NAT(Network Address Translation) 环境中使用。</p>
-<p>TCP 为了避免序列号反转的问题，使用时间戳（非标准时间，只是一个计数器）识别过时的报文并丢弃，即 PAWS(<a href="https://www.freesoft.org/CIE/RFC/1323/13.htm" target="_blank" rel="noopener noreffer">PROTECT AGAINST WRAPPED SEQUENCE NUMBERS</a>
-)。默认PAWS是针对单个连接的，如果开启了 <code>net.ipv4.tcp_tw_recycle</code> ，为了解决重用 <code>TIME_WAIT</code> 导致的前一个连接发来的数据包在新连接中被当成有效数据包处理，Per-Connection 被升级成了 Per-Host。在SNAT环境中，来自不同HOST的连接被当成来自同一个HOST，导致时间戳数字小的友军会被系统误认为是过时报文丢弃。</p>
+<p>TCP 为了避免序列号反转的问题，使用时间戳（非标准时间，只是一个计数器）识别过时的报文并丢弃，即 PAWS(<a href="https://www.freesoft.org/CIE/RFC/1323/13.htm" target="_blank" rel="noopener noreffer">PROTECT AGAINST WRAPPED SEQUENCE NUMBERS</a>)。默认PAWS是针对单个连接的，如果开启了 <code>net.ipv4.tcp_tw_recycle</code> ，为了解决重用 <code>TIME_WAIT</code> 导致的前一个连接发来的数据包在新连接中被当成有效数据包处理，Per-Connection 被升级成了 Per-Host。在SNAT环境中，来自不同HOST的连接被当成来自同一个HOST，导致时间戳数字小的友军会被系统误认为是过时报文丢弃。</p>
 <blockquote>
 <p>该参数在 Linux 4.1 内核中已经移除</p>
 </blockquote>
@@ -1957,8 +1929,7 @@ IPv6的地址空间要远大于IPv4地址空间。一般建议在点对点链路
 </div><p><code>netstat</code> 或 <code>ss</code> 命令用来查看当前连接统计信息，可以分析连接失败的原因。</p>
 <p></p>
 <p></p>
-<p><code>iptables</code> 需要排查规则是否符合期望，具体使用可以参见 <a href="https://blog.firemiles.top/2019/03/16/iptables%E5%BF%AB%E9%80%9F%E5%85%A5%E9%97%A8/" target="_blank" rel="noopener noreffer">iptables快速入门</a>
-</p>
+<p><code>iptables</code> 需要排查规则是否符合期望，具体使用可以参见 <a href="https://blog.firemiles.top/2019/03/16/iptables%E5%BF%AB%E9%80%9F%E5%85%A5%E9%97%A8/" target="_blank" rel="noopener noreffer">iptables快速入门</a></p>
 <p><code>lsof</code> 可以用来查看进程占用的句柄数，有时候新的连接无法建立，可能是程序句柄泄露或者最大值设置太小（<code>ulimits -a</code>查看）</p>
 <h2 id="配置扫描脚本">配置扫描脚本</h2>
 <div class="highlight"><div class="chroma">
@@ -2021,8 +1992,7 @@ IPv6的地址空间要远大于IPv4地址空间。一般建议在点对点链路
 </div>
 </div><h2 id="参考资料">参考资料</h2>
 <ul>
-<li><a href="https://computingforgeeks.com/netstat-vs-ss-usage-guide-linux/" target="_blank" rel="noopener noreffer">https://computingforgeeks.com/netstat-vs-ss-usage-guide-linux/</a>
-</li>
+<li><a href="https://computingforgeeks.com/netstat-vs-ss-usage-guide-linux/" target="_blank" rel="noopener noreffer">https://computingforgeeks.com/netstat-vs-ss-usage-guide-linux/</a></li>
 </ul>
 ]]></description></item><item><title>Load Balance 访问 Kubernetes Pod 源 IP 保留方案探索</title><link>https://blog.firemiles.top/2019/preserve-source-ip-in-k8s/</link><pubDate>Wed, 04 Sep 2019 22:21:59 +0000</pubDate><author>firemiles</author><guid>https://blog.firemiles.top/2019/preserve-source-ip-in-k8s/</guid><description><![CDATA[<p>Kuberentes 已经成为云计算事实上的基础设施，各大云服务厂商都推出了自己的Kubernets 集群托管服务。处于信息安全考虑，一些企业不允许自己的核心资产暴露在公共服务器上，公有云并不适合他们。一些云服务厂商嗅到了其中的商机，国外大厂OpenShift，国内云厂商阿里云、华为云、青云等纷纷顺势推出了基于Kubernetes的私有集群以及混合云的解决方案。</p>
 <p>企业在选型方案是，网络能力往往是考量各解决方案优劣的一个重要指标，但是本文并不打算分析各厂商的网络方案（工作量太大，计划后续补上），而是主要聚焦 Kubernetes 集群中的一个小的网络特性，即 Kubernetes Load Balance Service 如何保留客户端源IP。</p>
@@ -2096,28 +2066,22 @@ IPv6的地址空间要远大于IPv4地址空间。一般建议在点对点链路
 <hr>
 <ol>
 <li id="fn:1">
-<p><a href="https://kubernetes.io/docs/tutorials/services/source-ip/" target="_blank" rel="noopener noreffer">https://kubernetes.io/docs/tutorials/services/source-ip/</a>
-&#160;<a href="#fnref:1" class="footnote-backref" role="doc-backlink">&#x21a9;&#xfe0e;</a></p>
+<p><a href="https://kubernetes.io/docs/tutorials/services/source-ip/" target="_blank" rel="noopener noreffer">https://kubernetes.io/docs/tutorials/services/source-ip/</a>&#160;<a href="#fnref:1" class="footnote-backref" role="doc-backlink">&#x21a9;&#xfe0e;</a></p>
 </li>
 <li id="fn:2">
-<p><a href="http://linbo.github.io/2017/08/20/lvs-dr" target="_blank" rel="noopener noreffer">http://linbo.github.io/2017/08/20/lvs-dr</a>
-&#160;<a href="#fnref:2" class="footnote-backref" role="doc-backlink">&#x21a9;&#xfe0e;</a></p>
+<p><a href="http://linbo.github.io/2017/08/20/lvs-dr" target="_blank" rel="noopener noreffer">http://linbo.github.io/2017/08/20/lvs-dr</a>&#160;<a href="#fnref:2" class="footnote-backref" role="doc-backlink">&#x21a9;&#xfe0e;</a></p>
 </li>
 <li id="fn:3">
-<p><a href="https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/7/html/load_balancer_administration/s1-lvs-direct-vsa" target="_blank" rel="noopener noreffer">https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/7/html/load_balancer_administration/s1-lvs-direct-vsa</a>
-&#160;<a href="#fnref:3" class="footnote-backref" role="doc-backlink">&#x21a9;&#xfe0e;</a></p>
+<p><a href="https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/7/html/load_balancer_administration/s1-lvs-direct-vsa" target="_blank" rel="noopener noreffer">https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/7/html/load_balancer_administration/s1-lvs-direct-vsa</a>&#160;<a href="#fnref:3" class="footnote-backref" role="doc-backlink">&#x21a9;&#xfe0e;</a></p>
 </li>
 <li id="fn:4">
-<p><a href="https://www.haproxy.com/blog/haproxy/proxy-protocol/" target="_blank" rel="noopener noreffer">https://www.haproxy.com/blog/haproxy/proxy-protocol/</a>
-&#160;<a href="#fnref:4" class="footnote-backref" role="doc-backlink">&#x21a9;&#xfe0e;</a></p>
+<p><a href="https://www.haproxy.com/blog/haproxy/proxy-protocol/" target="_blank" rel="noopener noreffer">https://www.haproxy.com/blog/haproxy/proxy-protocol/</a>&#160;<a href="#fnref:4" class="footnote-backref" role="doc-backlink">&#x21a9;&#xfe0e;</a></p>
 </li>
 <li id="fn:5">
-<p><a href="http://www.just4coding.com/blog/2015/11/16/toa/" target="_blank" rel="noopener noreffer">http://www.just4coding.com/blog/2015/11/16/toa/</a>
-&#160;<a href="#fnref:5" class="footnote-backref" role="doc-backlink">&#x21a9;&#xfe0e;</a></p>
+<p><a href="http://www.just4coding.com/blog/2015/11/16/toa/" target="_blank" rel="noopener noreffer">http://www.just4coding.com/blog/2015/11/16/toa/</a>&#160;<a href="#fnref:5" class="footnote-backref" role="doc-backlink">&#x21a9;&#xfe0e;</a></p>
 </li>
 </ol>
-</div>]]></description></item><item><title>iptables 快速入门</title><link>https://blog.firemiles.top/2019/iptables%E5%BF%AB%E9%80%9F%E5%85%A5%E9%97%A8/</link><pubDate>Sat, 16 Mar 2019 21:09:26 +0000</pubDate><author>firemiles</author><guid>https://blog.firemiles.top/2019/iptables%E5%BF%AB%E9%80%9F%E5%85%A5%E9%97%A8/</guid><description><![CDATA[<p>iptables 是 <a href="https://www.wikiwand.com/en/Netfilter" target="_blank" rel="noopener noreffer">netfilter</a>
- 项目的一部分，自1998年首发至今已经20年了，仍然是Linux中网络流量控制的重要软件。学习网络知识，iptables 是绕不过的一道坎。不论是配置网络防火墙，NAT，IP流量转发，使用iptables都可以实现。</p>
+</div>]]></description></item><item><title>iptables 快速入门</title><link>https://blog.firemiles.top/2019/iptables%E5%BF%AB%E9%80%9F%E5%85%A5%E9%97%A8/</link><pubDate>Sat, 16 Mar 2019 21:09:26 +0000</pubDate><author>firemiles</author><guid>https://blog.firemiles.top/2019/iptables%E5%BF%AB%E9%80%9F%E5%85%A5%E9%97%A8/</guid><description><![CDATA[<p>iptables 是 <a href="https://www.wikiwand.com/en/Netfilter" target="_blank" rel="noopener noreffer">netfilter</a> 项目的一部分，自1998年首发至今已经20年了，仍然是Linux中网络流量控制的重要软件。学习网络知识，iptables 是绕不过的一道坎。不论是配置网络防火墙，NAT，IP流量转发，使用iptables都可以实现。</p>
 <p>介绍iptables的文章已经有很多，在这里我再炒一遍冷饭，为的是把已有的资料糅合在一起，方便能在一篇文章里找到需要的知识。</p>
 <h2 id="基本概念">基本概念</h2>
 <p>iptables 可以检测、修改、转发、重定向和丢弃IPv4数据包。过滤IPv4数据包的代码已经内置在内核中，并且按照不同的目的被组织成 <strong>表</strong> 的集合。 <strong>表</strong> 由一组预先定义的 <strong>链</strong> 组成，<strong>链</strong> 包含便利顺序规则。每一条规则包含一个谓词的潜在匹配和相应的动作（称为 <strong>目标</strong>），如果谓词为真，该动作会被执行。这就是<strong>条件匹配</strong>。iptables 是用户工具，允许用户使用 <strong>链</strong> 和 <strong>规则</strong>。<strong>链</strong> 和 <strong>规则</strong> 能组合成非常复杂的Linux IP 路由规则，新手面对这些规则时可能会感到气馁，但是，实际上最常用的一些应用案例（NAT或者基本网络防火墙）并不是很复杂。</p>
@@ -2542,9 +2506,7 @@ IPv6的地址空间要远大于IPv4地址空间。一般建议在点对点链路
 <p>tcpdump在进入iptables之前抓包，所有有可能数据包被iptables丢弃了。</p>
 <h2 id="参考资料">参考资料</h2>
 <ul>
-<li><a href="https://wiki.archlinux.org/index.php/Iptables_%28%E7%AE%80%E4%BD%93%E4%B8%AD%E6%96%87%29" target="_blank" rel="noopener noreffer">https://wiki.archlinux.org/index.php/Iptables_(%E7%AE%80%E4%BD%93%E4%B8%AD%E6%96%87)</a>
-</li>
-<li><a href="https://www.jianshu.com/p/6d77d73325bf" target="_blank" rel="noopener noreffer">https://www.jianshu.com/p/6d77d73325bf</a>
-</li>
+<li><a href="https://wiki.archlinux.org/index.php/Iptables_%28%E7%AE%80%E4%BD%93%E4%B8%AD%E6%96%87%29" target="_blank" rel="noopener noreffer">https://wiki.archlinux.org/index.php/Iptables_(%E7%AE%80%E4%BD%93%E4%B8%AD%E6%96%87)</a></li>
+<li><a href="https://www.jianshu.com/p/6d77d73325bf" target="_blank" rel="noopener noreffer">https://www.jianshu.com/p/6d77d73325bf</a></li>
 </ul>
 ]]></description></item></channel></rss>

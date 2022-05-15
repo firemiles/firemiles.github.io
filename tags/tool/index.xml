@@ -367,10 +367,8 @@
 </div>
 </div><h2 id="参考">参考</h2>
 <ul>
-<li><a href="https://docs.openvswitch.org/en/latest/" target="_blank" rel="noopener noreffer">https://docs.openvswitch.org/en/latest/</a>
-</li>
-<li><a href="http://fishcried.com/2016-02-09/openvswitch-ops-guide/" target="_blank" rel="noopener noreffer">http://fishcried.com/2016-02-09/openvswitch-ops-guide/</a>
-</li>
+<li><a href="https://docs.openvswitch.org/en/latest/" target="_blank" rel="noopener noreffer">https://docs.openvswitch.org/en/latest/</a></li>
+<li><a href="http://fishcried.com/2016-02-09/openvswitch-ops-guide/" target="_blank" rel="noopener noreffer">http://fishcried.com/2016-02-09/openvswitch-ops-guide/</a></li>
 </ul>
 ]]></description></item><item><title>在CentOS7中编译安装emacs25</title><link>https://blog.firemiles.top/2018/%E5%9C%A8centos7%E4%B8%AD%E7%BC%96%E8%AF%91%E5%AE%89%E8%A3%85emacs25/</link><pubDate>Sat, 06 Jan 2018 00:24:46 +0000</pubDate><author>firemiles</author><guid>https://blog.firemiles.top/2018/%E5%9C%A8centos7%E4%B8%AD%E7%BC%96%E8%AF%91%E5%AE%89%E8%A3%85emacs25/</guid><description><![CDATA[<h2 id="讲在前面">讲在前面</h2>
 <p>目前使用spacemacs越来越顺手，每个环境我都要装一个，但是在CentOS7环境下默认的emacs版本是23，spacemacs只支持24以上版本，因此需要自行编译安装源代码，本文记录编译安装流程，方便后续查用。</p>
@@ -423,13 +421,11 @@
 </span></span><span class="line"><span class="cl">ln -s ~/Workspace/configures/comm/emacs/spacemacs/spacemacs-private/ ~/.spacemacs.d
 </span></span></code></pre></td></tr></table>
 </div>
-</div><p>至此，spacemacs编译安装完成，尽情享受spacemacs的美妙吧。</p>]]></description></item><item><title>神器Emacs上手</title><link>https://blog.firemiles.top/2017/%E7%A5%9E%E5%99%A8emacs%E4%B8%8A%E6%89%8B/</link><pubDate>Fri, 03 Feb 2017 20:46:44 +0000</pubDate><author>firemiles</author><guid>https://blog.firemiles.top/2017/%E7%A5%9E%E5%99%A8emacs%E4%B8%8A%E6%89%8B/</guid><description><![CDATA[<p><a href="http://spacemacs.org" target="_blank" rel="noopener noreffer"></a>
-</p>
+</div><p>至此，spacemacs编译安装完成，尽情享受spacemacs的美妙吧。</p>]]></description></item><item><title>神器Emacs上手</title><link>https://blog.firemiles.top/2017/%E7%A5%9E%E5%99%A8emacs%E4%B8%8A%E6%89%8B/</link><pubDate>Fri, 03 Feb 2017 20:46:44 +0000</pubDate><author>firemiles</author><guid>https://blog.firemiles.top/2017/%E7%A5%9E%E5%99%A8emacs%E4%B8%8A%E6%89%8B/</guid><description><![CDATA[<p><a href="http://spacemacs.org" target="_blank" rel="noopener noreffer"></a></p>
 <h2 id="为什么是emacs">为什么是Emacs</h2>
 <p>vi（及其衍生软件）和Emacs的编辑器之战由来以久，vi被称为编辑器之神，而Emacs则是神的编辑器。两款软件有着自己的哲学，vi党认为vi专注编辑，通过扩展能够适应各种编辑需求，是最好的编辑器，继承了Unix小而美的传统；Emacs党认为Emacs不仅仅是编辑器，而是一款操作系统，通过使用Emacs，很多工作都可以在Emacs中完成，这种All-in-one的哲学也有很多人推崇，认为Emacs是一种信仰。</p>
 <p>我曾经是坚定的vim党，认为编辑器就应该做编辑器应该做的事，直到遇上<code>Org-mode</code>。<code>Org-mode</code>是Emacs中的一个主模式，相信很多人使用Emacs就是为了使用<code>Org-mode</code>。相比简单的Markdown，Org-mode拥有更加丰富的语法功能，和Emacs的良好配合让写文档变成了一种享受，通过使用Emacs写Org的过程中接触了Emacs的其他功能，被它良好的文档和帮助系统，插件扩展系统深深的吸引，让我明白了，这就是我想要一直使用的工具，vim只是我临时使用会打开的编辑器，而Emacs是可以让我一直在里面工作的编辑器。</p>
-<p>配置Emacs的过程中发现了<a href="https://github.com/syl20bnr/spacemacs" target="_blank" rel="noopener noreffer">Spacemacs</a>
-，这是一个民间的Emacs配置方案，使用layers机制将不同类型的功能进行良好的封装，由社区进行开发维护，开箱即用的特性让Emacs新手也能够很好的使用Emacs。安装了Spacemacs后发现Emacs的使用变得更加简单了，良好的交互式补全功能让Emacs的使用曲线不再那么陡峭。</p>
+<p>配置Emacs的过程中发现了<a href="https://github.com/syl20bnr/spacemacs" target="_blank" rel="noopener noreffer">Spacemacs</a>，这是一个民间的Emacs配置方案，使用layers机制将不同类型的功能进行良好的封装，由社区进行开发维护，开箱即用的特性让Emacs新手也能够很好的使用Emacs。安装了Spacemacs后发现Emacs的使用变得更加简单了，良好的交互式补全功能让Emacs的使用曲线不再那么陡峭。</p>
 <p></p>
 <h2 id="spacemacs的安装">Spacemacs的安装</h2>
 <p>Spacemacs的安装十分简单，先安装Emacs软件，然后下载Spacemacs配置，根据官方仓库的说明操作。</p>

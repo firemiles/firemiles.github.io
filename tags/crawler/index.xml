@@ -30,9 +30,7 @@
 <p>bt-dht 中查找 peers-list 的过程则换成 find_value 动作，但注意前文提到的区别即可以有类似的描述。</p>
 <p><strong>注意</strong>：Kademlia 算法运行一段时间后，大部分 <code>&lt;key,value&gt;</code> 对象会在节点 X 聚集，其中 X 的 ID 值和 key 的距离很近，也就是 Kademlia 算法查找资源的依据。</p>
 <h2 id="dht-爬虫协议">DHT 爬虫协议</h2>
-<p>这里指的 DHT 爬虫主要是指使用 Kademlia 算法的 bt-dht 爬虫。bt-dht 使用 <a href="http://www.bittorrent.org/beps/bep_0005.html" target="_blank" rel="noopener noreffer">krpc</a>
- 协议和 <a href="http://www.wikiwand.com/zh/Bencode" target="_blank" rel="noopener noreffer">bencode</a>
- 编码。</p>
+<p>这里指的 DHT 爬虫主要是指使用 Kademlia 算法的 bt-dht 爬虫。bt-dht 使用 <a href="http://www.bittorrent.org/beps/bep_0005.html" target="_blank" rel="noopener noreffer">krpc</a> 协议和 <a href="http://www.wikiwand.com/zh/Bencode" target="_blank" rel="noopener noreffer">bencode</a> 编码。</p>
 <p>bt-dht 请求有四种，分别是：</p>
 <ul>
 <li>ping（回复 pong)</li>
@@ -44,30 +42,19 @@
 <h2 id="dht-爬虫实现">DHT 爬虫实现</h2>
 <p>在 Github 上已经有很多 DHT 爬虫的实现，简单列举几个我测试过的：</p>
 <ul>
-<li><a href="https://github.com/Fuck-You-GFW/simDHT" target="_blank" rel="noopener noreffer">Fuck-You-GFW/simDHT</a>
-</li>
-<li><a href="https://github.com/wuzhenda/simDHT" target="_blank" rel="noopener noreffer">wuzhenda/simDHT</a>
-</li>
-<li><a href="https://github.com/0x0d/dhtfck" target="_blank" rel="noopener noreffer">0x0d/dhtfck</a>
-</li>
+<li><a href="https://github.com/Fuck-You-GFW/simDHT" target="_blank" rel="noopener noreffer">Fuck-You-GFW/simDHT</a></li>
+<li><a href="https://github.com/wuzhenda/simDHT" target="_blank" rel="noopener noreffer">wuzhenda/simDHT</a></li>
+<li><a href="https://github.com/0x0d/dhtfck" target="_blank" rel="noopener noreffer">0x0d/dhtfck</a></li>
 </ul>
 <p>其中两个 simDHT 都是真正的爬虫，而 dhtfck 更接近一个正常的 DHT 节点。不幸的是我一开始采用了 dhtfck 作为参考开发，即使开启了 32 个爬虫进行爬取，收到的 announce 数也寥寥无几。一度爬虫的开发陷入停滞，因为找不到提高爬虫效率的方法，看到网上博客介绍的爬虫效率，我只能无奈，直到发现了 simDHT，这个纯正的 DHT 爬虫。</p>
 <p>对比了两个爬虫间的区别，我发现了问题的根源，dhtfck 每次只向数量很少的节点发出 find_node 请求，并一直维护 node 池中的节点，导致最终爬虫只被少数节点记录，收集效率当然不高。而 simDHT 则是以一定频率按顺序向节点列表中的节点发出 find_node 请求，并删除旧的节点，这样发现该爬虫的节点以很快的速度增长，而且不需要定期维护节点池。</p>
-<p>获取了 info_hash 后可以从一些种子网站下取对应的种子，如 <a href="http://torcache.net/" target="_blank" rel="noopener noreffer">torcache</a>
-；也可以构造磁力链接然后用迅雷等工具下载；也可以借助 libtorrent 库下载内容，甚至借助 bittorrent 协议中的 <a href="http://www.bittorrent.org/beps/bep_0009.html" target="_blank" rel="noopener noreffer">Extension for Peers to Send Metadata Files</a>
-，通过发出 announce_peer 的节点获取资源。</p>
+<p>获取了 info_hash 后可以从一些种子网站下取对应的种子，如 <a href="http://torcache.net/" target="_blank" rel="noopener noreffer">torcache</a>；也可以构造磁力链接然后用迅雷等工具下载；也可以借助 libtorrent 库下载内容，甚至借助 bittorrent 协议中的 <a href="http://www.bittorrent.org/beps/bep_0009.html" target="_blank" rel="noopener noreffer">Extension for Peers to Send Metadata Files</a>，通过发出 announce_peer 的节点获取资源。</p>
 <h2 id="参考资料">参考资料</h2>
 <ul>
-<li><a href="http://xiaoxia.org/2013/05/11/magnet-search-engine/" target="_blank" rel="noopener noreffer">写了个磁力搜索的网页</a>
-</li>
-<li><a href="http://www.cnblogs.com/miao31/p/3332819.html" target="_blank" rel="noopener noreffer">搜片神器</a>
-</li>
-<li><a href="http://justjavac.com/other/2015/02/01/bittorrent-dht-protocol.html" target="_blank" rel="noopener noreffer">BitTorrent DHT 协议中文翻译</a>
-</li>
-<li><a href="http://www.bittorrent.org/beps/bep_0005.html" target="_blank" rel="noopener noreffer">DHT Protocol</a>
-</li>
-<li><a href="http://www.bittorrent.org/beps/bep_0009.html" target="_blank" rel="noopener noreffer">Extension for Peers to Send Metadata Files</a>
-</li>
-<li><a href="http://www.bittorrent.org/beps/bep_0010.html" target="_blank" rel="noopener noreffer">Extension Protocol</a>
-</li>
+<li><a href="http://xiaoxia.org/2013/05/11/magnet-search-engine/" target="_blank" rel="noopener noreffer">写了个磁力搜索的网页</a></li>
+<li><a href="http://www.cnblogs.com/miao31/p/3332819.html" target="_blank" rel="noopener noreffer">搜片神器</a></li>
+<li><a href="http://justjavac.com/other/2015/02/01/bittorrent-dht-protocol.html" target="_blank" rel="noopener noreffer">BitTorrent DHT 协议中文翻译</a></li>
+<li><a href="http://www.bittorrent.org/beps/bep_0005.html" target="_blank" rel="noopener noreffer">DHT Protocol</a></li>
+<li><a href="http://www.bittorrent.org/beps/bep_0009.html" target="_blank" rel="noopener noreffer">Extension for Peers to Send Metadata Files</a></li>
+<li><a href="http://www.bittorrent.org/beps/bep_0010.html" target="_blank" rel="noopener noreffer">Extension Protocol</a></li>
 </ul>]]></description></item></channel></rss>

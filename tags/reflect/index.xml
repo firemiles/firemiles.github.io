@@ -123,8 +123,7 @@
 <p>这里不需要进行类型断言，因为 <code>Write</code> 接口满足空interface类型要求，而 <code>Read</code> 接口和 <code>Wirte</code> 接口的方法集并不匹配，我们需要显式进行类型断言，告诉编译器我们知道它们存储的值是满足接口的。</p>
 <p>还有很重要的一点要记住：interface中存储的pair是（value， concrete type），并不是 (value, interface type)。所以interface不能保存interface 值。</p>
 <h3 id="第一个法则-可以从-interface-值获取反射对象">第一个法则： 可以从 interface 值获取反射对象</h3>
-<p>先说基本功能，反射是测试interface中存储的值和类型的机制。我们需要了解 <a href="https://golang.org/pkg/reflect/" target="_blank" rel="noopener noreffer">package reflect</a>
- 中的 <code>Type</code> 和 <code>Value</code>。这两个类型可以访问interface中的内容。<code>reflect.TypeOf</code> 和 <code>reflect.ValueOf</code> 用来从interface中获取 <code>reflect.Type</code> 和 <code>reflect.Value</code> 。</p>
+<p>先说基本功能，反射是测试interface中存储的值和类型的机制。我们需要了解 <a href="https://golang.org/pkg/reflect/" target="_blank" rel="noopener noreffer">package reflect</a> 中的 <code>Type</code> 和 <code>Value</code>。这两个类型可以访问interface中的内容。<code>reflect.TypeOf</code> 和 <code>reflect.ValueOf</code> 用来从interface中获取 <code>reflect.Type</code> 和 <code>reflect.Value</code> 。</p>
 <div class="highlight"><div class="chroma">
 <table class="lntable"><tr><td class="lntd">
 <pre tabindex="0" class="chroma"><code><span class="lnt"> 1
@@ -372,18 +371,11 @@
 <p>下一次我将介绍 <code>encoding/json</code> 的实现，真正深入学习反射的使用。</p>
 <h2 id="参考">参考</h2>
 <ul>
-<li><a href="https://www.wikiwand.com/zh-hans/%E5%8F%8D%E5%B0%84_%28%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%A7%91%E5%AD%A6%29" target="_blank" rel="noopener noreffer">https://www.wikiwand.com/zh-hans/%E5%8F%8D%E5%B0%84_(%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%A7%91%E5%AD%A6)</a>
-</li>
-<li><a href="https://golang.org/pkg/reflect/" target="_blank" rel="noopener noreffer">https://golang.org/pkg/reflect/</a>
-</li>
-<li><a href="https://blog.golang.org/laws-of-reflection" target="_blank" rel="noopener noreffer">https://blog.golang.org/laws-of-reflection</a>
-</li>
-<li><a href="https://colobu.com/2018/02/27/go-addressable/" target="_blank" rel="noopener noreffer">https://colobu.com/2018/02/27/go-addressable/</a>
-</li>
-<li><a href="https://studygolang.com/articles/938" target="_blank" rel="noopener noreffer">https://studygolang.com/articles/938</a>
-</li>
-<li><a href="https://research.swtch.com/interfaces" target="_blank" rel="noopener noreffer">Go Data Structures: Interfaces</a>
-</li>
-<li><a href="https://draveness.me/golang/docs/part2-foundation/ch04-basic/golang-reflect/" target="_blank" rel="noopener noreffer">https://draveness.me/golang/docs/part2-foundation/ch04-basic/golang-reflect/</a>
-</li>
+<li><a href="https://www.wikiwand.com/zh-hans/%E5%8F%8D%E5%B0%84_%28%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%A7%91%E5%AD%A6%29" target="_blank" rel="noopener noreffer">https://www.wikiwand.com/zh-hans/%E5%8F%8D%E5%B0%84_(%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%A7%91%E5%AD%A6)</a></li>
+<li><a href="https://golang.org/pkg/reflect/" target="_blank" rel="noopener noreffer">https://golang.org/pkg/reflect/</a></li>
+<li><a href="https://blog.golang.org/laws-of-reflection" target="_blank" rel="noopener noreffer">https://blog.golang.org/laws-of-reflection</a></li>
+<li><a href="https://colobu.com/2018/02/27/go-addressable/" target="_blank" rel="noopener noreffer">https://colobu.com/2018/02/27/go-addressable/</a></li>
+<li><a href="https://studygolang.com/articles/938" target="_blank" rel="noopener noreffer">https://studygolang.com/articles/938</a></li>
+<li><a href="https://research.swtch.com/interfaces" target="_blank" rel="noopener noreffer">Go Data Structures: Interfaces</a></li>
+<li><a href="https://draveness.me/golang/docs/part2-foundation/ch04-basic/golang-reflect/" target="_blank" rel="noopener noreffer">https://draveness.me/golang/docs/part2-foundation/ch04-basic/golang-reflect/</a></li>
 </ul>]]></description></item></channel></rss>

@@ -8,9 +8,7 @@
 </ul>
 <p>DHCP 用一台或一组DHCP服务器来管理网络参数的分配，这种分配方式具有容错性。即使在一个仅拥有少量机器的网络中，DHCP仍然是有用的，因为一台机器可以不造成任何影响的被加入到网路中。</p>
 <p>甚至对于很少改变地址的服务器，DHCP仍然被建议用来设置它们的地址。如果服务器需要被重新分配地址，尽可能不改变之前的配置。对于一些设备，如路由器和防火墙，则不应该使用DHCP。</p>
-<p>DHCP 于 1993 年10月成为标准协议，前身是 BOOTP （Bootstrap Protocol， 引导程序协议），DHCP 被设计成向前兼容 BOOTP 协议。当前的DHCP定义可以在<a href="https://tools.ietf.org/html/rfc2131" target="_blank" rel="noopener noreffer">RFC 2131</a>
-找到，而基于IPv6的建议标准(DHCPv6)可以在<a href="https://tools.ietf.org/html/rfc3315" target="_blank" rel="noopener noreffer">RFC3315</a>
-中找到。</p>
+<p>DHCP 于 1993 年10月成为标准协议，前身是 BOOTP （Bootstrap Protocol， 引导程序协议），DHCP 被设计成向前兼容 BOOTP 协议。当前的DHCP定义可以在<a href="https://tools.ietf.org/html/rfc2131" target="_blank" rel="noopener noreffer">RFC 2131</a>找到，而基于IPv6的建议标准(DHCPv6)可以在<a href="https://tools.ietf.org/html/rfc3315" target="_blank" rel="noopener noreffer">RFC3315</a>中找到。</p>
 <h2 id="协议结构">协议结构</h2>
 <p></p>
 <ul>
@@ -272,20 +270,13 @@
 </div>
 </div><h2 id="参考资料">参考资料</h2>
 <ul>
-<li><a href="https://www.wikiwand.com/zh-hans/%E5%8A%A8%E6%80%81%E4%B8%BB%E6%9C%BA%E8%AE%BE%E7%BD%AE%E5%8D%8F%E8%AE%AE" target="_blank" rel="noopener noreffer">DHCP WIKI</a>
-</li>
-<li><a href="https://tools.ietf.org/html/rfc2131" target="_blank" rel="noopener noreffer"><strong>RFC2131</strong> Dynamic Host Configuration Protocol</a>
-</li>
-<li><a href="https://tools.ietf.org/html/rfc3315" target="_blank" rel="noopener noreffer"><strong>RFC3315</strong> Dynamic Host Configuration Protocol for IPv6 (DHCPv6)</a>
-</li>
-<li><a href="https://tools.ietf.org/html/rfc951" target="_blank" rel="noopener noreffer"><strong>RFC951</strong> BOOTSTRAP PROTOCOL (BOOTP)</a>
-</li>
-<li><a href="https://tools.ietf.org/html/rfc1542" target="_blank" rel="noopener noreffer"><strong>RFC1542</strong> Clarifications and Extensions for the Bootstrap Protocol</a>
-</li>
-<li><a href="https://tools.ietf.org/html/rfc1533" target="_blank" rel="noopener noreffer"><strong>RFC1533</strong> DHCP Options and BOOTP Vendor Extensions</a>
-</li>
-<li><a href="https://tools.ietf.org/html/rfc3442" target="_blank" rel="noopener noreffer"><strong>RFC3442</strong> The Classless Static Route Option for Dynamic Host Configuration Protocol (DHCP) version 4</a>
-</li>
+<li><a href="https://www.wikiwand.com/zh-hans/%E5%8A%A8%E6%80%81%E4%B8%BB%E6%9C%BA%E8%AE%BE%E7%BD%AE%E5%8D%8F%E8%AE%AE" target="_blank" rel="noopener noreffer">DHCP WIKI</a></li>
+<li><a href="https://tools.ietf.org/html/rfc2131" target="_blank" rel="noopener noreffer"><strong>RFC2131</strong> Dynamic Host Configuration Protocol</a></li>
+<li><a href="https://tools.ietf.org/html/rfc3315" target="_blank" rel="noopener noreffer"><strong>RFC3315</strong> Dynamic Host Configuration Protocol for IPv6 (DHCPv6)</a></li>
+<li><a href="https://tools.ietf.org/html/rfc951" target="_blank" rel="noopener noreffer"><strong>RFC951</strong> BOOTSTRAP PROTOCOL (BOOTP)</a></li>
+<li><a href="https://tools.ietf.org/html/rfc1542" target="_blank" rel="noopener noreffer"><strong>RFC1542</strong> Clarifications and Extensions for the Bootstrap Protocol</a></li>
+<li><a href="https://tools.ietf.org/html/rfc1533" target="_blank" rel="noopener noreffer"><strong>RFC1533</strong> DHCP Options and BOOTP Vendor Extensions</a></li>
+<li><a href="https://tools.ietf.org/html/rfc3442" target="_blank" rel="noopener noreffer"><strong>RFC3442</strong> The Classless Static Route Option for Dynamic Host Configuration Protocol (DHCP) version 4</a></li>
 </ul>
 <h2 id="附录">附录</h2>
 <p>状态图源码</p>
