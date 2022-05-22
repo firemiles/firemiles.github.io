@@ -1,4 +1,223 @@
-<rss xmlns:atom="http://www.w3.org/2005/Atom" version="2.0"><channel><title>firemiles 的个人博客</title><link>https://blog.firemiles.top/</link><description>记录工作，分享技术，积累成长</description><generator>Hugo -- gohugo.io</generator><language>zh-CN</language><managingEditor>miles.dev@outlook.comm (firemiles)</managingEditor><webMaster>miles.dev@outlook.comm (firemiles)</webMaster><lastBuildDate>Sat, 23 Apr 2022 20:36:23 +0000</lastBuildDate><atom:link href="https://blog.firemiles.top/index.xml" rel="self" type="application/rss+xml"/><item><title>WSL2安装内核头文件</title><link>https://blog.firemiles.top/2022/wsl2%E5%AE%89%E8%A3%85%E5%86%85%E6%A0%B8%E5%A4%B4%E6%96%87%E4%BB%B6/</link><pubDate>Sat, 23 Apr 2022 20:36:23 +0000</pubDate><author>firemiles</author><guid>https://blog.firemiles.top/2022/wsl2%E5%AE%89%E8%A3%85%E5%86%85%E6%A0%B8%E5%A4%B4%E6%96%87%E4%BB%B6/</guid><description><![CDATA[<h2 id="前言">前言</h2>
+<rss xmlns:atom="http://www.w3.org/2005/Atom" version="2.0"><channel><title>firemiles 的个人博客</title><link>https://blog.firemiles.top/</link><description>记录工作，分享技术，积累成长</description><generator>Hugo -- gohugo.io</generator><language>zh-CN</language><managingEditor>miles.dev@outlook.comm (firemiles)</managingEditor><webMaster>miles.dev@outlook.comm (firemiles)</webMaster><lastBuildDate>Sun, 22 May 2022 08:00:00 +0000</lastBuildDate><atom:link href="https://blog.firemiles.top/index.xml" rel="self" type="application/rss+xml"/><item><title>cgroupv2学习</title><link>https://blog.firemiles.top/2022/cgroupv2%E5%AD%A6%E4%B9%A0/</link><pubDate>Sun, 22 May 2022 08:00:00 +0000</pubDate><author>firemiles</author><guid>https://blog.firemiles.top/2022/cgroupv2%E5%AD%A6%E4%B9%A0/</guid><description><![CDATA[<h2 id="前言">前言</h2>
+<p>这几年工作重心一直在容器网络方向，对虚拟化技术，容器隔离技术一直处于一知半解的状态，但是心里一直有着好奇，到底是怎样的技术，构建出了如今的容器化技术世界。项目中用到了cgroupV2，正好最近有时间，直接跳过cgroupV1学习了下cgroupV2的文档，这里分享内容主要来自<a href="https://arthurchiao.art/blog/cgroupv2-zh/" target="_blank" rel="noopener noreffer">官方权威文档中文翻译</a>。</p>
+<h2 id="什么是cgroup">什么是cgroup</h2>
+<p><code>cgroup</code> 是 &ldquo;control group&rdquo; 的缩写，并且首字母永远不大写。<code>cgroup</code> 是一种以 hierarchical (树形层级)方式组织进程的机制，以及在层级中以受控和可配置的方式分发系统资源。</p>
+<ul>
+<li>单数形式（cgroup）指这个特性，或用户 &ldquo;cgroup controllers&rdquo; 等术语中的修饰词</li>
+<li>复数形式（cgroups） 显式地指多个cgroup</li>
+</ul>
+<p>cgroup 是 Linux 内核的一个功能，用来限制、控制与分离一个进程组的资源（如CPU、内存、磁盘输入输出等）。它最早由Google的工程师（主要是Paul Menage和Rohit Seth）在2006年发起，最早名称为进程容器（process containers）。在2007年时，因为在Linux内核中，容器（container）这个名词有许多不同的意义，为避免混乱，被重新命名为cgroup，并且被合并到2.6.24版的内核中去。</p>
+<p>cgroups的一个设计目标是为不同的应用情况提供统一的接口，从控制单一进程（像nice）到作业系统层虚拟化（像OpenVZ，Linux-VServer，LXC）。cgroups 提供：</p>
+<ul>
+<li>资源限制：组可以被设置不超过设定的内存限制，包括虚拟内存。</li>
+<li>优先级：一些组可能会得到大量的CPU或磁盘IO吞吐量。</li>
+<li>结算：用来度量系统实际用了多少资源。</li>
+<li>控制：冻结组或检查点和重启动。</li>
+</ul>
+<p>cgroup 主要由两部分组成：</p>
+<ol>
+<li><code>核心（core）</code>：主要负责层级化地组织进程；</li>
+<li><code>控制器（controllers）</code>：大部分控制器负责cgroup层级中特定类型的系统资源分配，少部分utility控制器用于其他目的。</li>
+</ol>
+<h2 id="为什么会有cgroup">为什么会有cgroup</h2>
+<p>在 Linux 里，一直依赖就有对进程进行分组的概念和需求，比如 <code>session group</code>, <code>progress group</code> 等，后来随着人们对这方面的需求越来越多，比如需要追踪一组进程的内存和IO 使用情况等，于是出现了cgroup，用来统一将进程进行分组，并在分组的基础上对进程进行监控和资源控制管理等。</p>
+<p>在 <code>CentOS 7</code> 中，通过将cgroup层级系统与systemd单位树捆绑， 可以把资源管理设置从进程级别移至应用程序级别。默认情况下，systemd 会自动创建 <code>slice</code>、<code>scope</code>和<code>service</code>单位的层级，来为 cgroup 树提供统一结构，可以通过 <code>systemctl</code> 命令创建自定义slice进一步修改结构。</p>
+<p></p>
+<p>如上图所示，系统默认创建了3个顶级<code>slice</code>(<code>System</code>,<code>User</code>和<code>Machine</code>)。每个slice都会获得相同CPU使用时间，如果<code>user.slice</code>想要获得<code>100%</code>的CPU使用时间，而此时CPU比较空闲，那么<code>user.slice</code>就能如愿以偿。</p>
+<h2 id="为什么会有cgroupv2">为什么会有cgroupV2</h2>
+<p>cgroup v1 支持多个 hierarchy，每个hierarchy可以启用任意数量的controller。这种方式看上去高度灵活，但实际中并不是很有用。例如：</p>
+<ol>
+<li>utility 类型的 controller（例如freezer）本可用与多个hierarchy，而由于v1中每个controller只有一个实例，utility controller的作用就大打折扣；而hierarchy 一旦被populated之后，控制器就不能移动到其他hierarchy的事实，更是加剧了这个问题。</li>
+<li>另一个问题是，关联到某个hierarchy的所有控制器，只能拥有相同的hierarchy视图。无法在controller粒度改变这种视图。</li>
+</ol>
+<p></p>
+<p>在实际中，大部分hierarhchy都启动了所有控制器，而实际上只有联系非常紧密的控制器——例如cpu和cpuacct放到同一个hierarchy中才有意义。最终结果是：</p>
+<ol>
+<li>用户控件最后管理这多个非常类似的hierarchy</li>
+<li>在执行hierarchy管理操作是，每个hierarchy上重复着相同的操作。</li>
+</ol>
+<h3 id="其他-cgroup-接口相关问题">其他 cgroup 接口相关问题</h3>
+<p>v1的设计并没有前瞻性，因此后面引入了大量怪异特性和不一致性。</p>
+<h2 id="cgroupv2的功能">cgroupV2的功能</h2>
+<p>cgroup v2将多个hierarchy的方式变成了 unified hierarchy，并将所有的controller挂载到一个unified hierarchy。</p>
+<p>当前kernel没有一处 cgroup v1版本，允许cgroup v1和v2共存，但是相同的controller不能同时mount到这两个不同的cgroup版本中。</p>
+<blockquote>
+<p>进程能否是同时属于cgroup v1和cgroup v2？可以的，查看 <code>/proc/$PID/cgroup</code> 会返现同时包含v1和v2 membership</p>
+</blockquote>
+<h3 id="进程线程与-cgroup-关系">进程/线程与 cgroup 关系</h3>
+<p>所有cgroup组成一个树形结构。</p>
+<ul>
+<li>系统中的每个进程都属于且只属于某一个cgroup；</li>
+<li>一个进程的所有线程属于同一个cgroup；</li>
+<li>创建子进程时，继承其父进程的cgroup；</li>
+<li>一个进程可以迁移到其他cgroup；</li>
+<li>迁移一个进程时，子进程（后台进程）不会自动跟着一起迁移；</li>
+</ul>
+<h3 id="控制器">控制器</h3>
+<p>可以选择性地针对一个cgroup启用或禁用某些控制器；</p>
+<p>控制器的所有行为是hierarchical的。</p>
+<ul>
+<li>如果一个cgroup启用了某个控制器，它的sub-hierarchy中所有进程都会受控制</li>
+<li>如果在更接近的root的节点上设置了资源限制，那下面的sub-hierarchy是无法覆盖也，也就是sub-hierarchy受parent限制。</li>
+</ul>
+<h3 id="基础操作">基础操作</h3>
+<h4 id="挂载">挂载</h4>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-shell" data-lang="shell"><span class="line"><span class="cl">mount -t cgroup2 none <span class="nv">$MOUNT_POINT</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>cgroupv2 文件系统的magic number是<code>0x63677270</code>（&ldquo;cgrp&rdquo;）</p>
+<ul>
+<li>所有支持v2且未绑定到v1的控制器，会被自动绑定到v2的hierarchy，出现在root层级中。</li>
+<li>v2中未使用的控制器也可以绑定到其他的hierarchies。</li>
+</ul>
+<p>这说明我们能以完全向后兼容的方式混用v2和v1 hierarchy。</p>
+<h3 id="组织进程和线程">组织进程和线程</h3>
+<h4 id="进程创建删除移动查看-cgroup">进程：创建/删除/移动/查看 cgroup</h4>
+<p>初始状态下，只有root cgroup，所有进程都属于这个cgroup。</p>
+<ul>
+<li>创建sub-cgroup：只需要创建一个子目录
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-shell" data-lang="shell"><span class="line"><span class="cl">mkdir <span class="nv">$CGROUP_NAME</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div></li>
+</ul>
+<ul>
+<li>
+<p>将进程移动到指定cgroup：将PID写入到相应cgroup的cgroup.procs文件即可。</p>
+<ul>
+<li>每次<code>write(2)</code>只能迁移一个进程</li>
+<li>如果进程有多个线程，那将任意线程PID写入到文件，都会将该进程的所有线程迁移到相应的cgroup。</li>
+<li>如果进程fork出一个子进程，那子进程属于执行fork操作时父进程所属的cgroup。</li>
+<li>进程退出（exit）后，仍然留在退出时它所属的cgroup，直到这个进程被收割（reap）；</li>
+<li>僵尸进程不会出现在cgroup.procs中，因此无法对僵尸进程执行迁移操作。</li>
+</ul>
+</li>
+<li>
+<p>删除cgroup/sub-cgroup</p>
+<ul>
+<li>如果一个cgroup 已经没有任何children或活进程，那直接删除对应的文件夹就删除该cgroup了</li>
+<li>如果一个cgroup已经没有children，但是还有僵尸进程，也认为这个cgroup是空的，可以直接删除</li>
+</ul>
+</li>
+<li>
+<p>查看进程的cgroup信息：<code>cat /proc/$PID/cgroup</code> 会列出该进程的 cgroup membership。如果启用了v1，这个文件可能会包含多行，每个hierarchy一行。v2对应的行永远是0::$PATH格式：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-shell" data-lang="shell"><span class="line"><span class="cl">$ cat /proc/<span class="nv">$$</span>/cgroup <span class="c1"># ubuntu 20.04 上的输出，$$ 是当前 shell 的进程 ID</span>
+</span></span><span class="line"><span class="cl">12:devices:/user.slice
+</span></span><span class="line"><span class="cl">11:freezer:/
+</span></span><span class="line"><span class="cl">10:memory:/user.slice/user-1000.slice/session-1.scope
+</span></span><span class="line"><span class="cl">9:hugetlb:/
+</span></span><span class="line"><span class="cl">8:cpuset:/
+</span></span><span class="line"><span class="cl">7:perf_event:/
+</span></span><span class="line"><span class="cl">6:rdma:/
+</span></span><span class="line"><span class="cl">5:pids:/user.slice/user-1000.slice/session-1.scope
+</span></span><span class="line"><span class="cl">4:cpu,cpuacct:/user.slice
+</span></span><span class="line"><span class="cl">3:blkio:/user.slice
+</span></span><span class="line"><span class="cl">2:net_cls,net_prio:/
+</span></span><span class="line"><span class="cl">1:name<span class="o">=</span>systemd:/user.slice/user-1000.slice/session-1.scope
+</span></span><span class="line"><span class="cl">0::/user.slice/user-1000.slice/session-1.scope  <span class="c1"># v2</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div></li>
+</ul>
+<h4 id="线程">线程</h4>
+<ul>
+<li>cgroup v2 的一部分控制器支持线程粒度的资源控制，这种控制器称为threaded controllers。
+<ul>
+<li>默认情况下，一个进程的所有线程属于同一个cgroup，</li>
+<li>线程模型使我们能将不同线程放到subtree的不同位置，同时还能保持二者在同一个资源域（resource domain）内。</li>
+</ul>
+</li>
+<li>不支持线程模型的控制器称为domain controllers。</li>
+</ul>
+<p>将cgroup改成threaded模式（单向/不可逆操作）
+cgroup 创建之后都是domain cgroup，可以通过下面的命令将其改成threaded模式</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-shell" data-lang="shell"><span class="line"><span class="cl"><span class="nb">echo</span> threaded &gt; cgroup.type
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="控制器-1">控制器</h3>
+<ul>
+<li>CPU</li>
+<li>Memory</li>
+<li>IO</li>
+<li>PID</li>
+<li>Cpuset</li>
+<li>Device Controller（基于cgroup BPF）</li>
+<li>RDMA</li>
+<li>HugeTLB</li>
+<li>Misc
+<ul>
+<li>perf_event</li>
+</ul>
+</li>
+</ul>
+<h3 id="cgroup-命名控件cgroupns">cgroup 命名控件（cgroupns）</h3>
+<p>容器环境中用cgroup和其他一些namespace来隔离进程，但是<code>/proc/$PID/cgroup</code> 文件可能会泄露潜在的系统层信息。例如：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-shell" data-lang="shell"><span class="line"><span class="cl">cat /proc/self/cgroup
+</span></span><span class="line"><span class="cl">0::/batchjobs/container_id1 <span class="c1"># &lt;-- cgroup 的绝对路径，属于系统层信息，不希望暴露给隔离的进程</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>因此引入了cgroup namespace。</p>
+<h2 id="cgroupv2的实现">cgroupV2的实现</h2>
+<h3 id="cgroup-控制接口">cgroup 控制接口</h3>
+<p>
+Linux 使用了多种数据结构在内核中实现了cgroups的配置，关联了进程和cgroups节点，那么Linux又是如何让用户态进程使用cgroups的功能呢？Linux内核有一个很大的模块叫VFS（Virtual File System）。VFS能够把具体的文件系统细节隐藏起来，给用户态进程提供一个同一个为文件系统API接口。cgrpus与CFS之间衔接的部分称之为cgroup文件系统。</p>
+<h2 id="cgroupv2的典型应用">cgroupV2的典型应用</h2>
+<p>听说cgroup是从docker开始，也是容器技术带火了cgroup技术，这里简单介绍下容器如何使用cgroup。</p>
+<p></p>
+<p></p>
+<p></p>
+
+<div style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden;">
+  <iframe src="https://www.youtube-nocookie.com/embed/u8h0e84HxcE" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border:0;" allowfullscreen title="YouTube Video"></iframe>
+</div>
+
+<h2 id="参考资料">参考资料</h2>
+<ul>
+<li><a href="https://www.wikiwand.com/zh-hans/Cgroups" target="_blank" rel="noopener noreffer">https://www.wikiwand.com/zh-hans/Cgroups</a></li>
+<li><a href="https://arthurchiao.art/blog/cgroupv2-zh/" target="_blank" rel="noopener noreffer">https://arthurchiao.art/blog/cgroupv2-zh/</a></li>
+<li><a href="https://segmentfault.com/a/1190000040980305" target="_blank" rel="noopener noreffer">https://segmentfault.com/a/1190000040980305</a></li>
+<li><a href="https://juejin.cn/post/6844904110639054861" target="_blank" rel="noopener noreffer">https://juejin.cn/post/6844904110639054861</a></li>
+</ul>
+]]></description></item><item><title>WSL2安装内核头文件</title><link>https://blog.firemiles.top/2022/wsl2%E5%AE%89%E8%A3%85%E5%86%85%E6%A0%B8%E5%A4%B4%E6%96%87%E4%BB%B6/</link><pubDate>Sat, 23 Apr 2022 20:36:23 +0000</pubDate><author>firemiles</author><guid>https://blog.firemiles.top/2022/wsl2%E5%AE%89%E8%A3%85%E5%86%85%E6%A0%B8%E5%A4%B4%E6%96%87%E4%BB%B6/</guid><description><![CDATA[<h2 id="前言">前言</h2>
 <p>一般 Linux 的发行版直接使用软件源就可以安装内核模块和内核头文件，但是WSL2作为一个特殊的版本，
 大部分内核模块无法安装，也无法直接安装内核头文件，还有部分依赖内核头文件的工具也无法运行，本文主要介绍内核头文件的安装。</p>
 <h2 id="安装">安装</h2>
@@ -2081,432 +2300,4 @@ IPv6的地址空间要远大于IPv4地址空间。一般建议在点对点链路
 <p><a href="http://www.just4coding.com/blog/2015/11/16/toa/" target="_blank" rel="noopener noreffer">http://www.just4coding.com/blog/2015/11/16/toa/</a>&#160;<a href="#fnref:5" class="footnote-backref" role="doc-backlink">&#x21a9;&#xfe0e;</a></p>
 </li>
 </ol>
-</div>]]></description></item><item><title>iptables 快速入门</title><link>https://blog.firemiles.top/2019/iptables%E5%BF%AB%E9%80%9F%E5%85%A5%E9%97%A8/</link><pubDate>Sat, 16 Mar 2019 21:09:26 +0000</pubDate><author>firemiles</author><guid>https://blog.firemiles.top/2019/iptables%E5%BF%AB%E9%80%9F%E5%85%A5%E9%97%A8/</guid><description><![CDATA[<p>iptables 是 <a href="https://www.wikiwand.com/en/Netfilter" target="_blank" rel="noopener noreffer">netfilter</a> 项目的一部分，自1998年首发至今已经20年了，仍然是Linux中网络流量控制的重要软件。学习网络知识，iptables 是绕不过的一道坎。不论是配置网络防火墙，NAT，IP流量转发，使用iptables都可以实现。</p>
-<p>介绍iptables的文章已经有很多，在这里我再炒一遍冷饭，为的是把已有的资料糅合在一起，方便能在一篇文章里找到需要的知识。</p>
-<h2 id="基本概念">基本概念</h2>
-<p>iptables 可以检测、修改、转发、重定向和丢弃IPv4数据包。过滤IPv4数据包的代码已经内置在内核中，并且按照不同的目的被组织成 <strong>表</strong> 的集合。 <strong>表</strong> 由一组预先定义的 <strong>链</strong> 组成，<strong>链</strong> 包含便利顺序规则。每一条规则包含一个谓词的潜在匹配和相应的动作（称为 <strong>目标</strong>），如果谓词为真，该动作会被执行。这就是<strong>条件匹配</strong>。iptables 是用户工具，允许用户使用 <strong>链</strong> 和 <strong>规则</strong>。<strong>链</strong> 和 <strong>规则</strong> 能组合成非常复杂的Linux IP 路由规则，新手面对这些规则时可能会感到气馁，但是，实际上最常用的一些应用案例（NAT或者基本网络防火墙）并不是很复杂。</p>
-<p>理解iptables如果工作的关键是下面这张图。</p>
-<p></p>
-<p>从任何网络端口进来的每一个IP数据包都要从上到下穿过这张图。一种常见的困扰是认为iptables对从内部端口进入的数据包和从面向互联网端口进入的数据包采用不同的处理方式，相反，iptables对从任何端口进入的数据包都会采用相同的处理方式。可以定义规则使iptables采取不同的方式对待从不同端口进入的数据包。</p>
-<p>这张图里的顺序有点复杂，我把它拆成两组顺序关系：<strong>表</strong> 的顺序和 <strong>链</strong> 的顺序。</p>
-<p>表的顺序：</p>
-<div class="highlight"><div class="chroma">
-<table class="lntable"><tr><td class="lntd">
-<pre tabindex="0" class="chroma"><code><span class="lnt">1
-</span></code></pre></td>
-<td class="lntd">
-<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">raw -&gt; mangle -&gt; nat -&gt; filter
-</span></span></code></pre></td></tr></table>
-</div>
-</div><p>链的顺序：</p>
-<p></p>
-<h3 id="表tables">表（Tables）</h3>
-<p>iptables 包含5张表</p>
-<ul>
-<li><code>raw</code> 用于配置数据包，<code>raw</code> 中的数据包不会被系统跟踪</li>
-<li><code>filter</code> 是用于存放所有与防火墙相关操作的默认表</li>
-<li><code>nat</code> 用于网络地址转换</li>
-<li><code>mangle</code> 用于对特定数据包的修改</li>
-<li><code>security</code> 用于强制访问控制（例如：SELinux）</li>
-</ul>
-<p>大部分情况仅需要使用 <code>filter</code> 和 <code>nat</code> 。其他表用于更复杂的情况——包括多路由和路由判定。</p>
-<h3 id="链chains">链（Chains）</h3>
-<p>表由链组成，链是一些安装顺序排列的规则和列表。默认的 <code>filter</code> 表包含 <code>INPUT</code>，<code>OUTPUT</code> 和 <code>FORWARD</code> 3 条内建链。 <code>nat</code> 表包含 <code>PREROUTING</code>, <code>POSTROUTING</code> 和 <code>OUTPUT</code> 链。</p>
-<p></p>
-<h3 id="规则rules">规则（Rules）</h3>
-<p>数据包的过滤基于 <strong>规则</strong>。<strong>规则</strong>由一个目标（数据包包匹配所有条件后的动作）和很多匹配（导致该规则可以应用的数据包所满足的条件）指定。一个规则的典型匹配事项是数据包进入的端口（例如： eth0或者eth1）、数据包的类型（ICMP，TCP或者UDP）和数据包的目的端口。</p>
-<p>目标使用 <code>-j</code> 或者 <code>--jump</code> 选项指定。目标是可以用户定义的链、一个内置的特定目标或者是一个目标扩展。内置目标有 <code>ACCEPT</code>,<code>DROP</code>,<code>QUEUE</code>和<code>RETURN</code>,目标扩展是<code>REJECT</code>和<code>LOG</code>。如果目标是内置目标，数据包的命运立刻被决定并且在当前表的数据包处理过程会停止。如果目标用户定义的链，并且数据包成功穿过第二条链，目标将移动到原始链中的下一个规则。目标扩展可以被终止（像内置目标一样）或者不终止（像用户定义链一样）。</p>
-<h3 id="遍历链traversing-chains">遍历链（Traversing Chains）</h3>
-<p>上述流程图描述了在任何接口上收到的网络数据包是按照怎样的顺序走过表的交通管制链。第一个路由策略包决定数据包的目的地址是本地主机（这时穿过 <code>INPUT</code> 链），还是其他主机（穿过<code>FORWARD</code>链）;中间的路由策略决定传出的包使用哪个源地址、分配哪个接口；最后一个路由策略存在是因为先前的 mangle 与 nat 链可能会改变数据包的路由信息。数据包通过路径上的每一条链时，链中的每一条规则按顺序匹配；无论何时匹配了一条规则，相应的 target/jump 动作将会执行。最常用的 3 个 taget 是 <code>ACCPET</code> , <code>DROP</code> 或者 jump 到自定义链。内置的链有默认的策略，但是用户自定义的链没有默认策略。在jump到的链中，若每条规则都不能完全匹配，那么数据包像下图一样返回到调用链。</p>
-<p></p>
-<p><code>DROP</code> target 的规则完全能匹配，那么被匹配的数据包会被丢弃。如果一个数据包在链中被 <code>ACCEPT</code>，那么他会被所有的父链 <code>ACCEPT</code>。并且不在便利其他父链。然而，要注意的是，数据包还会以正常的方式继续遍历其他表中的其他链。</p>
-<p><code>REJECT</code> 拦阻该数据包，并返回数据包通知对方，可以返回的数据包有几个选择：ICMP port-unreachable、ICMP echo-reply 或者是 tcp-reset（这个数据包会要求对方变比连接），进行完此处理动作后，不再对比其他规则，直接中断过滤程序。范例如下：</p>
-<div class="highlight"><div class="chroma">
-<table class="lntable"><tr><td class="lntd">
-<pre tabindex="0" class="chroma"><code><span class="lnt">1
-</span></code></pre></td>
-<td class="lntd">
-<pre tabindex="0" class="chroma"><code class="language-sh" data-lang="sh"><span class="line"><span class="cl">iptables -A  INPUT -p TCP --dport <span class="m">22</span> -j REJECT --reject-with ICMP echo-reply
-</span></span></code></pre></td></tr></table>
-</div>
-</div><p><code>REDIRECT</code> 将封包重新导向另一个端口（PNAT），进行完此动作后，将会继续对比其他规则。这个动作可以用来实现透明代理或者保护web服务器。例如：</p>
-<div class="highlight"><div class="chroma">
-<table class="lntable"><tr><td class="lntd">
-<pre tabindex="0" class="chroma"><code><span class="lnt">1
-</span></code></pre></td>
-<td class="lntd">
-<pre tabindex="0" class="chroma"><code class="language-sh" data-lang="sh"><span class="line"><span class="cl">iptables -t nat -A PREROUTING -p tcp --dport <span class="m">80</span> -j REDIRECT--to-ports <span class="m">8081</span>
-</span></span></code></pre></td></tr></table>
-</div>
-</div><p><code>MASQUERADE</code> 改写封包来源IP为防火墙的IP，可以指定port对应的范围，进行完此处理动作后，直接跳往下一个规则链(mangle:postrouting)。这个功能与 SNAT 略有不同，当进行IP伪装时，不需要指定为装成哪个IP，IP会从网卡直接读取，当使用拨接连线时，IP通常是由ISP公司的DHCP服务器指派的，这个时候 <code>MASQUERADE</code> 特别有用，范例如下:</p>
-<div class="highlight"><div class="chroma">
-<table class="lntable"><tr><td class="lntd">
-<pre tabindex="0" class="chroma"><code><span class="lnt">1
-</span></code></pre></td>
-<td class="lntd">
-<pre tabindex="0" class="chroma"><code class="language-sh" data-lang="sh"><span class="line"><span class="cl">iptables -t nat -A POSTROUTING -p TCP -j MASQUERADE --to-ports 21000-31000
-</span></span></code></pre></td></tr></table>
-</div>
-</div><p><code>LOG</code> 将数据包相关信息记录在 /var/log 中，详细位置请查阅 /etc/syslog/conf 配置文件，进行完此处理动作后，将会继续对比其他规则。例如：</p>
-<div class="highlight"><div class="chroma">
-<table class="lntable"><tr><td class="lntd">
-<pre tabindex="0" class="chroma"><code><span class="lnt">1
-</span></code></pre></td>
-<td class="lntd">
-<pre tabindex="0" class="chroma"><code class="language-sh" data-lang="sh"><span class="line"><span class="cl">iptables -A INPUT -p tcp -j LOG --log-prefix <span class="s2">&#34;input packet&#34;</span>
-</span></span></code></pre></td></tr></table>
-</div>
-</div><p><code>SNAT</code> 改写封包来源为某特定IP或IP范围，可以指定port对应的范围，进行完此处理动作后，将直接跳往下一规则链（mangle:postrouting）。范例如下：</p>
-<div class="highlight"><div class="chroma">
-<table class="lntable"><tr><td class="lntd">
-<pre tabindex="0" class="chroma"><code><span class="lnt">1
-</span></code></pre></td>
-<td class="lntd">
-<pre tabindex="0" class="chroma"><code class="language-sh" data-lang="sh"><span class="line"><span class="cl">iptables -t nat -A POSTROUTING -p tcp -o eth0 -j SNAT --to-source 192.168.10.15-192.168.10.160:2100-3200
-</span></span></code></pre></td></tr></table>
-</div>
-</div><p><code>DNAT</code> 改写数据包包目的地IP为某特定IP或IP范围，可以指定port对应的范围，进行完此处理动作后，将会直接跳往下一规则链（filter:input或filter:forward)</p>
-<div class="highlight"><div class="chroma">
-<table class="lntable"><tr><td class="lntd">
-<pre tabindex="0" class="chroma"><code><span class="lnt">1
-</span></code></pre></td>
-<td class="lntd">
-<pre tabindex="0" class="chroma"><code class="language-sh" data-lang="sh"><span class="line"><span class="cl">iptables -t nat -A PREROUTING -p tcp -d 15.45.23.67 --dport <span class="m">80</span> -j DNAT --to-destination 192.168.10.1-192.168.10.10:80-100
-</span></span></code></pre></td></tr></table>
-</div>
-</div><p><code>MIRROR</code> 镜像数据包，也就是将来源IP与目的IP对调后，将数据包返回，进行完此处理动作后将会中断过滤程序。</p>
-<p><code>QUEUE</code> 中断过滤程序，将封包放入队列，交给其他程序处理。透过自行开发的处理程序，可以进行其他应用，例如：计算联机费用……等。</p>
-<p><code>RETURN</code> 结束在目前规则链中的处理程序，返回父规则链中继续过滤。</p>
-<p><code>MARK</code> 将封包打上某个代号，以便提供作为后续过滤的条件判断依据，尽享完此处理动作后，将会继续对比其他规则，范例如下：</p>
-<div class="highlight"><div class="chroma">
-<table class="lntable"><tr><td class="lntd">
-<pre tabindex="0" class="chroma"><code><span class="lnt">1
-</span></code></pre></td>
-<td class="lntd">
-<pre tabindex="0" class="chroma"><code class="language-sh" data-lang="sh"><span class="line"><span class="cl">iptables -t mangle -A PREROUTING -p tcp --dport <span class="m">22</span> -j MARK --set-mark <span class="m">22</span>
-</span></span></code></pre></td></tr></table>
-</div>
-</div><h3 id="模块">模块</h3>
-<p>有许多模块可以用来扩展 iptables，例如 connlimit， conntrack，limit和recent。这些模块增添了功能，可以进行更复杂的过滤。</p>
-<h2 id="配置并运行-iptables">配置并运行 iptables</h2>
-<p>iptables 是一个 systemd 服务，因此可以这样启动：</p>
-<div class="highlight"><div class="chroma">
-<table class="lntable"><tr><td class="lntd">
-<pre tabindex="0" class="chroma"><code><span class="lnt">1
-</span></code></pre></td>
-<td class="lntd">
-<pre tabindex="0" class="chroma"><code class="language-sh" data-lang="sh"><span class="line"><span class="cl"><span class="c1"># systemctl start iptables</span>
-</span></span></code></pre></td></tr></table>
-</div>
-</div><p>但是，除非有 <code>/etc/iptables/iptables.rules</code> 否则服务不会启动。因此第一次启动服务时如果没有该文件，使用以下命令创建：</p>
-<div class="highlight"><div class="chroma">
-<table class="lntable"><tr><td class="lntd">
-<pre tabindex="0" class="chroma"><code><span class="lnt">1
-</span></code></pre></td>
-<td class="lntd">
-<pre tabindex="0" class="chroma"><code class="language-sh" data-lang="sh"><span class="line"><span class="cl"><span class="c1"># touch /etc/iptables/iptables.rules</span>
-</span></span></code></pre></td></tr></table>
-</div>
-</div><h3 id="命令行">命令行</h3>
-<p><strong>显示当前规则</strong></p>
-<div class="highlight"><div class="chroma">
-<table class="lntable"><tr><td class="lntd">
-<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
-</span><span class="lnt"> 2
-</span><span class="lnt"> 3
-</span><span class="lnt"> 4
-</span><span class="lnt"> 5
-</span><span class="lnt"> 6
-</span><span class="lnt"> 7
-</span><span class="lnt"> 8
-</span><span class="lnt"> 9
-</span><span class="lnt">10
-</span></code></pre></td>
-<td class="lntd">
-<pre tabindex="0" class="chroma"><code class="language-sh" data-lang="sh"><span class="line"><span class="cl"><span class="c1"># iptables -nvL</span>
-</span></span><span class="line"><span class="cl">-----------------------------------------------------
-</span></span><span class="line"><span class="cl">Chain INPUT <span class="o">(</span>policy ACCEPT <span class="m">0</span> packets, <span class="m">0</span> bytes<span class="o">)</span>
-</span></span><span class="line"><span class="cl"> pkts bytes target     prot opt in     out     <span class="nb">source</span>               destination   
-</span></span><span class="line"><span class="cl">     
-</span></span><span class="line"><span class="cl">Chain FORWARD <span class="o">(</span>policy ACCEPT <span class="m">0</span> packets, <span class="m">0</span> bytes<span class="o">)</span>
-</span></span><span class="line"><span class="cl"> pkts bytes target     prot opt in     out     <span class="nb">source</span>               destination    
-</span></span><span class="line"><span class="cl">    
-</span></span><span class="line"><span class="cl">Chain OUTPUT <span class="o">(</span>policy ACCEPT 0K packets, <span class="m">0</span> bytes<span class="o">)</span>
-</span></span><span class="line"><span class="cl"> pkts bytes target     prot opt in     out     <span class="nb">source</span>               destination
-</span></span></code></pre></td></tr></table>
-</div>
-</div><p>添加 <code>--line-numbers</code> 选项可以显示行号，插入规则是有用。</p>
-<p><strong>重置规则</strong></p>
-<p>使用这些命令刷新和重置iptalbes到默认状态：</p>
-<div class="highlight"><div class="chroma">
-<table class="lntable"><tr><td class="lntd">
-<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
-</span><span class="lnt"> 2
-</span><span class="lnt"> 3
-</span><span class="lnt"> 4
-</span><span class="lnt"> 5
-</span><span class="lnt"> 6
-</span><span class="lnt"> 7
-</span><span class="lnt"> 8
-</span><span class="lnt"> 9
-</span><span class="lnt">10
-</span><span class="lnt">11
-</span><span class="lnt">12
-</span><span class="lnt">13
-</span></code></pre></td>
-<td class="lntd">
-<pre tabindex="0" class="chroma"><code class="language-sh" data-lang="sh"><span class="line"><span class="cl"><span class="c1"># iptables -F</span>
-</span></span><span class="line"><span class="cl"><span class="c1"># iptables -X</span>
-</span></span><span class="line"><span class="cl"><span class="c1"># iptables -t nat -F</span>
-</span></span><span class="line"><span class="cl"><span class="c1"># iptables -t nat -X</span>
-</span></span><span class="line"><span class="cl"><span class="c1"># iptables -t mangle -F</span>
-</span></span><span class="line"><span class="cl"><span class="c1"># iptables -t mangle -X</span>
-</span></span><span class="line"><span class="cl"><span class="c1"># iptables -t raw -F</span>
-</span></span><span class="line"><span class="cl"><span class="c1"># iptables -t raw -X</span>
-</span></span><span class="line"><span class="cl"><span class="c1"># iptables -t security -F</span>
-</span></span><span class="line"><span class="cl"><span class="c1"># iptables -t security -X</span>
-</span></span><span class="line"><span class="cl"><span class="c1"># iptables -P INPUT ACCEPT</span>
-</span></span><span class="line"><span class="cl"><span class="c1"># iptables -P FORWARD ACCEPT</span>
-</span></span><span class="line"><span class="cl"><span class="c1"># iptables -P OUTPUT ACCEPT</span>
-</span></span></code></pre></td></tr></table>
-</div>
-</div><p>没有任何参数的 <code>-F</code> 命令在当前表中刷新所有链。同样的, <code>-X</code> 命令删除表中所有非默认链。</p>
-<p><strong>编辑规则</strong></p>
-<p>有两种添加规则的方式，一种是在链上附加规则，另一种是将规则插入到链上的某个特定位置。</p>
-<p>让计算机禁止转发数据包，将 <code>FORWARD</code> 链默认的路由规则由 <code>ACCEPT</code> 改成 <code>DROP</code>。</p>
-<div class="highlight"><div class="chroma">
-<table class="lntable"><tr><td class="lntd">
-<pre tabindex="0" class="chroma"><code><span class="lnt">1
-</span></code></pre></td>
-<td class="lntd">
-<pre tabindex="0" class="chroma"><code class="language-sh" data-lang="sh"><span class="line"><span class="cl"><span class="c1"># iptables -P FORWARD DROP</span>
-</span></span></code></pre></td></tr></table>
-</div>
-</div><p>Dropbox 的局域网同步特性，每30s广播数据包到所有可视的计算机，如果我们碰巧在一个拥有Dropbox客户端的局域网中，但是我们不想使用这个特性，那么我们希望拒绝这些数据包。</p>
-<div class="highlight"><div class="chroma">
-<table class="lntable"><tr><td class="lntd">
-<pre tabindex="0" class="chroma"><code><span class="lnt">1
-</span></code></pre></td>
-<td class="lntd">
-<pre tabindex="0" class="chroma"><code class="language-sh" data-lang="sh"><span class="line"><span class="cl"><span class="c1"># iptables -A INPUT -p tcp --dport 17500 -j REJECT --reject-with icmp-port-unreachable</span>
-</span></span></code></pre></td></tr></table>
-</div>
-</div><div class="highlight"><div class="chroma">
-<table class="lntable"><tr><td class="lntd">
-<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
-</span><span class="lnt"> 2
-</span><span class="lnt"> 3
-</span><span class="lnt"> 4
-</span><span class="lnt"> 5
-</span><span class="lnt"> 6
-</span><span class="lnt"> 7
-</span><span class="lnt"> 8
-</span><span class="lnt"> 9
-</span><span class="lnt">10
-</span><span class="lnt">11
-</span></code></pre></td>
-<td class="lntd">
-<pre tabindex="0" class="chroma"><code class="language-sh" data-lang="sh"><span class="line"><span class="cl"><span class="c1"># iptables -nvL --line-numbers</span>
-</span></span><span class="line"><span class="cl">------------------------------------------------------------------
-</span></span><span class="line"><span class="cl">Chain INPUT <span class="o">(</span>policy ACCEPT <span class="m">0</span> packets, <span class="m">0</span> bytes<span class="o">)</span>
-</span></span><span class="line"><span class="cl">num   pkts bytes target     prot opt in     out     <span class="nb">source</span>               destination
-</span></span><span class="line"><span class="cl"><span class="m">1</span>        <span class="m">0</span>     <span class="m">0</span> REJECT     tcp  --  *      *       0.0.0.0/0            0.0.0.0/0            tcp dpt:17500 reject-with icmp-port-unreachable
-</span></span><span class="line"><span class="cl">
-</span></span><span class="line"><span class="cl">Chain FORWARD <span class="o">(</span>policy DROP <span class="m">0</span> packets, <span class="m">0</span> bytes<span class="o">)</span>
-</span></span><span class="line"><span class="cl">num   pkts bytes target     prot opt in     out     <span class="nb">source</span>               destination
-</span></span><span class="line"><span class="cl">
-</span></span><span class="line"><span class="cl">Chain OUTPUT <span class="o">(</span>policy ACCEPT <span class="m">0</span> packets, <span class="m">0</span> bytes<span class="o">)</span>
-</span></span><span class="line"><span class="cl">num   pkts bytes target     prot opt in     out     <span class="nb">source</span>               destination
-</span></span></code></pre></td></tr></table>
-</div>
-</div><p>现在我们希望安装Dropbox，也希望局域网同步，但是我们的网络只有一个特定的IP地址，因此需要使用 <code>-R</code> 参数来替换旧规则，只接收特定IP地址的广播包，<code>10.0.0.85</code>是我们另一个IP地址。</p>
-<div class="highlight"><div class="chroma">
-<table class="lntable"><tr><td class="lntd">
-<pre tabindex="0" class="chroma"><code><span class="lnt">1
-</span></code></pre></td>
-<td class="lntd">
-<pre tabindex="0" class="chroma"><code class="language-sh" data-lang="sh"><span class="line"><span class="cl"><span class="c1"># iptables -R INPUT 1 -p tcp --dport 17500 ! -s 10.0.0.85 -j REJECT --reject-with icmp-port-unreachable</span>
-</span></span></code></pre></td></tr></table>
-</div>
-</div><div class="highlight"><div class="chroma">
-<table class="lntable"><tr><td class="lntd">
-<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
-</span><span class="lnt"> 2
-</span><span class="lnt"> 3
-</span><span class="lnt"> 4
-</span><span class="lnt"> 5
-</span><span class="lnt"> 6
-</span><span class="lnt"> 7
-</span><span class="lnt"> 8
-</span><span class="lnt"> 9
-</span><span class="lnt">10
-</span><span class="lnt">11
-</span></code></pre></td>
-<td class="lntd">
-<pre tabindex="0" class="chroma"><code class="language-sh" data-lang="sh"><span class="line"><span class="cl"><span class="c1"># iptables -nvL --line-numbers</span>
-</span></span><span class="line"><span class="cl">-------------------------------------------------------------------
-</span></span><span class="line"><span class="cl">Chain INPUT <span class="o">(</span>policy ACCEPT <span class="m">0</span> packets, <span class="m">0</span> bytes<span class="o">)</span>
-</span></span><span class="line"><span class="cl">num   pkts bytes target     prot opt in     out     <span class="nb">source</span>               destination
-</span></span><span class="line"><span class="cl"><span class="m">1</span>        <span class="m">0</span>     <span class="m">0</span> REJECT     tcp  --  *      *      !10.0.0.85            0.0.0.0/0            tcp dpt:17500 reject-with icmp-port-unreachable
-</span></span><span class="line"><span class="cl">
-</span></span><span class="line"><span class="cl">Chain FORWARD <span class="o">(</span>policy DROP <span class="m">0</span> packets, <span class="m">0</span> bytes<span class="o">)</span>
-</span></span><span class="line"><span class="cl">num   pkts bytes target     prot opt in     out     <span class="nb">source</span>               destination
-</span></span><span class="line"><span class="cl">
-</span></span><span class="line"><span class="cl">Chain OUTPUT <span class="o">(</span>policy ACCEPT <span class="m">0</span> packets, <span class="m">0</span> bytes<span class="o">)</span>
-</span></span><span class="line"><span class="cl">num   pkts bytes target     prot opt in     out     <span class="nb">source</span>               destination
-</span></span></code></pre></td></tr></table>
-</div>
-</div><p>我们现在允许 <code>10.0.0.85</code> 访问计算机 <code>17500</code> 端口，但是这条规则不可升级，如果有友好的Dropbox用户想要访问设备上的 &lsquo;17500&rsquo; 端口，我们应该马上允许，而不是在测试过所有防火墙规则后再允许。</p>
-<p>因此我们在旧规则前插入一条新规则：</p>
-<div class="highlight"><div class="chroma">
-<table class="lntable"><tr><td class="lntd">
-<pre tabindex="0" class="chroma"><code><span class="lnt">1
-</span></code></pre></td>
-<td class="lntd">
-<pre tabindex="0" class="chroma"><code class="language-sh" data-lang="sh"><span class="line"><span class="cl"><span class="c1"># iptables -I INPUT -p tcp --dport 17500 -s 10.0.0.85 -j ACCEPT -m comment --comment &#34;Friendly Dropbox&#34;</span>
-</span></span></code></pre></td></tr></table>
-</div>
-</div><div class="highlight"><div class="chroma">
-<table class="lntable"><tr><td class="lntd">
-<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
-</span><span class="lnt"> 2
-</span><span class="lnt"> 3
-</span><span class="lnt"> 4
-</span><span class="lnt"> 5
-</span><span class="lnt"> 6
-</span><span class="lnt"> 7
-</span><span class="lnt"> 8
-</span><span class="lnt"> 9
-</span><span class="lnt">10
-</span><span class="lnt">11
-</span><span class="lnt">12
-</span></code></pre></td>
-<td class="lntd">
-<pre tabindex="0" class="chroma"><code class="language-sh" data-lang="sh"><span class="line"><span class="cl"><span class="c1"># iptables -nvL --line-numbers</span>
-</span></span><span class="line"><span class="cl">-------------------------------------------------------------------
-</span></span><span class="line"><span class="cl">Chain INPUT <span class="o">(</span>policy ACCEPT <span class="m">0</span> packets, <span class="m">0</span> bytes<span class="o">)</span>
-</span></span><span class="line"><span class="cl">num   pkts bytes target     prot opt in     out     <span class="nb">source</span>               destination
-</span></span><span class="line"><span class="cl"><span class="m">1</span>        <span class="m">0</span>     <span class="m">0</span> ACCEPT     tcp  --  *      *       10.0.0.85            0.0.0.0/0            tcp dpt:17500 /* Friendly Dropbox */
-</span></span><span class="line"><span class="cl"><span class="m">2</span>        <span class="m">0</span>     <span class="m">0</span> REJECT     tcp  --  *      *      !10.0.0.85            0.0.0.0/0            tcp dpt:17500 reject-with icmp-port-unreachable
-</span></span><span class="line"><span class="cl">
-</span></span><span class="line"><span class="cl">Chain FORWARD <span class="o">(</span>policy DROP <span class="m">0</span> packets, <span class="m">0</span> bytes<span class="o">)</span>
-</span></span><span class="line"><span class="cl">num   pkts bytes target     prot opt in     out     <span class="nb">source</span>               destination
-</span></span><span class="line"><span class="cl">
-</span></span><span class="line"><span class="cl">Chain OUTPUT <span class="o">(</span>policy ACCEPT <span class="m">0</span> packets, <span class="m">0</span> bytes<span class="o">)</span>
-</span></span><span class="line"><span class="cl">num   pkts bytes target     prot opt in     out     <span class="nb">source</span>               destination
-</span></span></code></pre></td></tr></table>
-</div>
-</div><p>改变第二条规则，使其拒绝<code>17500</code>端口的任何数据包：</p>
-<div class="highlight"><div class="chroma">
-<table class="lntable"><tr><td class="lntd">
-<pre tabindex="0" class="chroma"><code><span class="lnt">1
-</span></code></pre></td>
-<td class="lntd">
-<pre tabindex="0" class="chroma"><code class="language-sh" data-lang="sh"><span class="line"><span class="cl"><span class="c1"># iptables -R INPUT 2 -p tcp --dport 17500 -j REJECT --reject-with icmp-port-unreachable</span>
-</span></span></code></pre></td></tr></table>
-</div>
-</div><div class="highlight"><div class="chroma">
-<table class="lntable"><tr><td class="lntd">
-<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
-</span><span class="lnt"> 2
-</span><span class="lnt"> 3
-</span><span class="lnt"> 4
-</span><span class="lnt"> 5
-</span><span class="lnt"> 6
-</span><span class="lnt"> 7
-</span><span class="lnt"> 8
-</span><span class="lnt"> 9
-</span><span class="lnt">10
-</span><span class="lnt">11
-</span><span class="lnt">12
-</span></code></pre></td>
-<td class="lntd">
-<pre tabindex="0" class="chroma"><code class="language-sh" data-lang="sh"><span class="line"><span class="cl"><span class="c1"># iptables -nvL --line-numbers</span>
-</span></span><span class="line"><span class="cl">-------------------------------------------------------------------
-</span></span><span class="line"><span class="cl">Chain INPUT <span class="o">(</span>policy ACCEPT <span class="m">0</span> packets, <span class="m">0</span> bytes<span class="o">)</span>
-</span></span><span class="line"><span class="cl">num   pkts bytes target     prot opt in     out     <span class="nb">source</span>               destination
-</span></span><span class="line"><span class="cl"><span class="m">1</span>        <span class="m">0</span>     <span class="m">0</span> ACCEPT     tcp  --  *      *       10.0.0.85            0.0.0.0/0            tcp dpt:17500 /* Friendly Dropbox */
-</span></span><span class="line"><span class="cl"><span class="m">2</span>        <span class="m">0</span>     <span class="m">0</span> REJECT     tcp  --  *      *       0.0.0.0/0            0.0.0.0/0            tcp dpt:17500 reject-with icmp-port-unreachable
-</span></span><span class="line"><span class="cl">
-</span></span><span class="line"><span class="cl">Chain FORWARD <span class="o">(</span>policy DROP <span class="m">0</span> packets, <span class="m">0</span> bytes<span class="o">)</span>
-</span></span><span class="line"><span class="cl">num   pkts bytes target     prot opt in     out     <span class="nb">source</span>               destination
-</span></span><span class="line"><span class="cl">
-</span></span><span class="line"><span class="cl">Chain OUTPUT <span class="o">(</span>policy ACCEPT <span class="m">0</span> packets, <span class="m">0</span> bytes<span class="o">)</span>
-</span></span><span class="line"><span class="cl">num   pkts bytes target     prot opt in     out     <span class="nb">source</span>               destination
-</span></span></code></pre></td></tr></table>
-</div>
-</div><p><strong>保存规则</strong>
-通过命令行添加规则，规则文件不会自动改变，必须手动保存：</p>
-<div class="highlight"><div class="chroma">
-<table class="lntable"><tr><td class="lntd">
-<pre tabindex="0" class="chroma"><code><span class="lnt">1
-</span></code></pre></td>
-<td class="lntd">
-<pre tabindex="0" class="chroma"><code class="language-sh" data-lang="sh"><span class="line"><span class="cl"><span class="c1"># iptables-save &gt; /etc/iptables/iptables.rules</span>
-</span></span></code></pre></td></tr></table>
-</div>
-</div><p>修改配置文件后，需要重新加载服务：</p>
-<div class="highlight"><div class="chroma">
-<table class="lntable"><tr><td class="lntd">
-<pre tabindex="0" class="chroma"><code><span class="lnt">1
-</span></code></pre></td>
-<td class="lntd">
-<pre tabindex="0" class="chroma"><code class="language-sh" data-lang="sh"><span class="line"><span class="cl"><span class="c1"># systemctl reload iptables</span>
-</span></span></code></pre></td></tr></table>
-</div>
-</div><p>或者通过iptables直接加载：</p>
-<div class="highlight"><div class="chroma">
-<table class="lntable"><tr><td class="lntd">
-<pre tabindex="0" class="chroma"><code><span class="lnt">1
-</span></code></pre></td>
-<td class="lntd">
-<pre tabindex="0" class="chroma"><code class="language-sh" data-lang="sh"><span class="line"><span class="cl"><span class="c1"># iptables-restore &lt; /etc/iptables/iptables.rules</span>
-</span></span></code></pre></td></tr></table>
-</div>
-</div><h2 id="日志">日志</h2>
-<p>LOG 目标可以来记录匹配某个规则的数据包。和ACCEPT或DROP规则不同，进入LOG目标之后数据包会继续沿着链往下走。所以要记录所有丢弃的数据包，只需要在DROP规则前加上相应的LOG规则。但是这样会比较复杂，影响效率，所以应该创建一个<code>logdrop</code>链。</p>
-<div class="highlight"><div class="chroma">
-<table class="lntable"><tr><td class="lntd">
-<pre tabindex="0" class="chroma"><code><span class="lnt">1
-</span><span class="lnt">2
-</span><span class="lnt">3
-</span></code></pre></td>
-<td class="lntd">
-<pre tabindex="0" class="chroma"><code class="language-sh" data-lang="sh"><span class="line"><span class="cl"><span class="c1"># iptables -N logdrop</span>
-</span></span><span class="line"><span class="cl"><span class="c1"># iptables -A logdrop -m limit --limit 5/m --limit-burst 10 -j LOG</span>
-</span></span><span class="line"><span class="cl"><span class="c1"># iptables -A logdrop -j DROP</span>
-</span></span></code></pre></td></tr></table>
-</div>
-</div><p>现在任何时候想要丢弃数据包并且记录该事件，只要跳转到<code>logdrop</code>链，例如：</p>
-<div class="highlight"><div class="chroma">
-<table class="lntable"><tr><td class="lntd">
-<pre tabindex="0" class="chroma"><code><span class="lnt">1
-</span></code></pre></td>
-<td class="lntd">
-<pre tabindex="0" class="chroma"><code class="language-sh" data-lang="sh"><span class="line"><span class="cl"><span class="c1"># iptables -A INPUT -m conntrack --ctstate INVALID -j logdrop</span>
-</span></span></code></pre></td></tr></table>
-</div>
-</div><h3 id="限制日志级别">限制日志级别</h3>
-<p>上述 &rsquo;logdrop&rsquo; 链使用限制(limit)模式来防止iptables日志过大造成不必要的硬盘读写。</p>
-<p>限制模式使用 <code>-m limit</code>，可以使用 <code>--limit</code> 来设置平均速率或者使用 <code>--limit-brust</code> 来设置起始触发速率。在上述 <code>logdrop</code> 里，添加一条记录所有通过其数据包的规则，开始的连续10个数据包将被记录，之后的每分钟只会记录5个数据包。</p>
-<h3 id="查看记录的数据包">查看记录的数据包</h3>
-<p>记录的数据包作为内核信息，可以在 systemd journal看到，使用以下命令查看所有最近一次启动后所记录的数据包：</p>
-<div class="highlight"><div class="chroma">
-<table class="lntable"><tr><td class="lntd">
-<pre tabindex="0" class="chroma"><code><span class="lnt">1
-</span></code></pre></td>
-<td class="lntd">
-<pre tabindex="0" class="chroma"><code class="language-sh" data-lang="sh"><span class="line"><span class="cl"><span class="c1"># journalctl -k | grep &#34;IN=.*OUT=.*&#34; | less</span>
-</span></span></code></pre></td></tr></table>
-</div>
-</div><h3 id="ulogd">ulogd</h3>
-<p><code>ulogd</code> 是专门用于netfilter的日志工具，可以替代默认的LOG目标。</p>
-<h2 id="faq">FAQ</h2>
-<h3 id="tcpdump-可以抓到包但是程序接收不到">tcpdump 可以抓到包，但是程序接收不到</h3>
-<p>tcpdump在进入iptables之前抓包，所有有可能数据包被iptables丢弃了。</p>
-<h2 id="参考资料">参考资料</h2>
-<ul>
-<li><a href="https://wiki.archlinux.org/index.php/Iptables_%28%E7%AE%80%E4%BD%93%E4%B8%AD%E6%96%87%29" target="_blank" rel="noopener noreffer">https://wiki.archlinux.org/index.php/Iptables_(%E7%AE%80%E4%BD%93%E4%B8%AD%E6%96%87)</a></li>
-<li><a href="https://www.jianshu.com/p/6d77d73325bf" target="_blank" rel="noopener noreffer">https://www.jianshu.com/p/6d77d73325bf</a></li>
-</ul>
-]]></description></item></channel></rss>
+</div>]]></description></item></channel></rss>
