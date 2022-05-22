@@ -198,8 +198,8 @@ cgroup 创建之后都是domain cgroup，可以通过下面的命令将其改成
 </div><p>因此引入了cgroup namespace。</p>
 <h2 id="cgroupv2的实现">cgroupV2的实现</h2>
 <h3 id="cgroup-控制接口">cgroup 控制接口</h3>
-<p>
-Linux 使用了多种数据结构在内核中实现了cgroups的配置，关联了进程和cgroups节点，那么Linux又是如何让用户态进程使用cgroups的功能呢？Linux内核有一个很大的模块叫VFS（Virtual File System）。VFS能够把具体的文件系统细节隐藏起来，给用户态进程提供一个同一个为文件系统API接口。cgrpus与CFS之间衔接的部分称之为cgroup文件系统。</p>
+<p></p>
+<p>Linux 使用了多种数据结构在内核中实现了cgroups的配置，关联了进程和cgroups节点，那么Linux又是如何让用户态进程使用cgroups的功能呢？Linux内核有一个很大的模块叫VFS（Virtual File System）。VFS能够把具体的文件系统细节隐藏起来，给用户态进程提供一个同一个为文件系统API接口。cgrpus与CFS之间衔接的部分称之为cgroup文件系统。</p>
 <h2 id="cgroupv2的典型应用">cgroupV2的典型应用</h2>
 <p>听说cgroup是从docker开始，也是容器技术带火了cgroup技术，这里简单介绍下容器如何使用cgroup。</p>
 <p></p>
