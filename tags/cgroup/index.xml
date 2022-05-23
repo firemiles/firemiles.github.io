@@ -44,6 +44,12 @@
 <blockquote>
 <p>进程能否是同时属于cgroup v1和cgroup v2？可以的，查看 <code>/proc/$PID/cgroup</code> 会返现同时包含v1和v2 membership</p>
 </blockquote>
+<p>Linux 社区 cgroup 分享：</p>
+
+<div style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden;">
+  <iframe src="https://www.youtube-nocookie.com/embed/z7mgaWqiV90" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border:0;" allowfullscreen title="YouTube Video"></iframe>
+</div>
+
 <h3 id="进程线程与-cgroup-关系">进程/线程与 cgroup 关系</h3>
 <p>所有cgroup组成一个树形结构。</p>
 <ul>

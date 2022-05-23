@@ -59,6 +59,10 @@ cgroup v2将多个hierarchy的方式变成了 unified hierarchy，并将所有�
 
 > 进程能否是同时属于cgroup v1和cgroup v2？可以的，查看 `/proc/$PID/cgroup` 会返现同时包含v1和v2 membership
 
+Linux 社区 cgroup 分享：
+
+{{<youtube z7mgaWqiV90>}}
+
 ### 进程/线程与 cgroup 关系
 
 所有cgroup组成一个树形结构。
